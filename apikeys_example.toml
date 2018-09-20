@@ -1,0 +1,11 @@
+[apikeys.HITBTC]
+public_key = ""
+secret = ""
+
+[apikeys.KUCOIN]
+public_key = ""
+secret = ""
+
+[apikeys.CRYPTOPIA]
+public_key = ""
+secret = ""

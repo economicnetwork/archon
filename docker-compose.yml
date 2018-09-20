@@ -1,18 +1,16 @@
 version: '2'
 services:
-    monitorapp2:
+    report:
         build:
             context: ./
-            dockerfile: docker_monitor
+            #dockerfile: docker_monitor
         #container_name: "monitorapp"
         #image: debian/latest
         environment:
-            - NODE_ENV=development
             - MONGODB_PORT_27017_TCP_ADDR
-            - FOO=bar
         volumes:
             #- ./dockerimg:/root/log
-            - /tmp:/tmp
+            - /tmp:/tmp/
         ports:
             - 3000:3000
             - 9000:9000
@@ -23,7 +21,7 @@ services:
 
     mongodb:
         image: mongo:latest
-        container_name: "mongodb"
+        #container_name: "mongodb"
         environment:
           - MONGO_DATA_DIR=/data/db
           - MONGO_LOG_DIR=/dev/null

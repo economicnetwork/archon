@@ -7,12 +7,17 @@ import broker
 import time
 from util import *
 
-def toml_file():
-    with open("apikeys.toml", "r") as f:
+def toml_file(fs):
+    with open(fs, "r") as f:
         return f.read()
 
 def apikeys_config():
-    toml_string = toml_file()
+    toml_string = toml_file("apikeys.toml")
+    parsed_toml = toml.loads(toml_string)
+    return parsed_toml
+
+def general_config():
+    toml_string = toml_file("conf.toml")
     parsed_toml = toml.loads(toml_string)
     return parsed_toml
 
@@ -28,4 +33,7 @@ def setClientsFromFile(abroker):
     
     abroker.set_api_keys(broker.EXC_CRYPTOPIA,ck["public_key"],ck["secret"])
     abroker.set_singleton_exchange(broker.EXC_CRYPTOPIA)
+
+    gconf = general_config()
+    abroker.set_mail_config(gconf["apikey"], gconf["domain"])
     

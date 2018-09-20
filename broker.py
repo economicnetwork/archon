@@ -24,6 +24,11 @@ class Broker:
     def __init__(self):
         self.s_exchange = None
 
+    def set_mail_config(self, apikey, domain):
+        """ mailgun config """
+        self.mail_api_key = apikey
+        self.mail_domain = domain
+
     def set_api_keys(self, exchange, key, secret):
         clients[exchange] = CryptopiaAPI(key, secret)
         #rexapi = rex.Bittrex(rex_key,rex_secret)
