@@ -75,5 +75,4 @@ def schedule_tasks():
     
 
 if __name__=='__main__':
-    #schedule_tasks()
-    run_balance_report()
+    schedule_tasks()
