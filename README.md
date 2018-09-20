@@ -1,4 +1,19 @@
 # Archon
+
 General trading framework
 
-python3 pip3 install -r requirements.txt
+* install 
+
+python3 
+pip3 install -r requirements.txt
+
+add apikeys.toml
+```
+[apikeys.CRYPTOPIA]
+public_key = ""
+secret = ""
+```
+
+* run
+
+python3 example.py
