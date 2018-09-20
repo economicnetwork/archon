@@ -1,3 +1,4 @@
+""" mailgun """
 import requests
 
 def send_simple_message(apikey, domain, subject, text):

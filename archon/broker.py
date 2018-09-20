@@ -2,7 +2,7 @@
 broker
 """
 
-from cryptopia import CryptopiaAPI
+from archon.cryptopia import CryptopiaAPI
 #import rex
 import time
 #from util import *

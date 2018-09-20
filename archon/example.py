@@ -13,8 +13,7 @@ def show(abroker):
         v = abroker.balance_currency(asset)['Total']
         log.info('%s => %f'%(asset,v))
 
-    #market = "AC3_BTC"
-    market = "BOXX_BTC"
+    market = "AC3_BTC"    
     oo = abroker.open_orders(market)
     log.info("open orders " + str(oo))
 
