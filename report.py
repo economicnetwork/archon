@@ -46,7 +46,7 @@ def balance_report(abroker):
 
     
 def run_balance_report():
-    print ("run")
+    log.info("run report")
     #logpath = '/tmp/log'
     abroker = broker.Broker()
     arch.setClientsFromFile(abroker)
@@ -65,7 +65,5 @@ def schedule_tasks():
     
 
 if __name__=='__main__':
-    #send_simple_message()
-    #run()
-    #schedule_tasks()
-    run_balance_report()
+    schedule_tasks()
+    #run_balance_report()
