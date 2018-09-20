@@ -105,5 +105,3 @@ class Broker:
             asks = (ob["sell"])
             return [bids,asks]
 
-    #single_client = None
-    #market = "AC3_BTC"
