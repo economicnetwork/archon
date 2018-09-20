@@ -1,8 +1,11 @@
 # Archon
 
-General trading framework
+General trading framework. Exchanges are abstracted as a broker interface
+The broker mediates requests from strategies. 
 
-* install 
+The stack is managed through docker (python, mongo, rabbitmq)
+
+## install 
 
 python3 
 pip3 install -r requirements.txt
@@ -14,6 +17,21 @@ public_key = ""
 secret = ""
 ```
 
-* run
+add conf.toml
 
-python3 example.py
+```
+apikey = "key-"
+domain = "https://api.mailgun.net/v3/domain/messages"
+```
+
+## Examples
+
+```
+>>> import archon
+>>> abroker = archon.broker.Broker()
+>>> arch.setClientsFromFile(abroker)
+>>> print(abroker.balance_currency("BTC")['Total'])
+```
+
+example.py
+report.py

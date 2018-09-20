@@ -2,8 +2,7 @@
 broker
 """
 
-from archon.cryptopia import CryptopiaAPI
-#import rex
+from archon.cryptopia import CryptopiaAPI#import rex
 import time
 #from util import *
 
@@ -33,6 +32,10 @@ class Broker:
         clients[exchange] = CryptopiaAPI(key, secret)
         #rexapi = rex.Bittrex(rex_key,rex_secret)
         #return ccapi
+
+    def get_client(self, EXC):
+        """ directly get a client """
+        return clients[EXC]
 
     def set_singleton_exchange(self, exchange):
         self.s_exchange = exchange
@@ -88,6 +91,7 @@ class Broker:
 
     def get_orderbook(self, market, **kwargs):
         exchange = self.parse_exchange(**kwargs)
+        print ("get orderbook " + str(market))
         if exchange==EXC_CRYPTOPIA:
             ob, err = clients[EXC_CRYPTOPIA].get_orders(market)
             if err:
@@ -105,3 +109,100 @@ class Broker:
             asks = (ob["sell"])
             return [bids,asks]
 
+    def submit_order(self, order,  **kwargs):
+        """ submit order which is array [type,order,qty] """
+        # ("order " + str(order)) 
+        exchange = self.parse_exchange(**kwargs)
+        if exchange==EXC_CRYPTOPIA:
+            market,ttype,order_price,qty = order.market, order.otype, order.price, order.qty
+            # (order_price,qty,market)
+            if ttype == "BUY":
+                result, err = clients[EXC_CRYPTOPIA].submit_trade(market, "BUY", order_price, qty)
+                if err:
+                    print ("! error with order " + str(order) + " " + str(err))
+                else:
+                    print ("result " + str(result))
+                    return result
+            elif ttype == "SELL":
+                result, err = clients[EXC_CRYPTOPIA].submit_trade(market, "SELL", order_price, qty)
+                if err:
+                    print ("error order " + str(order))
+                else:
+                    print ("result " + str(result))
+
+        elif exchange==EXC_BITTREX:
+            #TODO
+            market = "USDT-BTC"
+            ttype,order_price,qty = order
+            OrderType = "LIMIT"
+            Quantity = qty
+            Rate = order_price
+            TimeInEffect = "GOOD_TIL_CANCELLED"
+            ConditionType = "NONE"
+            target = 0
+            if ttype == "BUY":   
+                #buy_limit(self, market, quantity, rate):         
+                r = clients[EXC_BITTREX].buy_limit(market=market, quantity=Quantity, rate=Rate)
+                #TODO handle fails
+                print ("order result " + str(r))
+            elif ttype == "SELL":
+                r = clients[EXC_BITTREX].sell_limit(market=market, quantity=Quantity, rate=Rate)
+                print ("order result " + str(r))
+
+    def cancel(self, oid, **kwargs):
+        """ cancel by id . TODO integrate OMS and internal checks """
+        exchange = self.parse_exchange(**kwargs)
+        if exchange==EXC_CRYPTOPIA:
+            print ("cancel " + str(oid))
+            r,err = clients[EXC_CRYPTOPIA].cancel_trade_id(oid)
+            return r
+        elif exchange==EXC_BITTREX:
+            r = clients[EXC_BITTREX].cancel(oid)
+            return r
+
+
+    def cancel_all(self, market, **kwargs):
+        #print ("cancel all.......")
+        exchange = self.parse_exchange(**kwargs)
+        if exchange==EXC_CRYPTOPIA:            
+            print ("cancel all")
+            oo, err = clients[EXC_CRYPTOPIA].get_openorders(market)
+
+            if err:
+                return []
+            else:
+                print ("open orders ",oo)
+
+                for o in oo:
+                    self.cancel(o['OrderId'])
+                #r, err = clients[EXC_CRYPTOPIA].cancel_all_trades()
+                #time.sleep(2)
+
+                oo, _ = clients[EXC_CRYPTOPIA].get_openorders(market)
+                print ("open orders ",oo)
+
+
+    def price_key(self, **kwargs):
+        exchange = self.parse_exchange(**kwargs)
+        if exchange==EXC_CRYPTOPIA:
+            price_key = "Price"
+            return price_key
+        elif exchange==EXC_BITTREX:
+            price_key = "Rate"
+            return price_key
+
+    def qty_key(self, **kwargs):
+        exchange = self.parse_exchange(**kwargs)
+        if exchange==EXC_CRYPTOPIA:
+            key = "Volume"
+            return key
+        elif exchange==EXC_BITTREX:
+            return "Quantity"
+
+    def tx_amount_key(self, **kwargs):
+        if exchange==EXC_CRYPTOPIA:
+            key = "Amount"
+            return key
+        
+    #single_client = None
+    #market = "AC3_BTC"

@@ -2,3 +2,4 @@ apikeys.toml
 log/
 __pycache__/
 conf.toml
+build/
