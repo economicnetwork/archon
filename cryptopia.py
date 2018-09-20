@@ -133,10 +133,18 @@ class CryptopiaAPI(object):
 
     # ------- private -------
 
+    def get_balance_all(self):
+        """ Gets the balance of the user in the specified currency """        
+        result, error = self.api_query(feature_requested='GetBalance',
+                                       post_parameters={})
+        return (result, error)        
+
+
     def get_balance(self, currency):
         """ Gets the balance of the user in the specified currency """        
         result, error = self.api_query(feature_requested='GetBalance',
                                        post_parameters={'Currency': currency})
+        print (result)
         if error is None:
             result = result[0]
         return (result, error)

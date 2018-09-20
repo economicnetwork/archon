@@ -44,6 +44,12 @@ class Broker:
         else:
             return kwargs['exchange']        
 
+    def balance_all(self, **kwargs):
+        exchange = self.parse_exchange(**kwargs)
+        if exchange==EXC_CRYPTOPIA:
+            currency_list, error = clients[EXC_CRYPTOPIA].get_balance_all()        
+            return currency_list
+
     def balance_currency(self, currency, **kwargs):
         exchange = self.parse_exchange(**kwargs)
         if exchange==EXC_CRYPTOPIA:

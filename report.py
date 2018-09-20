@@ -14,15 +14,25 @@ log = setup_logger(logpath, 'info_logger', 'arch')
 def balance_report(abroker):
     """ example of showing balances """
     log.info('*** balances ***\n')
-    assets = ['BTC', 'AC3']
     s = "*** balances ***\n"
+    """
     for asset in assets:
         v = abroker.balance_currency(asset)['Total']
         log.info('%s => %f'%(asset,v))
         s += '%s => %f\n'%(asset,v)
     print ("send " + str(s))
+    """
+
+    y = abroker.balance_all()
+    for x in y:        
+        if x['Total'] > 0:
+            v = x['Total']
+            s += '%s => %f\n'%(x['Symbol'],v)
+            #print (x)
+    print ("send " + str(s))
     mail.send_simple_message(abroker.mail_api_key, abroker.mail_domain, "Balance Report",s)
 
+def order_report():
     """
     #market = "AC3_BTC"
     market = "BOXX_BTC"
@@ -55,7 +65,7 @@ def run_balance_report():
 def schedule_tasks():
     get_module_logger(__name__).info("schedule report")    
     log.info("schedule report")
-    schedule.every(10).minutes.do(run_balance_report)    
+    schedule.every(60*4).minutes.do(run_balance_report)    
     #schedule.every().day.at("10:30").do(run_balance_report)
     while True:
         schedule.run_pending()
@@ -65,5 +75,5 @@ def schedule_tasks():
     
 
 if __name__=='__main__':
-    schedule_tasks()
-    #run_balance_report()
+    #schedule_tasks()
+    run_balance_report()
