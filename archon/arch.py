@@ -23,16 +23,15 @@ def general_config():
 
 def setClientsFromFile(abroker):
     apikeys = apikeys_config()["apikeys"]     
-    #print ("config " + str(apikeys))
         
-    #self.action_logger = setup_actionlogger('action_logger', './log/broker_actions.log')
-    #self.action_logger.info("action")
-    #self.info_logger = setup_logger('info_logger', './log/broker_info.log')
-    
     ck = apikeys["CRYPTOPIA"]    
     
     abroker.set_api_keys(broker.EXC_CRYPTOPIA,ck["public_key"],ck["secret"])
-    abroker.set_singleton_exchange(broker.EXC_CRYPTOPIA)
+    #abroker.set_singleton_exchange(broker.EXC_CRYPTOPIA)
+
+    bk = apikeys["BITTREX"]        
+    abroker.set_api_keys(broker.EXC_BITTREX,bk["public_key"],bk["secret"])
+    #abroker.set_singleton_exchange(broker.EXC_BITTREX)
 
     gconf = general_config()
     abroker.set_mail_config(gconf["apikey"], gconf["domain"])

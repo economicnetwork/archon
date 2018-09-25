@@ -10,7 +10,7 @@ def show(abroker):
     log.info('*** balances ***')
     assets = ['BTC', 'AC3']
     for asset in assets:
-        v = abroker.balance_currency(asset)['Total']
+        v = abroker.balance_currency(asset, broker.EXC_CRYPTOPIA)#['Total']
         log.info('%s => %f'%(asset,v))
 
     market = "AC3_BTC"    
@@ -37,6 +37,7 @@ if __name__=='__main__':
     log = setup_logger(logpath, 'info_logger', 'arch')
     abroker = broker.Broker()
     arch.setClientsFromFile(abroker)
+    
     while True:
         show(abroker)
         time.sleep(10)

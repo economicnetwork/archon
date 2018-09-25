@@ -35,7 +35,8 @@ def balance_report(abroker):
 
 def order_report():
     """
-    market = "AC3_BTC"
+    #market = "AC3_BTC"
+    market = "BOXX_BTC"
     oo = abroker.open_orders(market)
     log.info("open orders " + str(oo))
 

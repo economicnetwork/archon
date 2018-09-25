@@ -2,6 +2,7 @@
 Cryptopia
 
 https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc
+https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=40e9c310dbf9130084ed147a3a9619eb
 """
 
 import json
@@ -31,8 +32,10 @@ class CryptopiaAPI(object):
         retires = 10
         done = False    
         i = 0
+        #print ("query " + feature_requested)
         while not done:            
             result, error = self.api_query_request(feature_requested, get_parameters, post_parameters)
+            #print ("got result " + str(result))
             if error:
                 print ("error ? " + str(error))
                 print (feature_requested)
@@ -42,6 +45,7 @@ class CryptopiaAPI(object):
                 return result, error
             else:                
                 i+=1
+                print ("request failed. retry")
                 if i > retires:
                     if result == None:
                         return None, "none returned"
@@ -76,6 +80,7 @@ class CryptopiaAPI(object):
             url = baseURL + feature_requested + "/" + \
                   ('/'.join(i for i in get_parameters.values()
                            ) if get_parameters is not None else "")
+            #print ("request url " + url)
             req = requests.get(url, params=get_parameters)
             if req.status_code != 200:
                 try:
@@ -104,7 +109,7 @@ class CryptopiaAPI(object):
         return self.api_query(feature_requested='GetCurrencies')
 
     def get_tradepairs(self):
-        """ GEts all the trade pairs """
+        """ Gets all the trade pairs """
         return self.api_query(feature_requested='GetTradePairs')
 
     def get_markets(self):
@@ -121,15 +126,21 @@ class CryptopiaAPI(object):
         return self.api_query(feature_requested='GetMarketHistory',
                               get_parameters={'market': market})
 
+    def get_history_candle(self, market):
+        return self.api_query(feature_requested='GetMarketHistory',
+                              get_parameters={'market': market, 'hours': '24'})
+        
     def get_orders(self, market):
         """ orderbook """        
         return self.api_query(feature_requested='GetMarketOrders',
                               get_parameters={'market': market})
 
+    """
     def get_ordergroups(self, markets):
-        """ Gets the order groups for the specified market """
+        #Gets the order groups for the specified market
         return self.api_query(feature_requested='GetMarketOrderGroups',
                               get_parameters={'markets': markets})
+    """
 
     # ------- private -------
 
@@ -143,8 +154,7 @@ class CryptopiaAPI(object):
     def get_balance(self, currency):
         """ Gets the balance of the user in the specified currency """        
         result, error = self.api_query(feature_requested='GetBalance',
-                                       post_parameters={'Currency': currency})
-        print (result)
+                                       post_parameters={'Currency': currency})        
         if error is None:
             result = result[0]
         return (result, error)
@@ -154,6 +164,11 @@ class CryptopiaAPI(object):
         return self.api_query(feature_requested='GetOpenOrders',
                               post_parameters={'Market': market})
 
+    def get_openorders_all(self):
+        """ Gets the open order for the user  """
+        return self.api_query(feature_requested='GetOpenOrders',
+                              post_parameters={})
+
     def get_deposit_address(self, currency):
         """ Gets the deposit address for the specified currency """
         return self.api_query(feature_requested='GetDepositAddress',
@@ -162,7 +177,12 @@ class CryptopiaAPI(object):
     def get_tradehistory(self, market):
         """ Gets the trade history for a market """
         return self.api_query(feature_requested='GetTradeHistory',
-                              post_parameters={'Market': market, 'Count': 1000})
+                              post_parameters={'Market': market, 'Count': 10000})
+
+    def get_tradehistory_all(self):
+        """ Gets the trade history """
+        return self.api_query(feature_requested='GetTradeHistory',
+                              post_parameters={'Count': 10000})
 
     def get_transactions(self, transaction_type):
         """ Gets all transactions (deposits, withdraws) for a user """
@@ -188,9 +208,11 @@ class CryptopiaAPI(object):
 
     def cancel_trade_id(self, order_id):
         """ Cancels an active trade """
-        return self.api_query(feature_requested='CancelTrade',
+        r = self.api_query(feature_requested='CancelTrade',
                               post_parameters={'Type': 'Trade',
                                                'OrderID': order_id})
+        print ("cancel result " + str(r))
+        return r
 
     def cancel_all_trades(self):
         """ Cancels an active trade """
