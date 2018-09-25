@@ -1,6 +1,7 @@
 import archon.broker as broker
 import time
 import archon.arch as arch
+import archon.exchange.exchanges as exc
 import datetime
 
 from archon.util import *
@@ -10,7 +11,7 @@ def show(abroker):
     log.info('*** balances ***')
     assets = ['BTC', 'AC3']
     for asset in assets:
-        v = abroker.balance_currency(asset, broker.EXC_CRYPTOPIA)#['Total']
+        v = abroker.balance_currency(asset, exc.CRYPTOPIA)#['Total']
         log.info('%s => %f'%(asset,v))
 
     market = "AC3_BTC"    

@@ -1,0 +1,6 @@
+
+CRYPTOPIA = 0
+BITTREX = 1
+NAMES = {CRYPTOPIA:"Cryptopia",BITTREX:"Bittrex"}
+BITTREX_NAME = "Bittrex"
+CRYPTOPIA_NAME = "Cryptopia"

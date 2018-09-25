@@ -4,6 +4,7 @@ arch
 
 import toml
 import archon.broker as broker
+import archon.exchange.exchanges as exc
 import time
 from archon.util import *
 
@@ -26,11 +27,11 @@ def setClientsFromFile(abroker):
         
     ck = apikeys["CRYPTOPIA"]    
     
-    abroker.set_api_keys(broker.EXC_CRYPTOPIA,ck["public_key"],ck["secret"])
+    abroker.set_api_keys(exc.CRYPTOPIA,ck["public_key"],ck["secret"])
     #abroker.set_singleton_exchange(broker.EXC_CRYPTOPIA)
 
     bk = apikeys["BITTREX"]        
-    abroker.set_api_keys(broker.EXC_BITTREX,bk["public_key"],bk["secret"])
+    abroker.set_api_keys(exc.BITTREX,bk["public_key"],bk["secret"])
     #abroker.set_singleton_exchange(broker.EXC_BITTREX)
 
     gconf = general_config()

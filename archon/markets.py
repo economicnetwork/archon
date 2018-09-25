@@ -4,25 +4,26 @@ nominator-denominator e.g. LTC_BTC
 """
 
 import sys, os
+import archon.exchange.exchanges as exc
 cwd = os.getcwd()
 print (cwd)
-sys.path.append('archon')
+#sys.path.append('archon')
 
-import broker
+import archon.broker as broker
     
 def convert_markets_to(m, exchange):
-    if exchange==broker.EXC_CRYPTOPIA:
+    if exchange==exc.CRYPTOPIA:
         nom,denom = m.split('/')
         return nom + '_' + denom
-    elif exchange==broker.EXC_BITTREX:    
+    elif exchange==exc.BITTREX:    
         denom,nom = m.split('-')
         return nom + '_' + denom
 
 def convert_markets_from(m, exchange):
-    if exchange==broker.EXC_CRYPTOPIA:
+    if exchange==exc.CRYPTOPIA:
         nom,denom = m.split('_')
         return nom + '_' + denom
-    elif exchange==broker.EXC_BITTREX:    
+    elif exchange==exc.BITTREX:    
         nom,denom = m.split('_')
         return denom + '-' + nom
 
@@ -36,17 +37,17 @@ def nom(m):
 
 
 def market_obj(m_str, exchange):
-    if exchange==broker.EXC_CRYPTOPIA:
+    if exchange==exc.CRYPTOPIA:
         nom,denom = m_str.split('/')
         return Market(nom, denom)
-    elif exchange==broker.EXC_BITTREX:    
+    elif exchange==exc.BITTREX:    
         denom,nom = m_str.split('-')
         return Market(nom, denom)
 
 
 
 def market_summary(d, exchange):
-    if exchange==broker.EXC_CRYPTOPIA:
+    if exchange==exc.CRYPTOPIA:
         #{'TradePairId': 5328, 'Label': 'NLC2/BTC',
         # 'AskPrice': 2.23e-06, 'BidPrice': 2.2e-06, 
         #'Low': 2.19e-06, 'High': 2.52e-06, 
@@ -57,7 +58,7 @@ def market_summary(d, exchange):
         last = d['LastPrice']
         volume = d['BaseVolume']
         return {'ask':ask,'bid':bid,'last':last,'volume':volume}
-    elif exchange==broker.EXC_BITTREX:
+    elif exchange==exc.BITTREX:
         #{'MarketName': 'BTC-NLC2', 'High': 2.67e-06, 'Low': 2.25e-06, 
         #'Volume': 932113.81209525, 'Last': 2.25e-06, 'BaseVolume': 2.25302657, 
         #'TimeStamp': '2018-09-25T08:05:30.613', 'Bid': 2.25e-06,
@@ -83,14 +84,14 @@ class Market:
         self.from_market = from_market
         self.to_market = to_market
         self.exchange = exchange
-        self.exchange_name = broker.EXC_NAMES[exchange]
+        self.exchange_name = exc.NAMES[exchange]
 
     def __init__(self, market_string, exchange):
-        if exchange==broker.EXC_CRYPTOPIA:
+        if exchange==exc.CRYPTOPIA:
             delim = '/'
             nom,denom = market_string.split(delim)
             super(nom, denom, exchange)            
-        elif exchange==broker.EXC_BITTREX:
+        elif exchange==exc.BITTREX:
             delim = '-'
             denom,nom = market_string.split(delim)
             super(nom, denom, exchange)                    
@@ -98,11 +99,11 @@ class Market:
     def str_rep(self):
         ''' string representation '''
         #nom,denom = m.split('/')
-        if self.exchange==broker.EXC_CRYPTOPIA:
+        if self.exchange==exc.CRYPTOPIA:
             delim = '/'
             srep = delim.join([self.from_market, self.to_market])
             return srep
-        elif self.exchange==broker.EXC_BITTREX:
+        elif self.exchange==exc.BITTREX:
             delim = '-'
             srep = delim.join([self.to_market, self.from_market])
             return srep            
