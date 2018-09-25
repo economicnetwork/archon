@@ -34,6 +34,9 @@ def setClientsFromFile(abroker):
     abroker.set_api_keys(exc.BITTREX,bk["public_key"],bk["secret"])
     #abroker.set_singleton_exchange(broker.EXC_BITTREX)
 
+    bk = apikeys["KUCOIN"]        
+    abroker.set_api_keys(exc.KUCOIN,bk["public_key"],bk["secret"])
+
     gconf = general_config()
     abroker.set_mail_config(gconf["apikey"], gconf["domain"])
     

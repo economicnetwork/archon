@@ -2,3 +2,4 @@ requests
 pymongo
 toml
 schedule
+dateparser

@@ -8,6 +8,7 @@ import archon.exchange.exchanges as exc
 from archon.exchange.rex import Bittrex
 #from . import markets
 from archon.markets import *
+from archon.exchange.kucoin import KuClient
 
 import time
 import pika
@@ -37,10 +38,13 @@ class Broker:
         self.mail_domain = domain
 
     def set_api_keys(self, exchange, key, secret):
+        print ("set api " + str(exchange))
         if exchange==exc.CRYPTOPIA:
             clients[exchange] = CryptopiaAPI(key, secret)
         elif exchange==exc.BITTREX:
-            clients[exchange] = Bittrex(key,secret)        
+            clients[exchange] = Bittrex(key,secret)  
+        elif exchange==exc.KUCOIN:
+            clients[exchange] = KuClient(key,secret)      
 
     def get_client(self, EXC):
         """ directly get a client """
@@ -58,7 +62,11 @@ class Broker:
         elif exchange==exc.BITTREX:
             b = clients[exc.BITTREX].get_balances()
             br = b["result"]
-            return br            
+            return br    
+
+        elif exchange==exc.KUCOIN:
+            b = clients[exc.KUCOIN].get_all_balances()        
+            return b
         
 
     def balance_currency(self, currency, exchange=None):
