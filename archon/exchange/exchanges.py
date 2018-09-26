@@ -2,8 +2,11 @@
 CRYPTOPIA = 0
 BITTREX = 1
 KUCOIN = 2
+BINANCE = 3
 
-NAMES = {CRYPTOPIA:"Cryptopia",BITTREX:"Bittrex",KUCOIN:"Kucoin"}
+NAMES = {CRYPTOPIA:"Cryptopia",BITTREX:"Bittrex",KUCOIN:"Kucoin",BINANCE:"Binance"}
+
 BITTREX_NAME = "Bittrex"
 CRYPTOPIA_NAME = "Cryptopia"
 KUCOIN_NAME = "Kucoin"
+BINANCE_NAME = "Binance"

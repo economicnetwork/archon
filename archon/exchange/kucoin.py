@@ -487,22 +487,18 @@ class KuClient(object):
         return self._get('account/{}/wallet/records'.format(coin), True, data=data)
 
     def get_coin_balance(self, coin):
-        """Get balance of a coin
-        """
+        """Get balance of a coin"""
 
         return self._get('account/{}/balance'.format(coin), True)
 
     def get_all_balances(self):
-        """Get all coin balances
-        """
-
+        """Get all coin balances"""
         data = {}
 
         return self._get('account/balance', True, data=data)
 
     def get_all_balances_paged(self, limit=None, page=None):
-        """Get all coin balances with paging if that's what you want
-        """
+        """Get all coin balances with paging if that's what you want"""
 
         data = {}
         if limit:
@@ -512,33 +508,6 @@ class KuClient(object):
 
         return self._get('account/balances', True, data=data)
 
-    def get_total_balance(self, currency='USD'):
-        """Get total balance in your currency, USD by default
-        """
-
-        # get balances
-        balances = self.get_all_balances()
-        # find unique coin names
-        coins_csl = ','.join([b['coinType'] for b in balances])
-        # get rates for these coins
-        currency_res = self.get_currencies(coins_csl)
-        rates = currency_res['rates']
-
-        total = 0
-        for b in balances:
-            # ignore any coins of 0 value
-            if b['balanceStr'] == '0.0' and b['freezeBalanceStr'] == '0.0':
-                continue
-            # ignore the coin if we don't have a rate for it
-            if b['coinType'] not in rates:
-                continue
-            # add the value for this coin to the total
-            try:
-                total += (b['balance'] + b['freezeBalance']) * rates[b['coinType']][currency]
-            except KeyError:
-                raise Exception("Unknown currency:{}".format(currency))
-
-        return total
 
     # Trading Endpoints
 

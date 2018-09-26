@@ -37,6 +37,9 @@ def setClientsFromFile(abroker):
     bk = apikeys["KUCOIN"]        
     abroker.set_api_keys(exc.KUCOIN,bk["public_key"],bk["secret"])
 
+    binance_keys = apikeys["BINANCE"]        
+    abroker.set_api_keys(exc.BINANCE,binance_keys["public_key"],binance_keys["secret"])
+
     gconf = general_config()
     abroker.set_mail_config(gconf["apikey"], gconf["domain"])
     

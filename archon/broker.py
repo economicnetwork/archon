@@ -4,11 +4,11 @@ broker
 
 from archon.exchange.cryptopia import CryptopiaAPI
 import archon.exchange.exchanges as exc
-#import bittrex
 from archon.exchange.rex import Bittrex
-#from . import markets
 from archon.markets import *
+from archon.balances import *
 from archon.exchange.kucoin import KuClient
+import binance.client
 
 import time
 import pika
@@ -16,11 +16,6 @@ import sys
 import time
 import random
 import json
-
-#connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-#channel = connection.channel()
-#channel.exchange_declare(exchange='logs',
-#                         exchange_type='fanout')
 
 #from util import *
 
@@ -38,13 +33,15 @@ class Broker:
         self.mail_domain = domain
 
     def set_api_keys(self, exchange, key, secret):
-        print ("set api " + str(exchange))
+        #print ("set api " + str(exchange))
         if exchange==exc.CRYPTOPIA:
             clients[exchange] = CryptopiaAPI(key, secret)
         elif exchange==exc.BITTREX:
             clients[exchange] = Bittrex(key,secret)  
         elif exchange==exc.KUCOIN:
-            clients[exchange] = KuClient(key,secret)      
+            clients[exchange] = KuClient(key,secret)   
+        elif exchange==exc.BINANCE:
+            clients[exchange] = binance.client.Client(key,secret)
 
     def get_client(self, EXC):
         """ directly get a client """
@@ -66,8 +63,13 @@ class Broker:
 
         elif exchange==exc.KUCOIN:
             b = clients[exc.KUCOIN].get_all_balances()        
+            return b        
+
+        elif exchange==exc.BINANCE:
+            b = clients[exc.BINANCE].get_account()['balances']
+            b = unify_balance(b)
             return b
-        
+
 
     def balance_currency(self, currency, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -76,7 +78,7 @@ class Broker:
             currency, err = clients[exc.CRYPTOPIA].get_balance(currency)        
             return currency['Total']
         elif exchange==exc.BITTREX:
-            #{'Currency': 'BTC', 'Balance': 0.0, 'Available': 0.0, 'Pending': 0.0, 'CryptoAddress': '12bXpAZbb4uJ4VQ88QQvi6LwgAhaHURUNV'}
+            #{'Currency': 'BTC', 'Balance': 0.0, 'Available': 0.0, 'Pending': 0.0, 
             try:
                 return_arg = clients[exc.BITTREX].get_balance(currency)        
                 print (return_arg)
@@ -84,7 +86,56 @@ class Broker:
                 return result
             except:
                 return -1
-            
+        
+
+    def get_total_balance(self, currency='USD',exchange=None):
+        """Get total balance in your currency, USD by default"""
+        if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
+        if exchange==exc.CRYPTOPIA:
+            allb = self.balance_all(exchange)
+            balance_list = list()
+            for b in allb:
+                if b['Total']>0:
+                    d = {'symbol':b['Symbol'],'total':b['Total']}
+                    balance_list.append(d)
+
+            return balance_list
+
+        elif exchange==exc.BITTREX:
+            allb = self.balance_all(exchange)
+            balance_list = list()
+            for b in allb:
+                #print (b)
+                if b['Balance']>0:
+                    d = {'symbol':b['Currency'],'total':b['Balance']}
+                    balance_list.append(d)
+
+            return balance_list
+
+        elif exchange==exc.KUCOIN:
+            # get balances
+            balances = client.get_all_balances()
+            # find unique coin names
+            coins_csl = ','.join([b['coinType'] for b in balances])
+            # get rates for these coins
+            #currency_res = client.get_currencies(coins_csl)
+            #rates = currency_res['rates']
+
+            balance_list = list()
+            for b in balances:
+                # ignore any coins of 0 value
+                if b['balanceStr'] == '0.0' and b['freezeBalanceStr'] == '0.0':
+                    continue
+                # ignore the coin if we don't have a rate for it
+                #if b['coinType'] not in rates:
+                #    continue
+
+                d = {'symbol':b['coinType'],'total':b['balance']}
+                balance_list.append(d)
+
+            return balance_list
+        
 
     def open_orders_all(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -103,7 +154,7 @@ class Broker:
             return oor
 
     """
-    def open_orders(self, exchange=None):
+    def open_orders_market(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
         # ("get open orders " + str(market))
 
@@ -119,7 +170,6 @@ class Broker:
             return oor
     """
 
-
     def market_history(self, market, exchange=None):
         if exchange is None: exchange=self.s_exchange
         if exchange==exc.CRYPTOPIA:
@@ -131,6 +181,7 @@ class Broker:
             return r
 
     def trade_history(self, market, exchange=None):
+        """ personal trades """
         if exchange is None: exchange=self.s_exchange
         if exchange==exc.CRYPTOPIA:
             txs, _ = clients[exc.CRYPTOPIA].get_tradehistory(market)
@@ -155,8 +206,7 @@ class Broker:
                 asks = ob["Sell"]    
                 return [bids,asks]
 
-        elif exchange==exc.BITTREX:
-            
+        elif exchange==exc.BITTREX:            
             ob = clients[exc.BITTREX].get_orderbook(market)["result"]
             bids = (ob["buy"])
             asks = (ob["sell"])
@@ -193,48 +243,6 @@ class Broker:
                 clients[exc.BITTREX].trade_sell(market, "BUY", order_price, qty)
 
 
-    """
-    def submit_order_type(self, order,  **kwargs):
-        # submit order which is array [type,order,qty] 
-        # ("order " + str(order)) 
-        exchange = self.parse_exchange(**kwargs)
-        if exchange==exc.CRYPTOPIA:
-            market,ttype,order_price,qty = order.market, order.otype, order.price, order.qty
-            # (order_price,qty,market)
-            if ttype == "BUY":
-                result, err = clients[exc.CRYPTOPIA].submit_trade(market, "BUY", order_price, qty)
-                if err:
-                    print ("! error with order " + str(order) + " " + str(err))
-                else:
-                    print ("result " + str(result))
-                    return result
-            elif ttype == "SELL":
-                result, err = clients[exc.CRYPTOPIA].submit_trade(market, "SELL", order_price, qty)
-                if err:
-                    print ("error order " + str(order))
-                else:
-                    print ("result " + str(result))
-
-        elif exchange==exc.BITTREX:
-            #TODO
-            market = "USDT-BTC"
-            ttype,order_price,qty = order
-            OrderType = "LIMIT"
-            Quantity = qty
-            Rate = order_price
-            TimeInEffect = "GOOD_TIL_CANCELLED"
-            ConditionType = "NONE"
-            target = 0
-            if ttype == "BUY":   
-                #buy_limit(self, market, quantity, rate):         
-                r = clients[exc.BITTREX].buy_limit(market=market, quantity=Quantity, rate=Rate)
-                #TODO handle fails
-                print ("order result " + str(r))
-            elif ttype == "SELL":
-                r = clients[exc.BITTREX].sell_limit(market=market, quantity=Quantity, rate=Rate)
-                print ("order result " + str(r))
-    """
-
     def submit_order_check(self, order):
         """ submit order but require user action """
         # ("order " + str(order))
@@ -256,7 +264,6 @@ class Broker:
         elif exchange==exc.BITTREX:
             r = clients[exc.BITTREX].cancel(oid)
             return r
-
 
     def cancel_all(self, market, exchange=None):
         #print ("cancel all.......")
@@ -358,15 +365,46 @@ class Broker:
         elif exchange==exc.BITTREX:
             return "Rate"
 
-    # ---- experimental MQ -----
-    def pub(self, tx):
-        del tx['_id']
-        jmsg = json.dumps(tx)
-        #msg = json.dumps(data)
-        channel.basic_publish(exchange='logs',
-                        routing_key='',
-                        body=jmsg)
-        print("pub new tx %r" % jmsg)
 
 
-    #def pub_thread(self):
+    """
+    def submit_order_type(self, order,  **kwargs):
+        # submit order which is array [type,order,qty] 
+        # ("order " + str(order)) 
+        exchange = self.parse_exchange(**kwargs)
+        if exchange==exc.CRYPTOPIA:
+            market,ttype,order_price,qty = order.market, order.otype, order.price, order.qty
+            # (order_price,qty,market)
+            if ttype == "BUY":
+                result, err = clients[exc.CRYPTOPIA].submit_trade(market, "BUY", order_price, qty)
+                if err:
+                    print ("! error with order " + str(order) + " " + str(err))
+                else:
+                    print ("result " + str(result))
+                    return result
+            elif ttype == "SELL":
+                result, err = clients[exc.CRYPTOPIA].submit_trade(market, "SELL", order_price, qty)
+                if err:
+                    print ("error order " + str(order))
+                else:
+                    print ("result " + str(result))
+
+        elif exchange==exc.BITTREX:
+            #TODO
+            market = "USDT-BTC"
+            ttype,order_price,qty = order
+            OrderType = "LIMIT"
+            Quantity = qty
+            Rate = order_price
+            TimeInEffect = "GOOD_TIL_CANCELLED"
+            ConditionType = "NONE"
+            target = 0
+            if ttype == "BUY":   
+                #buy_limit(self, market, quantity, rate):         
+                r = clients[exc.BITTREX].buy_limit(market=market, quantity=Quantity, rate=Rate)
+                #TODO handle fails
+                print ("order result " + str(r))
+            elif ttype == "SELL":
+                r = clients[exc.BITTREX].sell_limit(market=market, quantity=Quantity, rate=Rate)
+                print ("order result " + str(r))
+    """
