@@ -21,7 +21,7 @@ apikey = "key-"
 domain = "https://api.mailgun.net/v3/domain/messages"
 ```
 
-## run example
+## run
 
 ```
 >>> import archon
@@ -30,4 +30,6 @@ domain = "https://api.mailgun.net/v3/domain/messages"
 >>> print(abroker.balance_currency("BTC")['Total'])
 ```
 
-python3 example.py
+## examples
+
+balance_example.py

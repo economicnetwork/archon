@@ -53,21 +53,24 @@ class Broker:
     def balance_all(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
         if exchange==exc.CRYPTOPIA:
-            currency_list, error = clients[exc.CRYPTOPIA].get_balance_all()        
-            return currency_list
+            b, error = clients[exc.CRYPTOPIA].get_balance_all()        
+            b = unify_balance(b,exchange)
+            return b
         
         elif exchange==exc.BITTREX:
             b = clients[exc.BITTREX].get_balances()
             br = b["result"]
+            br = unify_balance(br,exchange) 
             return br    
 
         elif exchange==exc.KUCOIN:
-            b = clients[exc.KUCOIN].get_all_balances()        
+            b = clients[exc.KUCOIN].get_all_balances()       
+            b = unify_balance(b,exchange) 
             return b        
 
         elif exchange==exc.BINANCE:
             b = clients[exc.BINANCE].get_account()['balances']
-            b = unify_balance(b)
+            b = unify_balance(b,exchange) 
             return b
 
 
