@@ -9,6 +9,7 @@ from archon.markets import *
 from archon.balances import *
 from archon.exchange.kucoin import KuClient
 import binance.client
+import krakenex
 
 import time
 import pika
@@ -42,6 +43,11 @@ class Broker:
             clients[exchange] = KuClient(key,secret)   
         elif exchange==exc.BINANCE:
             clients[exchange] = binance.client.Client(key,secret)
+        elif exchange==exc.KRAKEN:        
+            k = krakenex.API()
+            k.load_key('kraken.key')
+            clients[exchange] = k
+
 
     def get_client(self, EXC):
         """ directly get a client """
@@ -52,6 +58,7 @@ class Broker:
 
     def balance_all(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
+
         if exchange==exc.CRYPTOPIA:
             b, error = clients[exc.CRYPTOPIA].get_balance_all()        
             b = unify_balance(b,exchange)
@@ -73,6 +80,11 @@ class Broker:
             b = unify_balance(b,exchange) 
             return b
 
+        elif exchange==exc.KRAKEN:
+            b = clients[exc.KRAKEN].query_private('Balance')
+            r = b['result']
+            r = unify_balance(r,exchange) 
+            return r
 
     def balance_currency(self, currency, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -331,6 +343,7 @@ class Broker:
             #rex_markets = [Market(x,exc.BITTREX) for x in rex_markets]
             return rex_markets
 
+    # ---- key names ----
 
     def price_key(self, **kwargs):
         if exchange is None: exchange=self.s_exchange        
@@ -349,10 +362,39 @@ class Broker:
         elif exchange==exc.BITTREX:
             return "Quantity"
 
+    def o_key_price(self, exchange):
+        if exchange==exc.CRYPTOPIA:
+            return "Rate"
+        elif exchange==exc.BITTREX:
+            return "Limit"
+
+    def o_key_id(self, exchange):
+        if exchange==exc.CRYPTOPIA:
+            return "OrderId"
+        elif exchange==exc.BITTREX:
+            return "OrderUuid"
+            
+    def otype_key(self, exchange):
+        if exchange==exc.CRYPTOPIA:
+            return "Type"
+        elif exchange==exc.BITTREX:
+            return "OrderType"
+
+    def otype_key_buy(self, exchange):
+        if exchange==exc.CRYPTOPIA:
+            return "Buy"
+        elif exchange==exc.BITTREX:
+            return "LIMIT_BUY"
+
+    def otype_key_sell(self, exchange):
+        if exchange==exc.CRYPTOPIA:
+            return "Sell"
+        elif exchange==exc.BITTREX:
+            return "LIMIT_SELL"
+
     def tx_amount_key(self, **kwargs):
         if exchange==exc.CRYPTOPIA:
-            key = "Amount"
-            return key
+            return "Amount"
 
     def book_key_qty(self, exchange):
         if exchange==exc.CRYPTOPIA:

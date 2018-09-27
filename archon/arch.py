@@ -40,6 +40,10 @@ def setClientsFromFile(abroker):
     binance_keys = apikeys["BINANCE"]        
     abroker.set_api_keys(exc.BINANCE,binance_keys["public_key"],binance_keys["secret"])
 
+    #binance_keys = apikeys["KRAKEN"]        
+    abroker.set_api_keys(exc.KRAKEN,"","")
+    #k.load_key('kraken.key')
+
     gconf = general_config()
     abroker.set_mail_config(gconf["apikey"], gconf["domain"])
     

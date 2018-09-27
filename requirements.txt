@@ -3,3 +3,5 @@ pymongo
 toml
 schedule
 dateparser
+python-binance
+krakenex
