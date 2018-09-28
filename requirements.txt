@@ -1,4 +1,4 @@
-requests
+requests==2.18.2
 pymongo
 toml
 schedule

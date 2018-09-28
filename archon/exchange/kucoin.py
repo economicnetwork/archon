@@ -1,10 +1,11 @@
 # coding=utf-8
-
+#https://kucoinapidocs.docs.apiary.io/
 import base64
 import hashlib
 import hmac
 import time
 import requests
+import json
 
 #from .exceptions import KucoinAPIException, KucoinRequestException, KucoinResolutionException
 #from .helpers import date_to_seconds
@@ -316,7 +317,6 @@ class KuClient(object):
 
     def get_currencies(self, coins=None):
         """List the exchange rate of coins
-
         https://kucoinapidocs.docs.apiary.io/#reference/0/currencies-plugin/list-exchange-rate-of-coins(open)
         """
 
@@ -329,49 +329,27 @@ class KuClient(object):
         return self._get('open/currencies', False, data=data)
 
     def set_default_currency(self, currency):
-        """Set your default currency
-        """
+        """Set your default currency"""
         data = {
             'currency': currency
         }
 
         return self._post('user/change-currency', False, data=data)
 
+    """
     # Language Endpoints
 
-    def get_languages(self):
-        """List of supported languages
-
-        https://kucoinapidocs.docs.apiary.io/#reference/0/language/list-languages(open)
-        :raises: KucoinResponseException, KucoinAPIException
-        """
-
+    def get_languages(self):        
         return self._get('open/lang-list')
 
     # User Endpoints
 
-    def update_language(self, language):
-        """Change the language for your account.
-
-        https://kucoinapidocs.docs.apiary.io/#reference/0/language/change-language
-
-        :param language: Language string - see get_languages() for values
-        :type language: string
-
-        .. code:: python
-
-            client.update_language(language='zh_CN')
-
-        :returns: None
-
-        :raises: KucoinResponseException, KucoinAPIException
-
-        """
-
+    def update_language(self, language):        
         data = {
             'lang': language
         }
         return self._post('user/change-lang', True, data=data)
+    """
 
     def get_user(self):
         """Get user info
@@ -512,8 +490,6 @@ class KuClient(object):
     # Trading Endpoints
 
     def create_order(self, symbol, order_type, price, amount):
-        """Create an order
-        """
 
         data = {
             'symbol': symbol,
@@ -525,21 +501,15 @@ class KuClient(object):
         return self._post('order', True, data=data)
 
     def create_buy_order(self, symbol, price, amount):
-        """Create a buy order
-        """
 
         return self.create_order(symbol, self.SIDE_BUY, price, amount)
 
     def create_sell_order(self, symbol, price, amount):
-        """Create a sell order
-        """
 
         return self.create_order(symbol, self.SIDE_SELL, price, amount)
 
     def get_active_orders(self, symbol, kv_format=False):
-        """Get list of active orders
-
-        """
+        """Get list of active orders"""
 
         data = {
             'symbol': symbol
@@ -552,9 +522,9 @@ class KuClient(object):
         return self._get(path, True, data=data)
 
     def cancel_order(self, order_id, order_type, symbol=None):
-        """Cancel an order
-        """
-
+        """Cancel an order"""
+        print ("cancel " + str(order_id) + " " + str(order_type))
+        print (symbol)
         data = {
             'orderOid': order_id
         }
@@ -567,8 +537,7 @@ class KuClient(object):
         return self._post('cancel-order', True, data=data)
 
     def cancel_all_orders(self, symbol=None, order_type=None):
-        """Cancel all orders
-        """
+        """Cancel all orders"""
 
         data = {}
         if order_type:
@@ -636,9 +605,7 @@ class KuClient(object):
     # Market Endpoints
 
     def get_tick(self, symbol=None):
-        """Get all ticks or a symbol tick
-
-        """
+        """Get all ticks or a symbol tick"""
 
         data = {}
         if symbol:
@@ -647,9 +614,7 @@ class KuClient(object):
         return self._get('open/tick', False, data=data)
 
     def get_order_book(self, symbol, group=None, limit=None):
-        """Get the order book for a symbol
-
-        """
+        """Get the order book for a symbol"""
 
         data = {
             'symbol': symbol
@@ -692,9 +657,7 @@ class KuClient(object):
         return self._get('open/orders-sell', False, data=data)
 
     def get_recent_orders(self, symbol, limit=None, since=None):
-        """Get recent orders
-
-        """
+        """Get recent orders"""
 
         data = {
             'symbol': symbol

@@ -3,3 +3,5 @@ log/
 __pycache__/
 conf.toml
 build/
+archon/.vscode/
+dist/

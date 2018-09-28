@@ -11,6 +11,10 @@ print (cwd)
 
 import archon.broker as broker
     
+def get_market(nom,denom,exchange):
+    if exchange==exc.BITTREX:        
+        return denom + '-' + nom
+
 def convert_markets_to(m, exchange):
     if exchange==exc.CRYPTOPIA:
         nom,denom = m.split('/')
