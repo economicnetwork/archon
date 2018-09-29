@@ -12,26 +12,6 @@ import time
 logpath = '/tmp/log'
 log = setup_logger(logpath, 'info_logger', 'arch')
     
-def balance_report(abroker):
-    """ example of showing balances """
-    log.info('*** balances ***\n')
-    s = "*** balances ***\n"
-    """
-    for asset in assets:
-        v = abroker.balance_currency(asset)['Total']
-        log.info('%s => %f'%(asset,v))
-        s += '%s => %f\n'%(asset,v)
-    print ("send " + str(s))
-    """
-
-    y = abroker.balance_all()
-    for x in y:        
-        if x['Total'] > 0:
-            v = x['Total']
-            s += '%s => %f\n'%(x['Symbol'],v)
-            #print (x)
-    print ("send " + str(s))
-    mail.send_simple_message(abroker.mail_api_key, abroker.mail_domain, "Balance Report",s)
 
 def order_report():
     """

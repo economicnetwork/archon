@@ -29,17 +29,15 @@ add conf.toml with mailgun key
 apikey = "key-"
 domain = "https://api.mailgun.net/v3/enet.io/messages"
 email_from = ""
-email_to = ""```
-
-## run
-
-```
->>> import archon
->>> abroker = archon.broker.Broker()
->>> arch.setClientsFromFile(abroker)
->>> print(abroker.balance_currency("BTC")['Total'])
+email_to = ""
 ```
 
 ## examples
 
-balance_example.py
+balance_all.py - send balance report via mail 
+
+order.py - order example
+
+cancel.py - cancel open order by command line
+
+user_tx.py - user transactions
