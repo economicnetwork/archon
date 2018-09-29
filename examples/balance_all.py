@@ -1,5 +1,9 @@
+"""
+send balance report to email
+"""
+
 import sys
-sys.path.append('/Users/ben/archon')
+#sys.path.append('/Users/x/archon')
 
 import archon.exchange.exchanges as exc
 import archon.broker as broker
