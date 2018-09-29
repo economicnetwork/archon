@@ -5,3 +5,4 @@ conf.toml
 build/
 archon/.vscode/
 dist/
+.vscode

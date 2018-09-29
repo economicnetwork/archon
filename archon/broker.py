@@ -2,15 +2,19 @@
 broker
 """
 
-from archon.exchange.cryptopia import CryptopiaAPI
 import archon.exchange.exchanges as exc
-from archon.exchange.rex import Bittrex
 from archon.markets import *
 from archon.balances import *
 from archon.util import *
+
+#Wrappers
+from archon.exchange.rex import Bittrex
+from archon.exchange.cryptopia import CryptopiaAPI
 from archon.exchange.kucoin import KuClient
+#Wrappers with foreign package
 import binance.client
 import krakenex
+
 
 import time
 import pika
@@ -216,9 +220,15 @@ class Broker:
 
     def get_tradehistory_all(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
-            txs, _ = clients[exc.CRYPTOPIA].get_tradehistory_all()
+            txs, _ = client.get_tradehistory_all()
             return txs
+        elif exchange==exc.BITTREX:
+            market = "BTC-BOXX"
+            r = client.get_order_history()
+            return r
+
 
     def get_orderbook(self, market, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -390,74 +400,6 @@ class Broker:
             rex_markets = [f(x) for x in rex_markets]
             #rex_markets = [Market(x,exc.BITTREX) for x in rex_markets]
             return rex_markets
-
-    # ---- key names ----
-
-    def price_key(self, **kwargs):
-        if exchange is None: exchange=self.s_exchange        
-        if exchange==exc.CRYPTOPIA:
-            price_key = "Price"
-            return price_key
-        elif exchange==exc.BITTREX:
-            price_key = "Rate"
-            return price_key
-
-    def qty_key(self, **kwargs):
-        if exchange is None: exchange=self.s_exchange
-        if exchange==exc.CRYPTOPIA:
-            key = "Volume"
-            return key
-        elif exchange==exc.BITTREX:
-            return "Quantity"
-
-    def o_key_price(self, exchange):
-        if exchange==exc.CRYPTOPIA:
-            return "Rate"
-        elif exchange==exc.BITTREX:
-            return "Limit"
-
-    def o_key_id(self, exchange):
-        if exchange==exc.CRYPTOPIA:
-            return "OrderId"
-        elif exchange==exc.BITTREX:
-            return "OrderUuid"
-
-    def otype_key(self, exchange):
-        if exchange==exc.CRYPTOPIA:
-            return "Type"
-        elif exchange==exc.BITTREX:
-            return "OrderType"
-
-    def otype_key_buy(self, exchange):
-        if exchange==exc.CRYPTOPIA:
-            return "Buy"
-        elif exchange==exc.BITTREX:
-            return "LIMIT_BUY"
-
-    def otype_key_sell(self, exchange):
-        if exchange==exc.CRYPTOPIA:
-            return "Sell"
-        elif exchange==exc.BITTREX:
-            return "LIMIT_SELL"
-
-    def tx_amount_key(self, **kwargs):
-        if exchange==exc.CRYPTOPIA:
-            return "Amount"
-
-    def book_key_qty(self, exchange):
-        if exchange==exc.CRYPTOPIA:
-            key = "Volume"
-            return key
-        elif exchange==exc.BITTREX:
-            return "Quantity"
-
-    def book_key_price(self, exchange):
-        if exchange==exc.CRYPTOPIA:
-            key = "Price"
-            return key
-        elif exchange==exc.BITTREX:
-            return "Rate"
-
 
 
     """

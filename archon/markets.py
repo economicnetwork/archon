@@ -14,6 +14,9 @@ import archon.broker as broker
 def get_market(nom,denom,exchange):
     if exchange==exc.BITTREX:        
         return denom + '-' + nom
+    elif exchange==exc.CRYPTOPIA: 
+        return nom + '_' + denom   
+    
 
 def convert_markets_to(m, exchange):
     if exchange==exc.CRYPTOPIA:
