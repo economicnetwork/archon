@@ -3,7 +3,7 @@ send balance report to email
 """
 
 import sys
-#sys.path.append('/Users/x/archon')
+sys.path.append('/Users/ben/archon')
 
 import archon.exchange.exchanges as exc
 import archon.broker as broker
@@ -98,7 +98,7 @@ def balance_report():
     template = env.get_template('')
     html = template.render(balances=bl,total=total_all)
     #write_to_file(html)
-    mail.send_mail_html(abroker.mail_api_key, abroker.mail_domain, "Balance Report", html)
+    mail.send_mail_html(abroker, "Balance Report", html)
 
 if __name__=='__main__':
     balance_report()

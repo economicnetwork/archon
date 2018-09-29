@@ -25,9 +25,11 @@ secret = ""
 add conf.toml with mailgun key
 
 ```
+[MAILGUN]
 apikey = "key-"
-domain = "https://api.mailgun.net/v3/domain/messages"
-```
+domain = "https://api.mailgun.net/v3/enet.io/messages"
+email_from = ""
+email_to = ""```
 
 ## run
 

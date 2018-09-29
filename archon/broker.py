@@ -36,10 +36,12 @@ class Broker:
     def __init__(self):
         self.s_exchange = None
 
-    def set_mail_config(self, apikey, domain):
+    def set_mail_config(self, apikey, domain, email_from, email_to):
         """ mailgun config """
         self.mail_api_key = apikey
         self.mail_domain = domain
+        self.email_from = email_from
+        self.email_to = email_to
 
     def set_api_keys(self, exchange, key, secret):
         #print ("set api " + str(exchange))
