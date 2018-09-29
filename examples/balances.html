@@ -1,0 +1,28 @@
+<style>
+    table {
+    border: 0;
+    }
+    table td, table th {
+        border: 1px solid black;
+    }
+</style>
+<h2>Balances<h2>
+
+<table style="font-size:14px;font-weight:400;border-collapse: collapse;padding: 15px;border: 1px solid rgb(126, 126, 126);">
+    <tr>
+        <th>Symbol</th>
+        <th>Exchange</th>
+        <th>USD price</th>
+        <th>USD Value</th>
+    </tr>
+    {% for bal in balances %}
+    <tr>
+        <td>{{bal.symbol}}</td>
+        <td>{{bal.exchange}}</td>
+        <td>{{bal.USDprice}} $</td>
+        <td>{{bal.USDvalue}} $</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p style="font-size:12px;font-weight:400">Total: {{total}} $</p>
