@@ -69,14 +69,14 @@ def book_key_price(exchange):
 
 def bid_key(exchange):
     if exchange==exc.CRYPTOPIA:
-        key = "Bid"
+        key = "BidPrice"
         return key
     elif exchange==exc.BITTREX:
-        return "BidPrice"        
+        return "Bid"        
 
 def ask_key(exchange):
     if exchange==exc.CRYPTOPIA:
-        key = "Ask"
+        key = "AskPrice"
         return key
     elif exchange==exc.BITTREX:
-        return "AskPrice"  
+        return "Ask"  

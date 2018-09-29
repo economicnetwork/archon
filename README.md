@@ -10,6 +10,8 @@ The framework interacts with the exchanges through the API keys for the purpose 
 
 It abstracts from exchanges in that datastructures are generic for all exchanges
 
+Currently in alpha
+
 ## examples
 
 balance_all.py - send balance report via mail 
@@ -37,7 +39,7 @@ add conf.toml with mailgun key
 ```
 [MAILGUN]
 apikey = "key-"
-domain = "https://api.mailgun.net/v3/enet.io/messages"
+domain = "https://api.mailgun.net/v3/<YOURDOMAIN>/messages"
 email_from = ""
 email_to = ""
 ```
