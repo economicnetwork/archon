@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/Users/ben/archon')
+sys.path.append('/Users/x/archon')
 import archon.broker as broker
 import archon.arch as arch
 import archon.exchange.exchanges as exc

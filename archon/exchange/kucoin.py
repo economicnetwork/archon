@@ -6,33 +6,11 @@ import hmac
 import time
 import requests
 import json
-
-#from .exceptions import KucoinAPIException, KucoinRequestException, KucoinResolutionException
-#from .helpers import date_to_seconds
-
 import dateparser
 import pytz
-
 from datetime import datetime
+from date_util import *
 
-
-def date_to_seconds(date_str):
-    """Convert UTC date to seconds
-    If using offset strings add "UTC" to date string e.g. "now UTC", "11 hours ago UTC"
-    See dateparse docs for formats http://dateparser.readthedocs.io/en/latest/
-    :param date_str: date in readable format, i.e. "January 01, 2018", "11 hours ago UTC", "now UTC"
-    :type date_str: str
-    """
-    # get epoch value in UTC
-    epoch = datetime.utcfromtimestamp(0).replace(tzinfo=pytz.utc)
-    # parse our date string
-    d = dateparser.parse(date_str)
-    # if the date is not timezone aware apply UTC timezone
-    if d.tzinfo is None or d.tzinfo.utcoffset(d) is None:
-        d = d.replace(tzinfo=pytz.utc)
-
-    # return the difference in time
-    return int((d - epoch).total_seconds())
     
 class KucoinAPIException(Exception):
     """Exception class to handle general API Exceptions
@@ -69,20 +47,6 @@ class KucoinAPIException(Exception):
         return 'KucoinAPIException {}: {}'.format(self.code, self.message)
 
 
-class KucoinRequestException(Exception):
-    def __init__(self, message):
-        self.message = message
-
-    def __str__(self):
-        return 'KucoinRequestException: {}'.format(self.message)
-
-
-class KucoinResolutionException(Exception):
-    def __init__(self, message):
-        self.message = message
-
-    def __str__(self):
-        return 'KucoinResolutionException: {}'.format(self.message)
 
 class KuClient(object):
 
@@ -245,7 +209,8 @@ class KuClient(object):
                 res = json['data']
             return res
         except ValueError:
-            raise KucoinRequestException('Invalid Response: %s' % response.text)
+            #log
+            raise Exception('Invalid Response: %s' % response.text)
 
     def _get(self, path, signed=False, **kwargs):
         return self._request('get', path, signed, **kwargs)
@@ -266,52 +231,6 @@ class KuClient(object):
 
         """
         return self._last_timestamp
-
-    # User API Endpoints
-
-    def create_api_key(self):
-        """Create a new API Key
-        :raises:  KucoinResponseException, KucoinAPIException
-
-        """
-
-        return self._post('api/create', True)
-
-    def update_api_key(self, key, enabled=None, remark=None, permissions=None):
-        """Update an API Key
-        https://kucoinapidocs.docs.apiary.io/#reference/0/user-api-management/update-api-key
-        """
-
-        data = {
-            'key': key
-        }
-        if enabled is not None:
-            data['enabled'] = enabled
-        if remark:
-            data['remark'] = remark
-        if permissions:
-            data['permissions'] = permissions
-
-        return self._post('api/update', True, data=data)
-
-    def get_api_keys(self):
-        """Get list of API Keys
-        :returns: API Response
-        :raises:  KucoinResponseException, KucoinAPIException
-
-        """
-
-        return self._get('api/list', True)
-
-    def delete_api_key(self, key):
-        """Update an API Key
-        """
-
-        data = {
-            'key': key
-        }
-
-        return self._post('api/delete', True, data=data)
 
     # Currency Endpoints
 
@@ -336,84 +255,23 @@ class KuClient(object):
 
         return self._post('user/change-currency', False, data=data)
 
-    """
-    # Language Endpoints
-
-    def get_languages(self):        
-        return self._get('open/lang-list')
-
-    # User Endpoints
-
-    def update_language(self, language):        
-        data = {
-            'lang': language
-        }
-        return self._post('user/change-lang', True, data=data)
-    """
 
     def get_user(self):
-        """Get user info
-
-        https://kucoinapidocs.docs.apiary.io/#reference/0/user/get-user-info
-
-        .. code:: python
-
-            user = client.get_user()
-
-        :returns: ApiResponse
-        """
+        """Get user info"""
 
         return self._get('user/info', True)
 
-    # Invitation Endpoints
 
-    def get_invite_count(self):
-        """Get invite count
-        """
-
-        return self._get('referrer/descendant/count', True)
-
-    def get_reward_info(self, coin=None):
-        """Get promotion reward info all coins or an individual coin
-        """
-
-        data = {}
-        if coin:
-            data['coin'] = coin
-
-        return self._get('account/promotion/info', True, data=data)
-
-    def get_reward_summary(self, coin=None):
-        """Get promotion reward summary for all coins or a specific coin
-        """
-
-        data = {}
-        if coin:
-            data['coin'] = coin
-
-        return self._get('account/promotion/sum', True, data=data)
-
-    def extract_invite_bonus(self, coin=None):
-        """Extract the invitation bonus for all coins or a specific coin
-        """
-
-        data = {}
-        if coin:
-            data['coin'] = coin
-
-        return self._post('account/promotion/draw', True, data=data)
 
     # Asset Endpoints
 
     def get_deposit_address(self, coin):
-        """Get deposit address for a coin
-        """
+        """Get deposit address for a coin"""
 
         return self._get('account/{}/wallet/address'.format(coin), True)
 
     def create_withdrawal(self, coin, amount, address):
-        """Get deposit address for a coin
-        """
+        """Get deposit address for a coin"""
 
         data = {
             'amount': amount,
@@ -423,8 +281,7 @@ class KuClient(object):
         return self._post('account/{}/withdraw/apply'.format(coin), True, data=data)
 
     def cancel_withdrawal(self, coin, txid):
-        """Cancel a withdrawal
-        """
+        """Cancel a withdrawal"""
 
         data = {
             'txOid': txid
@@ -433,8 +290,7 @@ class KuClient(object):
         return self._get('account/{}/withdraw/cancel'.format(coin), True, data=data)
 
     def get_deposits(self, coin, status=None, limit=None, page=None):
-        """Get deposit records for a coin
-        """
+        """Get deposit records for a coin"""
 
         data = {
             'type': self.TRANSFER_DEPOSIT
@@ -449,8 +305,7 @@ class KuClient(object):
         return self._get('account/{}/wallet/records'.format(coin), True, data=data)
 
     def get_withdrawals(self, coin, status=None, limit=None, page=None):
-        """Get withdrawal records for a coin
-        """
+        """Get withdrawal records for a coin"""
 
         data = {
             'type': self.TRANSFER_WITHDRAWAL
@@ -501,11 +356,9 @@ class KuClient(object):
         return self._post('order', True, data=data)
 
     def create_buy_order(self, symbol, price, amount):
-
         return self.create_order(symbol, self.SIDE_BUY, price, amount)
 
     def create_sell_order(self, symbol, price, amount):
-
         return self.create_order(symbol, self.SIDE_SELL, price, amount)
 
     def get_active_orders(self, symbol, kv_format=False):
@@ -548,8 +401,7 @@ class KuClient(object):
         return self._post('order/cancel-all', True, data=data)
 
     def get_dealt_orders(self, symbol=None, order_type=None, limit=None, page=None, since=None, before=None):
-        """Get a list of dealt orders with pagination
-        """
+        """Get a list of dealt orders with pagination"""
 
         data = {}
         if symbol:
@@ -568,9 +420,7 @@ class KuClient(object):
         return self._get('order/dealt', True, data=data)
 
     def get_symbol_dealt_orders(self, symbol, order_type=None, limit=None, page=None):
-        """Get a list of dealt orders for a specific symbol with pagination
-
-        """
+        """Get a list of dealt orders for a specific symbol with pagination"""
 
         data = {
             'symbol': symbol
@@ -585,9 +435,7 @@ class KuClient(object):
         return self._get('deal-orders', True, data=data)
 
     def get_order_details(self, symbol, order_type, limit=None, page=None, order_id=None):
-        """Get order details
-
-        """
+        """Get order details"""
 
         data = {
             'symbol': symbol,
@@ -627,9 +475,7 @@ class KuClient(object):
         return self._get('open/orders', False, data=data)
 
     def get_buy_orders(self, symbol, group=None, limit=None):
-        """Get the buy orders for a symbol
-
-        """
+        """Get the buy orders for a symbol"""
 
         data = {
             'symbol': symbol
@@ -642,9 +488,7 @@ class KuClient(object):
         return self._get('open/orders-buy', False, data=data)
 
     def get_sell_orders(self, symbol, group=None, limit=None):
-        """Get the sell orders for a symbol
-
-        """
+        """Get the sell orders for a symbol"""
 
         data = {
             'symbol': symbol
@@ -670,27 +514,7 @@ class KuClient(object):
         return self._get('open/deal-orders', False, data=data)
 
     def get_trading_markets(self):
-        """Get list of trading markets
-
-        https://kucoinapidocs.docs.apiary.io/#reference/0/market/list-trading-markets(open)
-
-        .. code:: python
-
-            coins = client.get_trading_markets()
-
-        :returns: ApiResponse
-
-        .. code:: python
-
-            [
-                "BTC",
-                "ETH",
-                "NEO",
-                "USDT"
-            ]
-
-        :raises: KucoinResponseException, KucoinAPIException
-        """
+        """Get list of trading markets"""
 
         return self._get('open/markets')
 
@@ -717,7 +541,7 @@ class KuClient(object):
         try:
             resolution = self._resolution_map[resolution]
         except KeyError:
-            raise KucoinResolutionException('Invalid resolution passed')
+            raise Exception('Invalid resolution passed')
 
         data = {
             'symbol': symbol,
@@ -745,9 +569,7 @@ class KuClient(object):
         return self._get('open/chart/symbol', False, data=data)
 
     def get_kline_data_tv(self, symbol, resolution, from_time, to_time):
-        """Get kline data (TradingView version)
-
-        """
+        """Get kline data (TradingView version)"""
 
         data = {
             'symbol': symbol,
@@ -759,8 +581,7 @@ class KuClient(object):
         return self._get('open/chart/history', False, data=data)
 
     def get_historical_klines_tv(self, symbol, interval, start_str, end_str=None):
-        """Get Historical Klines in OHLCV format (Trading View)
-        """
+        """Get Historical Klines in OHLCV format (Trading View)"""
 
         # init our array for klines
         klines = []
@@ -807,10 +628,105 @@ class KuClient(object):
         return self._get('market/open/coin-info', False, data=data)
 
     def get_coin_list(self):
-        """Get a list of coins with trade and withdrawal information
+        """Get a list of coins with trade and withdrawal information"""
 
-        https://kucoinapidocs.docs.apiary.io/#reference/0/market/list-coins(open)
+        return self._get('market/open/coins')
+
+    # -------------
+
+    # User API Endpoints
+
+    def create_api_key(self):
+        """Create a new API Key
+        :raises:  KucoinResponseException, KucoinAPIException
+        """
+
+        return self._post('api/create', True)
+
+    def update_api_key(self, key, enabled=None, remark=None, permissions=None):
+        """Update an API Key
+        https://kucoinapidocs.docs.apiary.io/#reference/0/user-api-management/update-api-key
+        """
+
+        data = {
+            'key': key
+        }
+        if enabled is not None:
+            data['enabled'] = enabled
+        if remark:
+            data['remark'] = remark
+        if permissions:
+            data['permissions'] = permissions
+
+        return self._post('api/update', True, data=data)
+
+    def get_api_keys(self):
+        """Get list of API Keys
+        :returns: API Response
+        :raises:  KucoinResponseException, KucoinAPIException
 
         """
 
-        return self._get('market/open/coins')
+        return self._get('api/list', True)
+
+    def delete_api_key(self, key):
+        """Update an API Key
+        """
+
+        data = {
+            'key': key
+        }
+
+        return self._post('api/delete', True, data=data)
+
+    # Language Endpoints
+
+    def get_languages(self):        
+        return self._get('open/lang-list')
+
+    # User Endpoints
+
+    def update_language(self, language):        
+        data = {
+            'lang': language
+        }
+        return self._post('user/change-lang', True, data=data)    
+
+    # Invitation Endpoints
+
+    def get_invite_count(self):
+        """Get invite count
+        """
+
+        return self._get('referrer/descendant/count', True)
+
+    def get_reward_info(self, coin=None):
+        """Get promotion reward info all coins or an individual coin
+        """
+
+        data = {}
+        if coin:
+            data['coin'] = coin
+
+        return self._get('account/promotion/info', True, data=data)
+
+    def get_reward_summary(self, coin=None):
+        """Get promotion reward summary for all coins or a specific coin
+        """
+
+        data = {}
+        if coin:
+            data['coin'] = coin
+
+        return self._get('account/promotion/sum', True, data=data)
+
+    def extract_invite_bonus(self, coin=None):
+        """Extract the invitation bonus for all coins or a specific coin
+        """
+
+        data = {}
+        if coin:
+            data['coin'] = coin
+
+        return self._post('account/promotion/draw', True, data=data)
+    
