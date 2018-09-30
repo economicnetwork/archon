@@ -690,15 +690,12 @@ class KuClient(object):
             ]
 
         :raises: KucoinResponseException, KucoinAPIException
-
         """
 
         return self._get('open/markets')
 
     def get_trading_symbols(self, market=None):
-        """Get list of trading symbols for an optional market
-
-        """
+        """Get list of trading symbols for an optional market"""
 
         data = {}
         if market:
@@ -707,9 +704,7 @@ class KuClient(object):
         return self._get('market/open/symbols', False, data=data)
 
     def get_trending_coins(self, market=None):
-        """Get list of trending coins for an optional market
-
-        """
+        """Get list of trending coins for an optional market"""
         data = {}
         if market:
             data['market'] = market
@@ -717,9 +712,7 @@ class KuClient(object):
         return self._get('market/open/coins-trending', False, data=data)
 
     def get_kline_data(self, symbol, resolution, from_time, to_time, limit=None):
-        """Get kline data
-
-        """
+        """Get kline data"""
 
         try:
             resolution = self._resolution_map[resolution]
@@ -738,16 +731,12 @@ class KuClient(object):
         return self._get('open/kline', False, data=data)
 
     def get_kline_config_tv(self):
-        """Get kline config (TradingView version)
-
-        """
+        """Get kline config (TradingView version)"""
 
         return self._get('open/chart/config')
 
     def get_symbol_tv(self, symbol):
-        """Get symbol data (TradingView version)
-
-        """
+        """Get symbol data (TradingView version)"""
 
         data = {
             'symbol': symbol
@@ -809,8 +798,7 @@ class KuClient(object):
         return klines
 
     def get_coin_info(self, coin):
-        """Get info about all coins or a coin
-        """
+        """Get info about all coins or a coin"""
 
         data = {
             'coin': coin

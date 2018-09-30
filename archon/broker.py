@@ -6,6 +6,7 @@ import archon.exchange.exchanges as exc
 from archon.markets import *
 from archon.balances import *
 from archon.util import *
+from archon.model import *
 
 #Wrappers
 from archon.exchange.rex import Bittrex
@@ -231,35 +232,32 @@ class Broker:
             r = client.get_order_history()
             return r
 
-
     def get_orderbook(self, market, exchange=None):
         if exchange is None: exchange=self.s_exchange
         #print ("get orderbook " + str(market))
         client = clients[exchange]
+
         if exchange==exc.CRYPTOPIA:
-            ob, err = client.get_orders(market)
+            book, err = client.get_orders(market)
             if err:
                 print ("error " + str(err))
             else:
-                #print (ob)
-                bids = ob["Buy"]
-                asks = ob["Sell"]    
-                return [bids,asks]
+                book = conv_orderbook(book, exchange)
+                return book
 
         elif exchange==exc.BITTREX:            
-            ob = client.get_orderbook(market)["result"]
-            bids = (ob["buy"])
-            asks = (ob["sell"])
-            return [bids,asks]
+            book = client.get_orderbook(market)["result"]            
+            book = conv_orderbook(book, exchange)
+            return book
 
         elif exchange==exc.KUCOIN:
-            ob = client.get_order_book(market)
-            bids = (ob["BUY"])
-            asks = (ob["SELL"])
+            ob = client.get_order_book(market,limit=20)
+            book = conv_orderbook(ob, exchange)
             #timestamp
-            return [bids,asks]
+            return book
 
-
+    # --- actions ---
+        
     def submit_order(self, order, exchange=None):
         """ submit order which is array [type,order,qty] """
         # ("order " + str(order))         
@@ -368,8 +366,6 @@ class Broker:
             return r['result'][0]
     """
 
-    
-
     def get_market_summary_str(self, market, exchange):        
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]        
@@ -403,6 +399,18 @@ class Broker:
             #rex_markets = [Market(x,exc.BITTREX) for x in rex_markets]
             return rex_markets
 
+    def get_assets(self, exchange):
+        client = clients[exchange]
+        if exchange == exc.CRYPTOPIA:
+            r,err = client.get_currencies()
+            return r
+        elif exchange==exc.BITTREX:   
+            r = client.get_currencies()
+            return r["result"]
+        elif exchange==exc.KUCOIN:
+            r = client.get_currencies()
+            return r
+        
 
     """
     def submit_order_type(self, order,  **kwargs):

@@ -17,6 +17,23 @@ date_broker_format = "%Y-%m-%d %H:%M:%S"
 #    tz = pytz.timezone ("Europe/Berlin") 
 #    return tz.normalize(tz.localize(d)).astimezone(pytz.utc)
 
+def conv_timestamp_tx(ts, exchange):    
+    if exchange==exc.CRYPTOPIA:
+        tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
+        utc=pytz.UTC
+        utc_dt = tsf.astimezone(pytz.utc)
+        #utc_dt = utc_dt + datetime.timedelta(hours=4)
+        #dt = utc_dt.strftime(date_broker_format)        
+        
+        return utc_dt
+    elif exchange==exc.BITTREX:
+        ts = ts.split('.')[0]
+        tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
+        utc=pytz.UTC
+        utc_dt = tsf.astimezone(pytz.utc)
+        utc_dt = utc_dt + datetime.timedelta(hours=4)
+        return utc_dt
+
 def conv_timestamp(ts, exchange):    
     if exchange==exc.CRYPTOPIA:
         #local = pytz.timezone("Europe/London") 

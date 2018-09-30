@@ -12,3 +12,6 @@ CRYPTOPIA_NAME = "Cryptopia"
 KUCOIN_NAME = "Kucoin"
 BINANCE_NAME = "Binance"
 KRAKEN_NAME = "Kraken"
+
+#supported_exchanges = [CRYPTOPIA,BITTREX,KUCOIN,BINANCE,KRAKEN]
+supported_exchanges = [CRYPTOPIA,BITTREX]
