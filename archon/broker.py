@@ -65,196 +65,7 @@ class Broker:
         return clients[EXC]
 
     def set_singleton_exchange(self, exchange):
-        self.s_exchange = exchange       
-
-    def balance_all(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
-
-        if exchange==exc.CRYPTOPIA:
-            b, error = clients[exc.CRYPTOPIA].get_balance_all()        
-            b = unify_balance(b,exchange)
-            return b
-        
-        elif exchange==exc.BITTREX:
-            b = clients[exc.BITTREX].get_balances()
-            br = b["result"]
-            br = unify_balance(br,exchange) 
-            return br    
-
-        elif exchange==exc.KUCOIN:
-            b = clients[exc.KUCOIN].get_all_balances()       
-            b = unify_balance(b,exchange) 
-            return b        
-
-        elif exchange==exc.BINANCE:
-            b = clients[exc.BINANCE].get_account()['balances']
-            b = unify_balance(b,exchange) 
-            return b
-
-        elif exchange==exc.KRAKEN:
-            b = clients[exc.KRAKEN].query_private('Balance')
-            r = b['result']
-            r = unify_balance(r,exchange) 
-            return r
-
-    def balance_currency(self, currency, exchange=None):
-        if exchange is None: exchange=self.s_exchange
-        print ("balance_currency " + currency + " " + str(exchange))
-        if exchange==exc.CRYPTOPIA:
-            currency, err = clients[exc.CRYPTOPIA].get_balance(currency)        
-            return currency['Total']
-        elif exchange==exc.BITTREX:
-            #{'Currency': 'BTC', 'Balance': 0.0, 'Available': 0.0, 'Pending': 0.0, 
-            try:
-                return_arg = clients[exc.BITTREX].get_balance(currency)        
-                print (return_arg)
-                result = return_arg['result']['Balance']
-                return result
-            except:
-                return -1
-        
-
-    def get_total_balance(self, currency='USD',exchange=None):
-        """Get total balance in your currency, USD by default"""
-        if exchange is None: exchange=self.s_exchange
-        client = clients[exchange]
-        if exchange==exc.CRYPTOPIA:
-            allb = self.balance_all(exchange)
-            balance_list = list()
-            for b in allb:
-                if b['Total']>0:
-                    d = {'symbol':b['Symbol'],'total':b['Total']}
-                    balance_list.append(d)
-
-            return balance_list
-
-        elif exchange==exc.BITTREX:
-            allb = self.balance_all(exchange)
-            balance_list = list()
-            for b in allb:
-                #print (b)
-                if b['Balance']>0:
-                    d = {'symbol':b['Currency'],'total':b['Balance']}
-                    balance_list.append(d)
-
-            return balance_list
-
-        elif exchange==exc.KUCOIN:
-            # get balances
-            balances = client.get_all_balances()
-            # find unique coin names
-            coins_csl = ','.join([b['coinType'] for b in balances])
-            # get rates for these coins
-            #currency_res = client.get_currencies(coins_csl)
-            #rates = currency_res['rates']
-
-            balance_list = list()
-            for b in balances:
-                # ignore any coins of 0 value
-                if b['balanceStr'] == '0.0' and b['freezeBalanceStr'] == '0.0':
-                    continue
-                # ignore the coin if we don't have a rate for it
-                #if b['coinType'] not in rates:
-                #    continue
-
-                d = {'symbol':b['coinType'],'total':b['balance']}
-                balance_list.append(d)
-
-            return balance_list
-        
-
-    def open_orders_all(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
-        # ("get open orders " + str(market))
-
-        if exchange==exc.CRYPTOPIA:
-            #oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)                
-            oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
-            return oo
-
-        elif exchange==exc.BITTREX:
-            #TODO
-            #oo = api.get_open_orders(market)["result"]
-            oo = clients[exc.BITTREX].get_open_orders()
-            oor = oo["result"]
-            return oor
-
-        elif exchange==exc.KUCOIN:
-            #def get_active_orders(self, symbol, kv_format=False):
-            #TODO
-            symbol = "TOMO-ETH"
-            oo = clients[exc.KUCOIN].get_active_orders(symbol,kv_format=True)
-            return oo
-
-
-    """
-    def open_orders_market(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
-        # ("get open orders " + str(market))
-
-        if exchange==exc.CRYPTOPIA:
-            #oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)                
-            oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
-            return oo
-
-        elif exchange==exc.BITTREX:
-            #oo = api.get_open_orders(market)["result"]
-            oo = clients[exc.BITTREX].get_open_orders()
-            oor = oo["result"]
-            return oor
-    """
-
-    def market_history(self, market, exchange=None):
-        if exchange is None: exchange=self.s_exchange
-        if exchange==exc.CRYPTOPIA:
-            txs, _ = clients[exc.CRYPTOPIA].get_history(market)
-            return txs
-
-        elif exchange==exc.BITTREX:
-            r = clients[exc.BITTREX].get_market_history(market)["result"]
-            return r
-
-    def trade_history(self, market, exchange=None):
-        """ personal trades """
-        if exchange is None: exchange=self.s_exchange
-        if exchange==exc.CRYPTOPIA:
-            txs, _ = clients[exc.CRYPTOPIA].get_tradehistory(market)
-            return txs
-
-    def get_tradehistory_all(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
-        client = clients[exchange]
-        if exchange==exc.CRYPTOPIA:
-            txs, _ = client.get_tradehistory_all()
-            return txs
-        elif exchange==exc.BITTREX:
-            market = "BTC-BOXX"
-            r = client.get_order_history()
-            return r
-
-    def get_orderbook(self, market, exchange=None):
-        if exchange is None: exchange=self.s_exchange
-        #print ("get orderbook " + str(market))
-        client = clients[exchange]
-
-        if exchange==exc.CRYPTOPIA:
-            book, err = client.get_orders(market)
-            if err:
-                print ("error " + str(err))
-            else:
-                book = conv_orderbook(book, exchange)
-                return book
-
-        elif exchange==exc.BITTREX:            
-            book = client.get_orderbook(market)["result"]            
-            book = conv_orderbook(book, exchange)
-            return book
-
-        elif exchange==exc.KUCOIN:
-            ob = client.get_order_book(market,limit=20)
-            book = conv_orderbook(ob, exchange)
-            #timestamp
-            return book
+        self.s_exchange = exchange  
 
     # --- actions ---
         
@@ -351,20 +162,228 @@ class Broker:
                 oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)
                 print ("open orders ",oo)
 
+    # --- trading info ---
+
+    def balance_all(self, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+
+        if exchange==exc.CRYPTOPIA:
+            b, error = clients[exc.CRYPTOPIA].get_balance_all()        
+            b = unify_balance(b,exchange)
+            return b
+        
+        elif exchange==exc.BITTREX:
+            b = clients[exc.BITTREX].get_balances()
+            br = b["result"]
+            br = unify_balance(br,exchange) 
+            return br    
+
+        elif exchange==exc.KUCOIN:
+            b = clients[exc.KUCOIN].get_all_balances()       
+            b = unify_balance(b,exchange) 
+            return b        
+
+        elif exchange==exc.BINANCE:
+            b = clients[exc.BINANCE].get_account()['balances']
+            b = unify_balance(b,exchange) 
+            return b
+
+        elif exchange==exc.KRAKEN:
+            b = clients[exc.KRAKEN].query_private('Balance')
+            r = b['result']
+            r = unify_balance(r,exchange) 
+            return r
+
+    def balance_currency(self, currency, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        print ("balance_currency " + currency + " " + str(exchange))
+        if exchange==exc.CRYPTOPIA:
+            currency, err = clients[exc.CRYPTOPIA].get_balance(currency)        
+            return currency['Total']
+        elif exchange==exc.BITTREX:
+            #{'Currency': 'BTC', 'Balance': 0.0, 'Available': 0.0, 'Pending': 0.0, 
+            try:
+                return_arg = clients[exc.BITTREX].get_balance(currency)        
+                print (return_arg)
+                result = return_arg['result']['Balance']
+                return result
+            except:
+                return -1
+        
+    def get_total_balance(self, currency='USD',exchange=None):
+        """Get total balance in your currency, USD by default"""
+        if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
+        if exchange==exc.CRYPTOPIA:
+            allb = self.balance_all(exchange)
+            balance_list = list()
+            for b in allb:
+                if b['Total']>0:
+                    d = {'symbol':b['Symbol'],'total':b['Total']}
+                    balance_list.append(d)
+
+            return balance_list
+
+        elif exchange==exc.BITTREX:
+            allb = self.balance_all(exchange)
+            balance_list = list()
+            for b in allb:
+                #print (b)
+                if b['Balance']>0:
+                    d = {'symbol':b['Currency'],'total':b['Balance']}
+                    balance_list.append(d)
+
+            return balance_list
+
+        elif exchange==exc.KUCOIN:
+            # get balances
+            balances = client.get_all_balances()
+            # find unique coin names
+            coins_csl = ','.join([b['coinType'] for b in balances])
+            # get rates for these coins
+            #currency_res = client.get_currencies(coins_csl)
+            #rates = currency_res['rates']
+
+            balance_list = list()
+            for b in balances:
+                # ignore any coins of 0 value
+                if b['balanceStr'] == '0.0' and b['freezeBalanceStr'] == '0.0':
+                    continue
+                # ignore the coin if we don't have a rate for it
+                #if b['coinType'] not in rates:
+                #    continue
+
+                d = {'symbol':b['coinType'],'total':b['balance']}
+                balance_list.append(d)
+
+            return balance_list
+        
+
+    def open_orders_all(self, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        # ("get open orders " + str(market))
+
+        if exchange==exc.CRYPTOPIA:
+            #oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)                
+            oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
+            return oo
+
+        elif exchange==exc.BITTREX:
+            #TODO
+            #oo = api.get_open_orders(market)["result"]
+            oo = clients[exc.BITTREX].get_open_orders()
+            oor = oo["result"]
+            return oor
+
+        elif exchange==exc.KUCOIN:
+            #def get_active_orders(self, symbol, kv_format=False):
+            #TODO
+            symbol = "TOMO-ETH"
+            oo = clients[exc.KUCOIN].get_active_orders(symbol,kv_format=True)
+            return oo
+
+
     """
-    def get_market_summary(self, market):
-        #if exchange is None: exchange=self.s_exchange
-        #exchange = self.parse_exchange(**kwargs)
-        client = clients[market.exchange]
-        m = market.str_rep()
-        if market.exchange==exc.CRYPTOPIA:
-            result, err = client.get_market(m)
-            return result
-        elif market.exchange==exc.BITTREX:   
-            print ("get " + m)
-            r = client.get_market_summary(m)
-            return r['result'][0]
+    def open_orders_market(self, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        # ("get open orders " + str(market))
+
+        if exchange==exc.CRYPTOPIA:
+            #oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)                
+            oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
+            return oo
+
+        elif exchange==exc.BITTREX:
+            #oo = api.get_open_orders(market)["result"]
+            oo = clients[exc.BITTREX].get_open_orders()
+            oor = oo["result"]
+            return oor
     """
+
+    def get_deposits(self, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
+        if exchange==exc.CRYPTOPIA:
+            deposit_txs, _ = client.get_transactions("Deposit")
+            return deposit_txs
+        elif exchange==exc.BITTREX:            
+            deposit_txs = client.get_deposit_history()["result"]
+            return deposit_txs
+
+    def get_funding(self, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
+        if exchange==exc.CRYPTOPIA:
+            deposit_txs, _ = client.get_transactions("Deposit")
+            withdraw_txs,_ = client.get_transactions("Withdraw")
+            return deposit_txs + withdraw_txs
+        elif exchange==exc.BITTREX:            
+            deposit_txs = client.get_deposit_history()["result"]
+            withdraw_txs = client.get_withdrawal_history()["result"]
+            return deposit_txs + withdraw_txs
+
+    # --- public info ---
+
+    def market_history(self, market, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
+        if exchange==exc.CRYPTOPIA:
+            txs, _ = clients[exc.CRYPTOPIA].get_history(market)
+            return txs
+
+        elif exchange==exc.BITTREX:
+            r = clients[exc.BITTREX].get_market_history(market)
+            r =r["result"]
+            return r
+
+        elif exchange==exc.KUCOIN:
+            #res = client.RESOLUTION_1MINUTE
+            #print (res)
+            #klines = client.get_historical_klines_tv(market, res, '1 hour ago UTC')            
+            #print (klines)
+            r = client.get_recent_trades(market,limit=200)
+            return r
+
+    def trade_history(self, market, exchange=None):
+        """ personal trades """
+        if exchange is None: exchange=self.s_exchange
+        if exchange==exc.CRYPTOPIA:
+            txs, _ = clients[exc.CRYPTOPIA].get_tradehistory(market)
+            return txs
+
+    def get_tradehistory_all(self, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
+        if exchange==exc.CRYPTOPIA:
+            txs, _ = client.get_tradehistory_all()
+            return txs
+        elif exchange==exc.BITTREX:
+            r = client.get_order_history()
+            return r
+
+    def get_orderbook(self, market, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        #print ("get orderbook " + str(market))
+        client = clients[exchange]
+
+        if exchange==exc.CRYPTOPIA:
+            book, err = client.get_orders(market)
+            if err:
+                print ("error " + str(err))
+            else:
+                book = conv_orderbook(book, exchange)
+                return book
+
+        elif exchange==exc.BITTREX:            
+            book = client.get_orderbook(market)["result"]            
+            book = conv_orderbook(book, exchange)
+            return book
+
+        elif exchange==exc.KUCOIN:
+            ob = client.get_order_book(market,limit=20)
+            book = conv_orderbook(ob, exchange)
+            #timestamp
+            return book
 
     def get_market_summary_str(self, market, exchange):        
         if exchange is None: exchange=self.s_exchange
@@ -373,16 +392,30 @@ class Broker:
             result, err = client.get_market(market)
             return result
         elif exchange==exc.BITTREX:   
-            #print ("get " + market)
             r = client.get_market_summary(market)
-            print (r)
             return r['result'][0]
         elif exchange==exc.KUCOIN:
             r = client.get_tick(market)
-            #print (r)
             return r
 
     def get_market_summaries(self, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
+        if exchange==exc.CRYPTOPIA:
+            r = client.get_markets()[0]            
+            f = lambda x: conv_summary(x,exchange)
+            cc_markets = [f(x) for x in r]
+            #TODO use object
+            return cc_markets
+        elif exchange==exc.BITTREX:   
+            r = client.get_market_summaries()['result']
+            f = lambda x: conv_summary(x, exchange)            
+            #rex_markets = [x['MarketName'] for x in r]
+            rex_markets = [f(x) for x in r]
+            #rex_markets = [Market(x,exc.BITTREX) for x in rex_markets]
+            return rex_markets
+
+    def get_market_summaries_only(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
@@ -411,6 +444,22 @@ class Broker:
             r = client.get_currencies()
             return r
         
+
+
+    """
+    def get_market_summary(self, market):
+        #if exchange is None: exchange=self.s_exchange
+        #exchange = self.parse_exchange(**kwargs)
+        client = clients[market.exchange]
+        m = market.str_rep()
+        if market.exchange==exc.CRYPTOPIA:
+            result, err = client.get_market(m)
+            return result
+        elif market.exchange==exc.BITTREX:   
+            print ("get " + m)
+            r = client.get_market_summary(m)
+            return r['result'][0]
+    """
 
     """
     def submit_order_type(self, order,  **kwargs):

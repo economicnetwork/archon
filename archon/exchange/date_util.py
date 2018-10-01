@@ -1,5 +1,6 @@
 import dateparser
 from datetime import datetime
+import pytz
 
 def date_to_seconds(date_str):
     """Convert UTC date to seconds

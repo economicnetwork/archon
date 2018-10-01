@@ -219,13 +219,6 @@ class CryptopiaAPI(object):
         return self.api_query(feature_requested='CancelTrade',
                               post_parameters={'Type': 'ALL'})
     
-    def submit_tip(self, currency, active_users, amount):
-        """ Submits a tip """
-        return self.api_query(feature_requested='SubmitTip',
-                              post_parameters={'Currency': currency,
-                                               'ActiveUsers': active_users,
-                                               'Amount': amount})
-
     def submit_withdraw(self, currency, address, amount):
         """ Submits a withdraw request """
         return self.api_query(feature_requested='SubmitWithdraw',
@@ -254,3 +247,13 @@ class CryptopiaAPI(object):
                                                   hashlib.sha256).digest())
         header_value = "amx " + self.key + ":" + hmacsignature.decode('utf-8') + ":" + nonce
         return {'Authorization': header_value, 'Content-Type': 'application/json; charset=utf-8'}
+
+    # --- misc ---
+    
+    def submit_tip(self, currency, active_users, amount):
+        """ Submits a tip """
+        return self.api_query(feature_requested='SubmitTip',
+                              post_parameters={'Currency': currency,
+                                               'ActiveUsers': active_users,
+                                               'Amount': amount})
+

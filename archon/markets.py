@@ -15,7 +15,9 @@ def get_market(nom,denom,exchange):
     if exchange==exc.BITTREX:        
         return denom + '-' + nom
     elif exchange==exc.CRYPTOPIA: 
-        return nom + '_' + denom   
+        return nom + '_' + denom 
+    elif exchange==exc.KUCOIN: 
+        return nom + '-' + denom     
     
 
 def convert_markets_to(m, exchange):
@@ -25,6 +27,10 @@ def convert_markets_to(m, exchange):
     elif exchange==exc.BITTREX:    
         denom,nom = m.split('-')
         return nom + '_' + denom
+    elif exchange==exc.KUCOIN:    
+        denom,nom = m.split('-')
+        return nom + '_' + denom
+
 
 def convert_markets_from(m, exchange):
     if exchange==exc.CRYPTOPIA:
@@ -33,6 +39,10 @@ def convert_markets_from(m, exchange):
     elif exchange==exc.BITTREX:    
         nom,denom = m.split('_')
         return denom + '-' + nom
+    elif exchange==exc.KUCOIN: 
+        print (m)   
+        nom,denom = m.split('_')
+        return nom + '-' + denom
 
 def denom(m):
     nom,denom = m.split('_')

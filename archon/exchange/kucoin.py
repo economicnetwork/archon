@@ -9,7 +9,7 @@ import json
 import dateparser
 import pytz
 from datetime import datetime
-from date_util import *
+from archon.exchange.date_util import *
 
     
 class KucoinAPIException(Exception):
@@ -142,7 +142,6 @@ class KuClient(object):
         :param nonce:
 
         :return: signature string
-
         """
 
         query_string = self._order_params_for_sig(data)
@@ -231,37 +230,6 @@ class KuClient(object):
 
         """
         return self._last_timestamp
-
-    # Currency Endpoints
-
-    def get_currencies(self, coins=None):
-        """List the exchange rate of coins
-        https://kucoinapidocs.docs.apiary.io/#reference/0/currencies-plugin/list-exchange-rate-of-coins(open)
-        """
-
-        data = {}
-        if coins:
-            if type(coins) != list:
-                coins = [coins]
-            data['coins'] = ','.join(coins)
-
-        return self._get('open/currencies', False, data=data)
-
-    def set_default_currency(self, currency):
-        """Set your default currency"""
-        data = {
-            'currency': currency
-        }
-
-        return self._post('user/change-currency', False, data=data)
-
-
-    def get_user(self):
-        """Get user info"""
-
-        return self._get('user/info', True)
-
-
 
     # Asset Endpoints
 
@@ -500,8 +468,8 @@ class KuClient(object):
 
         return self._get('open/orders-sell', False, data=data)
 
-    def get_recent_orders(self, symbol, limit=None, since=None):
-        """Get recent orders"""
+    def get_recent_trades(self, symbol, limit=None, since=None):
+        """Get recent trades"""
 
         data = {
             'symbol': symbol
@@ -634,6 +602,19 @@ class KuClient(object):
 
     # -------------
 
+    def set_default_currency(self, currency):
+        """Set your default currency"""
+        data = {
+            'currency': currency
+        }
+
+        return self._post('user/change-currency', False, data=data)
+
+    def get_user(self):
+        """Get user info"""
+        return self._get('user/info', True)
+
+
     # User API Endpoints
 
     def create_api_key(self):
@@ -729,4 +710,21 @@ class KuClient(object):
             data['coin'] = coin
 
         return self._post('account/promotion/draw', True, data=data)
+        
+    # Currency Endpoints
+
+    def get_currencies(self, coins=None):
+        """List the exchange rate of coins
+        https://kucoinapidocs.docs.apiary.io/#reference/0/currencies-plugin/list-exchange-rate-of-coins(open)
+        """
+
+        data = {}
+        if coins:
+            if type(coins) != list:
+                coins = [coins]
+            data['coins'] = ','.join(coins)
+
+        return self._get('open/currencies', False, data=data)
+
+
     

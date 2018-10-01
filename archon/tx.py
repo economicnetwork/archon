@@ -17,65 +17,9 @@ date_broker_format = "%Y-%m-%d %H:%M:%S"
 #    tz = pytz.timezone ("Europe/Berlin") 
 #    return tz.normalize(tz.localize(d)).astimezone(pytz.utc)
 
-def conv_timestamp_tx(ts, exchange):    
-    if exchange==exc.CRYPTOPIA:
-        tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
-        utc=pytz.UTC
-        utc_dt = tsf.astimezone(pytz.utc)
-        #utc_dt = utc_dt + datetime.timedelta(hours=4)
-        #dt = utc_dt.strftime(date_broker_format)        
-        
-        return utc_dt
-    elif exchange==exc.BITTREX:
-        ts = ts.split('.')[0]
-        tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
-        utc=pytz.UTC
-        utc_dt = tsf.astimezone(pytz.utc)
-        utc_dt = utc_dt + datetime.timedelta(hours=4)
-        return utc_dt
-
-def conv_timestamp(ts, exchange):    
-    if exchange==exc.CRYPTOPIA:
-        #local = pytz.timezone("Europe/London") 
-        #tsf = datetime.datetime.fromtimestamp(ts)
-        tsf = datetime.datetime.utcfromtimestamp(ts)        
-        #local_dt = local.localize(tsf, is_dst=None)
-        utc_dt = tsf.astimezone(pytz.utc)
-        utc_dt = utc_dt + datetime.timedelta(hours=4)
-        #dt = utc_dt.strftime(date_broker_format)        
-        
-        return utc_dt
-    elif exchange==exc.BITTREX:
-        ts = ts.split('.')[0]
-        tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
-        utc=pytz.UTC
-        utc_dt = tsf.astimezone(pytz.utc)
-        utc_dt = utc_dt + datetime.timedelta(hours=4)
-        return utc_dt
 
 
-def convert(tx, exchange, market):
-    """ convert transaction """
-    if exchange==exc.CRYPTOPIA:
-        #CET time        
-        ts = tx['Timestamp']
-        dt = conv_timestamp(ts, exchange)
-        #print (ts,dt)
-        ty = tx['Type']
-        p = tx['Price']
-        market = tx['Label']
-        conv_market = markets.convert_markets_to(market, exchange)
-        #print (conv_market)
-        d = {'timestamp': dt, 'txtype': ty,'price':p,'exchange':exchange,'market':conv_market}
-        return d
-    elif exchange==exc.BITTREX:
-        #UTC time
-        ts = tx['TimeStamp']
-        dt = conv_timestamp(ts, exchange)
-        ty = convert_type_key(tx['OrderType'], exchange)
-        p = tx['Price']
-        d = {'timestamp': dt, 'txtype': ty,'price':p,'exchange':exchange,'market':market}
-        return d
+
 
 def convert_type_key(key, exchange):
     if exchange==exc.CRYPTOPIA:
