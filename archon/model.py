@@ -232,8 +232,8 @@ def conv_summary(m,exchange):
         return d
     elif exchange==exc.BITTREX:
         # 'Last': 5.6e-07, 'BaseVolume': 1.42803274, 'TimeStamp': '2018-10-01T08:38:19.217', 'Bid': 5.6e-07, 'Ask': 5.7e-07, 'OpenBuyOrders': 140, 'OpenSellOrders': 617, 'PrevDay': 5.3e-07, 'Created': '2016-05-16T06:44:15.287'}
-        print (m)
-        pair = m['MarketName']
+        #print (m)
+        pair = m['MarketName']        
         market = markets.convert_markets_to(pair,exchange)
         bid = m['Bid']
         ask = m['Ask']
@@ -241,7 +241,7 @@ def conv_summary(m,exchange):
         low = m['Low']
         last = m['Last']
         volume = m['BaseVolume']
-        d = {'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last}
+        d = {'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':exchange}
         return d
     elif exchange==exc.KUCOIN:
         #{'coinType': 'QSP', 'trading': True, 'symbol': 'QSP-ETH', 
@@ -251,6 +251,7 @@ def conv_summary(m,exchange):
         #  'datetime': 1538417238000, 'vol': 17420.292237, 'low': 0.0001426, 
         # 'changeRate': -0.0374}}
         try:
+            #print (m)
             pair = m['symbol']
             x,y = pair.split('-')
             market = x + "_" + y
@@ -261,9 +262,28 @@ def conv_summary(m,exchange):
             low = m['low']
             last = m['lastDealPrice']
             volume = m['volValue']            
-            d = {'exchange':exchange,'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last}
+            d = {'exchange':exchange,'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':exchange}
             return d
-        except:
+        except Exception as err:
+            #print ("!",err)
             return {}
+    elif exchange==exc.HITBTC:
+        #{'ask': '0.0023110', 'bid': '0.0021000', 'last': '0.0023411', 
+        # 'open': '0.0027753', 'low': '0.0017000', 'high': '0.0029999', 'volume': '9075000',
+        #  'volumeQuote': '19015.3803', 'timestamp': '2018-10-01T21:17:44.681Z',
+        # # 'symbol': 'CDCCUSD'}
+        pair = m['symbol']
+        x,y = pair[:3],pair[-3:]
+        market = x + "_" + y
+        #market = markets.convert_markets_to(pair,exchange)
+        bid = m['bid']
+        ask = m['ask']
+        high = m['high']
+        low = m['low']
+        volume = m['volumeQuote']   
+        last = m['last']         
+        d = {'exchange':exchange,'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':exchange}
+        return d
+        
 
 

@@ -21,7 +21,7 @@ def get_usd(symbol):
         except:
             return 0
 
-def unify_balance(b,exchange):
+def conv_balance(b,exchange):
 
     if exchange==exc.CRYPTOPIA:
         newl = list()
@@ -92,4 +92,28 @@ def unify_balance(b,exchange):
             d['symbol'] = k
             d['total'] = v
             newl.append(d)  
+        return newl
+
+    elif exchange==exc.HITBTC:
+        newl = list()
+        """
+        for x in ab:
+            c = x['currency']
+            av = float(x['available'])
+            r = float(x['reserved'])
+            if av+r > 0:
+                blist.append({'currency':c,'total':av+r})
+        """
+        #TODO add to account
+        
+        for x in b:
+            s = x['currency']
+            av = float(x['available'])
+            r = float(x['reserved'])
+            if av+r > 0:
+                d = {}            
+                d['symbol'] = s
+                d['exchange'] = "Hitbtc"            
+                d['total'] = av+r
+                newl.append(d)
         return newl

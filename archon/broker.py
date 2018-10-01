@@ -169,33 +169,40 @@ class Broker:
 
     def balance_all(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
-
+        client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
             b, error = clients[exc.CRYPTOPIA].get_balance_all()        
-            b = unify_balance(b,exchange)
+            b = conv_balance(b,exchange)
             return b
         
         elif exchange==exc.BITTREX:
             b = clients[exc.BITTREX].get_balances()
             br = b["result"]
-            br = unify_balance(br,exchange) 
+            br = conv_balance(br,exchange) 
             return br    
 
         elif exchange==exc.KUCOIN:
             b = clients[exc.KUCOIN].get_all_balances()       
-            b = unify_balance(b,exchange) 
+            b = conv_balance(b,exchange) 
             return b        
 
         elif exchange==exc.BINANCE:
             b = clients[exc.BINANCE].get_account()['balances']
-            b = unify_balance(b,exchange) 
+            b = conv_balance(b,exchange) 
             return b
+
+        elif exchange==exc.HITBTC:      
+            b = client.get_trading_balance()        
+            #ab = client.get_account_balance()
+            b = conv_balance(b,exchange)
+            return b
+
 
         elif exchange==exc.KRAKEN:
             b = clients[exc.KRAKEN].query_private('Balance')
             r = b['result']
-            r = unify_balance(r,exchange) 
-            return r
+            r = conv_balance(r,exchange) 
+            return r            
 
     def balance_currency(self, currency, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -413,16 +420,28 @@ class Broker:
         if exchange==exc.CRYPTOPIA:
             r = client.get_markets()[0]            
             f = lambda x: conv_summary(x,exchange)
-            cc_markets = [f(x) for x in r]
+            markets = [f(x) for x in r]
             #TODO use object
-            return cc_markets
+            return markets
         elif exchange==exc.BITTREX:   
             r = client.get_market_summaries()['result']
             f = lambda x: conv_summary(x, exchange)            
             #rex_markets = [x['MarketName'] for x in r]
-            rex_markets = [f(x) for x in r]
+            markets = [f(x) for x in r]
             #rex_markets = [Market(x,exc.BITTREX) for x in rex_markets]
-            return rex_markets
+            return markets
+        elif exchange==exc.KUCOIN:
+            r = client.get_tick()
+            f = lambda x: conv_summary(x, exchange)  
+            markets = [f(x) for x in r]          
+            #print ("?" , len(markets))
+            return markets
+        elif exchange==exc.HITBTC:
+            r = client.get_tickers()
+            f = lambda x: conv_summary(x, exchange)  
+            markets = [f(x) for x in r]          
+            #print ("?" , len(markets))
+            return markets
 
     def get_market_summaries_only(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
