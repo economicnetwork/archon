@@ -12,6 +12,7 @@ from archon.model import *
 from archon.exchange.rex import Bittrex
 from archon.exchange.cryptopia import CryptopiaAPI
 from archon.exchange.kucoin import KuClient
+import archon.exchange.hitbtc as hitbtc
 #Wrappers with foreign package
 import binance.client
 import krakenex
@@ -52,12 +53,14 @@ class Broker:
             clients[exchange] = Bittrex(key,secret)  
         elif exchange==exc.KUCOIN:
             clients[exchange] = KuClient(key,secret)   
+        elif exchange==exc.HITBTC:
+            clients[exchange] = hitbtc.RestClient(key,secret)   
         elif exchange==exc.BINANCE:
             clients[exchange] = binance.client.Client(key,secret)
         elif exchange==exc.KRAKEN:        
             k = krakenex.API()
             k.load_key('kraken.key')
-            clients[exchange] = k
+            clients[exchange] = k            
 
 
     def get_client(self, EXC):
@@ -347,10 +350,16 @@ class Broker:
     def trade_history(self, market, exchange=None):
         """ personal trades """
         if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
             txs, _ = clients[exc.CRYPTOPIA].get_tradehistory(market)
             return txs
-
+        elif exchange==exc.BITTREX:
+            pass
+        elif exchange==exc.KUCOIN:
+            r = client.get_dealt_orders()
+            return r
+            
     def get_tradehistory_all(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]
@@ -385,7 +394,7 @@ class Broker:
             #timestamp
             return book
 
-    def get_market_summary_str(self, market, exchange):        
+    def get_market_summary(self, market, exchange):        
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]        
         if exchange==exc.CRYPTOPIA:

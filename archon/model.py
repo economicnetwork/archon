@@ -243,4 +243,27 @@ def conv_summary(m,exchange):
         volume = m['BaseVolume']
         d = {'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last}
         return d
+    elif exchange==exc.KUCOIN:
+        #{'coinType': 'QSP', 'trading': True, 'symbol': 'QSP-ETH', 
+        # 'lastDealPrice': 0.0001569, 'buy': 0.0001497, 'sell': 0.0001569, 
+        # #'change': -6.1e-06, 'coinTypePair': 'ETH', 'sort': 0, 
+        # #'feeRate': 0.001, 'volValue': 2.61055065, 'high': 0.000157,
+        #  'datetime': 1538417238000, 'vol': 17420.292237, 'low': 0.0001426, 
+        # 'changeRate': -0.0374}}
+        try:
+            pair = m['symbol']
+            x,y = pair.split('-')
+            market = x + "_" + y
+            #market = markets.convert_markets_to(pair,exchange)
+            bid = m['buy']
+            ask = m['sell']
+            high = m['high']
+            low = m['low']
+            last = m['lastDealPrice']
+            volume = m['volValue']            
+            d = {'exchange':exchange,'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last}
+            return d
+        except:
+            return {}
+
 

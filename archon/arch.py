@@ -44,6 +44,10 @@ def setClientsFromFile(abroker):
     abroker.set_api_keys(exc.KRAKEN,"","")
     #k.load_key('kraken.key')
 
+    hitbtc_keys = apikeys["HITBTC"]        
+    abroker.set_api_keys(exc.HITBTC,hitbtc_keys["public_key"],hitbtc_keys["secret"])
+
+
     gconf = general_config()["MAILGUN"]
     abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
     
