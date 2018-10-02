@@ -58,6 +58,7 @@ BASE_URL_V2_0 = 'https://bittrex.com/api/v2.0{path}?'
 PROTECTION_PUB = 'pub'  # public methods
 PROTECTION_PRV = 'prv'  # authenticated methods
 
+using_version = API_V1_1
 
 def encrypt(api_key, api_secret, export=True, export_fn='secrets.json'):
     cipher = AES.new(getpass.getpass(
@@ -84,7 +85,7 @@ class Bittrex(object):
     Used for requesting Bittrex with API key and API secret
     """
 
-    def __init__(self, api_key, api_secret, calls_per_second=1, dispatch=using_requests, api_version=API_V1_1):
+    def __init__(self, api_key, api_secret, calls_per_second=1, dispatch=using_requests, api_version=using_version):
         #api_version=API_V1_1):
         self.api_key = str(api_key) if api_key is not None else ''
         self.api_secret = str(api_secret) if api_secret is not None else ''
@@ -706,6 +707,77 @@ class Bittrex(object):
             API_V2_0: '/key/balance/getpendingdeposits'
         }, options={'currencyname': currency}, protection=PROTECTION_PRV)
 
+    def get_candles(self, market, tick_interval):
+        """
+        Used to get all tick candles for a market.
+
+        Endpoint:
+        1.1 NO EQUIVALENT
+        2.0 /pub/market/GetTicks
+
+        Example  ::
+            { success: true,
+              message: '',
+              result:
+               [ { O: 421.20630125,
+                   H: 424.03951276,
+                   L: 421.20630125,
+                   C: 421.20630125,
+                   V: 0.05187504,
+                   T: '2016-04-08T00:00:00',
+                   BV: 21.87921187 },
+                 { O: 420.206,
+                   H: 420.206,
+                   L: 416.78743422,
+                   C: 416.78743422,
+                   V: 2.42281573,
+                   T: '2016-04-09T00:00:00',
+                   BV: 1012.63286332 }]
+            }
+
+        :return: Available tick candles in JSON
+        :rtype: dict
+        """
+
+        return self._api_query(path_dict={
+            API_V2_0: '/pub/market/GetTicks'
+        }, options={
+            'marketName': market, 'tickInterval': tick_interval
+        }, protection=PROTECTION_PUB)
+
+    def get_latest_candle(self, market, tick_interval):
+        """
+        Used to get the latest candle for the market.
+
+        Endpoint:
+        1.1 NO EQUIVALENT
+        2.0 /pub/market/GetLatestTick
+
+        Example ::
+            { success: true,
+              message: '',
+              result:
+              [ {   O : 0.00350397,
+                    H : 0.00351000,
+                    L : 0.00350000,
+                    C : 0.00350350,
+                    V : 1326.42643480,
+                    T : 2017-11-03T03:18:00,
+                    BV: 4.64416189 } ]
+            }
+
+        :return: Available latest tick candle in JSON
+        :rtype: dict
+        """
+
+        return self._api_query(path_dict={
+            API_V2_0: '/pub/market/GetLatestTick'
+        }, options={
+            'marketName': market, 'tickInterval': tick_interval
+        }, protection=PROTECTION_PUB)
+
+    # version 2
+
     def trade_sell(self, market=None, order_type=None, quantity=None, rate=None, time_in_effect=None,
                    condition_type=None, target=0.0):
         """
@@ -784,73 +856,4 @@ class Bittrex(object):
             'timeInEffect': time_in_effect,
             'conditiontype': condition_type,
             'target': target
-        }, protection=PROTECTION_PRV)
-
-    def get_candles(self, market, tick_interval):
-        """
-        Used to get all tick candles for a market.
-
-        Endpoint:
-        1.1 NO EQUIVALENT
-        2.0 /pub/market/GetTicks
-
-        Example  ::
-            { success: true,
-              message: '',
-              result:
-               [ { O: 421.20630125,
-                   H: 424.03951276,
-                   L: 421.20630125,
-                   C: 421.20630125,
-                   V: 0.05187504,
-                   T: '2016-04-08T00:00:00',
-                   BV: 21.87921187 },
-                 { O: 420.206,
-                   H: 420.206,
-                   L: 416.78743422,
-                   C: 416.78743422,
-                   V: 2.42281573,
-                   T: '2016-04-09T00:00:00',
-                   BV: 1012.63286332 }]
-            }
-
-        :return: Available tick candles in JSON
-        :rtype: dict
-        """
-
-        return self._api_query(path_dict={
-            API_V2_0: '/pub/market/GetTicks'
-        }, options={
-            'marketName': market, 'tickInterval': tick_interval
-        }, protection=PROTECTION_PUB)
-
-    def get_latest_candle(self, market, tick_interval):
-        """
-        Used to get the latest candle for the market.
-
-        Endpoint:
-        1.1 NO EQUIVALENT
-        2.0 /pub/market/GetLatestTick
-
-        Example ::
-            { success: true,
-              message: '',
-              result:
-              [ {   O : 0.00350397,
-                    H : 0.00351000,
-                    L : 0.00350000,
-                    C : 0.00350350,
-                    V : 1326.42643480,
-                    T : 2017-11-03T03:18:00,
-                    BV: 4.64416189 } ]
-            }
-
-        :return: Available latest tick candle in JSON
-        :rtype: dict
-        """
-
-        return self._api_query(path_dict={
-            API_V2_0: '/pub/market/GetLatestTick'
-        }, options={
-            'marketName': market, 'tickInterval': tick_interval
-        }, protection=PROTECTION_PUB)
+        }, protection=PROTECTION_PRV)        

@@ -102,7 +102,7 @@ class Broker:
                 result = clients[exc.BITTREX].buy_limit(market, qty, order_price)
                 print (result)
             elif ttype == "SELL":
-                clients[exc.BITTREX].trade_sell(market, "BUY", order_price, qty)
+                clients[exc.BITTREX].sell_limit(market, qty, order_price)
 
         elif exchange==exc.KUCOIN:
             c = clients[exc.KUCOIN]
@@ -269,6 +269,33 @@ class Broker:
             return balance_list
         
 
+    def open_orders(self, symbol, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        # ("get open orders " + str(market))
+
+        if exchange==exc.CRYPTOPIA:
+            #oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)                
+            oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
+            return oo
+
+        elif exchange==exc.BITTREX:
+            #TODO
+            #oo = api.get_open_orders(market)["result"]
+            oo = clients[exc.BITTREX].get_open_orders()
+            oor = oo["result"]
+            return oor
+
+        elif exchange==exc.KUCOIN:
+            #def get_active_orders(self, symbol, kv_format=False):
+            #TODO
+            oo = clients[exc.KUCOIN].get_active_orders(symbol, kv_format=True)
+            b = oo['BUY']
+            a = oo['SELL']
+            l = list()
+            for x in b: l.append(convert_openorder(x,exchange))
+            for x in a: l.append(convert_openorder(x,exchange))
+            return l
+
     def open_orders_all(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
         # ("get open orders " + str(market))
@@ -288,8 +315,8 @@ class Broker:
         elif exchange==exc.KUCOIN:
             #def get_active_orders(self, symbol, kv_format=False):
             #TODO
-            symbol = "TOMO-ETH"
-            oo = clients[exc.KUCOIN].get_active_orders(symbol,kv_format=True)
+            #oo = clients[exc.KUCOIN].get_active_orders(symbol,kv_format=True)
+            oo = clients[exc.KUCOIN].get_active_orders(kv_format=True)
             return oo
 
 

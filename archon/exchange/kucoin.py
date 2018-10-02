@@ -330,7 +330,7 @@ class KuClient(object):
         return self.create_order(symbol, self.SIDE_SELL, price, amount)
 
     def get_active_orders(self, symbol, kv_format=False):
-        """Get list of active orders"""
+        """Get list of open orders"""
 
         data = {
             'symbol': symbol

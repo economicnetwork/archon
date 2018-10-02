@@ -180,6 +180,32 @@ def convert_tx(tx, exchange, market):
         d = {'timestamp': dt, 'txtype': ty,'price':p,'exchange':exchange,'market':market}
         return d
 
+def convert_openorder(order, exchange):    
+    if exchange==exc.CRYPTOPIA:
+        pass
+    elif exchange==exc.BITTREX:
+        pass
+    elif exchange==exc.KUCOIN:
+        #{'oid': '5bb31ad1f523284d6d36d79f', 'userOid': '5b1bd7ace0abb8727e324f02', 'coinType': 'TOMO', 'coinTypePair': 'ETH', 
+        # 'direction': 'BUY', 'price': 0.0016729, 'dealAmount': 0.0, 'pendingAmount': 4494.0, 'dealValue': 0.0, 
+        # 'dealAveragePrice': 0.0, 'createdAt': 1538464466000, 'updatedAt': 1538464466000}
+        #print (order)
+        n = exc.NAMES[exchange]
+        oid = order['oid']
+        nom = order['coinType']
+        denom = order['coinTypePair']
+        market = nom + "_" + denom
+        if order['direction']=='BUY':
+            ty = 'bid' 
+        else: 
+            ty = 'ask'
+        price = order['price']
+        quantity = order['dealAmount']
+        #dt = conv_timestamp(ts, exchange)
+        #[1538390455000, 'SELL', 2.94e-06, 60.0, 0.0001764, '5bb1f9b6a07e5d75b084ae19']
+        d = {'exchange':n,'oid':oid,'market':market,'quantity':quantity,'price':price,'otype':ty}
+        return d
+
 def conv_orderbook(book, exchange):
     if exchange==exc.CRYPTOPIA:
         bids = (book["Buy"])
