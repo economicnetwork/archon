@@ -90,23 +90,37 @@ def ask_key(exchange):
         return "sell"    
 
 def conv_usertx(tx, exchange):
+    n = exc.NAMES[exchange]
     if exchange==exc.CRYPTOPIA:
         r = tx['Rate']
         a = tx['Amount']
         ty = tx['Type']
         m = tx['Market']
         ts = tx['TimeStamp'][:19]
-        dt = atx.conv_timestamp_tx(ts,exchange)
+        dt = conv_timestamp_tx(ts,exchange)
         d = {'price':r,'quantity':a,'txtype':ty,'market':m,'timestamp':dt}
         return d
 
     elif exchange==exc.BITTREX:
         t = tx['TimeStamp']
         #2018-09-10T17:07:44.507
-        dt = atx.conv_timestamp(t,exchange)
+        dt = conv_timestamp(t,exchange)
         p = tx['Limit']
         q = tx['Quantity']
         d = {'price':p,'quantity':q,'timestamp':dt} #,'txtype':ty,'market':m,'timestamp':timestamp_from}
+        return d
+
+    elif exchange==exc.KUCOIN:
+        print (tx)
+        dt = tx['createdAt']
+        #ty = tx['dealDirection']
+        ty = tx['direction']
+        q = tx['amount']
+        p = tx['dealPrice']
+        nom = tx['coinType']
+        denom = tx['coinTypePair']
+        m = nom + "_" + denom        
+        d = {'price':p,'quantity':q,'txtype':ty,'market':m,'timestamp':dt,'exchange':n}
         return d
 
 
@@ -311,5 +325,3 @@ def conv_summary(m,exchange):
         d = {'exchange':exchange,'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':exchange}
         return d
         
-
-

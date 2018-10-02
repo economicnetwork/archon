@@ -392,6 +392,8 @@ class Broker:
             pass
         elif exchange==exc.KUCOIN:
             r = client.get_dealt_orders()
+            f = lambda x: conv_usertx(x,exchange)
+            r = list(map(f,r))
             return r
             
     def get_tradehistory_all(self, exchange=None):
@@ -403,6 +405,11 @@ class Broker:
         elif exchange==exc.BITTREX:
             r = client.get_order_history()
             return r
+        elif exchange==exc.KUCOIN:
+            r = client.get_dealt_orders()['datas']
+            f = lambda x: conv_usertx(x,exchange)
+            tx = list(map(f,r))
+            return tx
 
     def get_orderbook(self, market, exchange=None):
         if exchange is None: exchange=self.s_exchange
