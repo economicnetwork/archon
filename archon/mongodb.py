@@ -28,7 +28,4 @@ def db_count_report(log):
     for k,v in d.items():
         log.info("%s %s"%(k,v.find().count()))
 
-def insert_balance(b):    
-    ds = datetime.now().strftime("%Y%m%d")
-    b["timestamp"] = ds
-    db.balances.insert(b)
+    

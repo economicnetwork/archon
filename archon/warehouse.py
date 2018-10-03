@@ -10,7 +10,7 @@ balances
 
 import archon.broker as broker
 import archon.arch as arch
-import archon.model as model
+import archon.model.models as model
 import archon.mongodb as mongodb
 import archon.exchange.exchanges as exc
 import archon.markets as markets

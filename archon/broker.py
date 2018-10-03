@@ -4,9 +4,8 @@ broker
 
 import archon.exchange.exchanges as exc
 from archon.markets import *
-from archon.balances import *
 from archon.util import *
-from archon.model import *
+from archon.model.models import *
 
 #Wrappers
 from archon.exchange.rex import Bittrex

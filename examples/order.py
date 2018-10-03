@@ -3,7 +3,7 @@ sys.path.append('/Users/x/archon')
 import archon.broker as broker
 import archon.arch as arch
 import archon.markets as markets
-import archon.model as m
+import archon.model.models as m
 import archon.exchange.exchanges as exc
 from archon.util import *
 
