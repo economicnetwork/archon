@@ -3,6 +3,7 @@
 import archon.exchange.exchanges as exc
 import archon.markets as markets
 import archon.tx as atx
+import archon.feeds.cryptocompare as cryptocompare
 import datetime
 import pytz
 
@@ -89,41 +90,6 @@ def ask_key(exchange):
     elif exchange==exc.KUCOIN:
         return "sell"    
 
-def conv_usertx(tx, exchange):
-    n = exc.NAMES[exchange]
-    if exchange==exc.CRYPTOPIA:
-        r = tx['Rate']
-        a = tx['Amount']
-        ty = tx['Type']
-        m = tx['Market']
-        ts = tx['TimeStamp'][:19]
-        dt = conv_timestamp_tx(ts,exchange)
-        d = {'price':r,'quantity':a,'txtype':ty,'market':m,'timestamp':dt}
-        return d
-
-    elif exchange==exc.BITTREX:
-        t = tx['TimeStamp']
-        #2018-09-10T17:07:44.507
-        dt = conv_timestamp(t,exchange)
-        p = tx['Limit']
-        q = tx['Quantity']
-        d = {'price':p,'quantity':q,'timestamp':dt} #,'txtype':ty,'market':m,'timestamp':timestamp_from}
-        return d
-
-    elif exchange==exc.KUCOIN:
-        print (tx)
-        dt = tx['createdAt']
-        #ty = tx['dealDirection']
-        ty = tx['direction']
-        q = tx['amount']
-        p = tx['dealPrice']
-        nom = tx['coinType']
-        denom = tx['coinTypePair']
-        m = nom + "_" + denom        
-        d = {'price':p,'quantity':q,'txtype':ty,'market':m,'timestamp':dt,'exchange':n}
-        return d
-
-
 def conv_timestamp_tx(ts, exchange):    
     if exchange==exc.CRYPTOPIA:
         tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
@@ -165,6 +131,40 @@ def conv_timestamp(ts, exchange):
         utc_dt = utc_dt + datetime.timedelta(hours=4)
         return utc_dt
 
+def conv_usertx(tx, exchange):
+    n = exc.NAMES[exchange]
+    if exchange==exc.CRYPTOPIA:
+        r = tx['Rate']
+        a = tx['Amount']
+        ty = tx['Type']
+        m = tx['Market']
+        ts = tx['TimeStamp'][:19]
+        dt = conv_timestamp_tx(ts,exchange)
+        d = {'price':r,'quantity':a,'txtype':ty,'market':m,'timestamp':dt}
+        return d
+
+    elif exchange==exc.BITTREX:
+        t = tx['TimeStamp']
+        #2018-09-10T17:07:44.507
+        dt = conv_timestamp(t,exchange)
+        p = tx['Limit']
+        q = tx['Quantity']
+        d = {'price':p,'quantity':q,'timestamp':dt} #,'txtype':ty,'market':m,'timestamp':timestamp_from}
+        return d
+
+    elif exchange==exc.KUCOIN:
+        t = tx['createdAt']
+        dt = conv_timestamp(t,exchange)
+        #ty = tx['dealDirection']
+        ty = tx['direction']
+        q = tx['amount']
+        p = tx['dealPrice']
+        nom = tx['coinType']
+        denom = tx['coinTypePair']
+        m = nom + "_" + denom        
+        d = {'price':p,'quantity':q,'txtype':ty,'market':m,'timestamp':dt,'exchange':n}
+        return d
+
 def convert_tx(tx, exchange, market):
     """ convert transaction """
     if exchange==exc.CRYPTOPIA:
@@ -199,11 +199,7 @@ def convert_openorder(order, exchange):
         pass
     elif exchange==exc.BITTREX:
         pass
-    elif exchange==exc.KUCOIN:
-        #{'oid': '5bb31ad1f523284d6d36d79f', 'userOid': '5b1bd7ace0abb8727e324f02', 'coinType': 'TOMO', 'coinTypePair': 'ETH', 
-        # 'direction': 'BUY', 'price': 0.0016729, 'dealAmount': 0.0, 'pendingAmount': 4494.0, 'dealValue': 0.0, 
-        # 'dealAveragePrice': 0.0, 'createdAt': 1538464466000, 'updatedAt': 1538464466000}
-        #print (order)
+    elif exchange==exc.KUCOIN: 
         n = exc.NAMES[exchange]
         oid = order['oid']
         nom = order['coinType']
@@ -214,7 +210,8 @@ def convert_openorder(order, exchange):
         else: 
             ty = 'ask'
         price = order['price']
-        quantity = order['dealAmount']
+        #quantity = order['dealAmount']
+        quantity = order['pendingAmount']
         #dt = conv_timestamp(ts, exchange)
         #[1538390455000, 'SELL', 2.94e-06, 60.0, 0.0001764, '5bb1f9b6a07e5d75b084ae19']
         d = {'exchange':n,'oid':oid,'market':market,'quantity':quantity,'price':price,'otype':ty}
@@ -268,11 +265,10 @@ def conv_summary(m,exchange):
         bid = m['BidPrice']
         ask = m['AskPrice']
         volume = m['BaseVolume']
-        d = {'pair':market,'bid':bid,'ask':ask,'volume':volume}
+        d = {'pair':market,'bid':bid,'ask':ask,'volume':volume,'exchange':exchange}
         return d
     elif exchange==exc.BITTREX:
         # 'Last': 5.6e-07, 'BaseVolume': 1.42803274, 'TimeStamp': '2018-10-01T08:38:19.217', 'Bid': 5.6e-07, 'Ask': 5.7e-07, 'OpenBuyOrders': 140, 'OpenSellOrders': 617, 'PrevDay': 5.3e-07, 'Created': '2016-05-16T06:44:15.287'}
-        #print (m)
         pair = m['MarketName']        
         market = markets.convert_markets_to(pair,exchange)
         bid = m['Bid']
@@ -291,7 +287,6 @@ def conv_summary(m,exchange):
         #  'datetime': 1538417238000, 'vol': 17420.292237, 'low': 0.0001426, 
         # 'changeRate': -0.0374}}
         try:
-            #print (m)
             pair = m['symbol']
             x,y = pair.split('-')
             market = x + "_" + y
@@ -306,7 +301,7 @@ def conv_summary(m,exchange):
             return d
         except Exception as err:
             #print ("!",err)
-            return {}
+            return None
     elif exchange==exc.HITBTC:
         #{'ask': '0.0023110', 'bid': '0.0021000', 'last': '0.0023411', 
         # 'open': '0.0027753', 'low': '0.0017000', 'high': '0.0029999', 'volume': '9075000',
@@ -325,3 +320,103 @@ def conv_summary(m,exchange):
         d = {'exchange':exchange,'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':exchange}
         return d
         
+
+def conv_balance(b,exchange):
+    """ balance: amount, price, USD-value """
+    if exchange==exc.CRYPTOPIA:
+        newl = list()
+        for x in b:
+            d = {}
+            s = x['Symbol']
+            d['symbol'] = s            
+            t = float(x['Total'])
+            if t > 0:
+                #usd_price = cryptocompare.get_usd(s)                
+                #print (usd_price,t)
+                d['amount'] = t
+                #d['USD-value'] = t*usd_price
+                newl.append(d)
+        return newl
+
+    elif exchange==exc.BITTREX:
+        newl = list()
+        for x in b:
+            d = {}
+            s = x['Currency']
+            d['symbol'] = s
+            t = float(x['Balance'])
+            if t > 0:
+                #usd_price = get_usd(s)                
+                d['amount'] = t
+                #d['USD-value'] = t*usd_price
+                newl.append(d)
+        return newl
+
+    elif exchange==exc.BINANCE:    
+        newl = list()
+        for x in b:
+            s = x['asset']
+            f = float(x['free'])
+            l = float(x['locked'])        
+            if f+l > 0:
+                
+                d = {}
+                d['symbol'] = s
+                d['exchange'] = "Binance"            
+                d['amount'] = f+l
+                #usd_price = get_usd(s)    
+                #d['USD-value'] = (f+l)*usd_price
+                newl.append(d)
+        return newl
+
+    elif exchange==exc.KUCOIN:
+        newl = list()
+        for x in b:
+            s = x['coinType']            
+            bb = x['balance']
+            if bb > 0:
+                
+                d = {}            
+                d['symbol'] = s
+                d['exchange'] = "Kucoin"            
+                d['amount'] = bb
+                #usd_price = get_usd(s)    
+                #d['USD-value'] = bb*usd_price
+                newl.append(d)
+        return newl
+
+    elif exchange==exc.KRAKEN:
+        replace_syms = {'XXBT':'BTC','ZEUR':'EUR','ZUSD':'USD'}
+        newl = list()
+        for k,v in b.items():
+            d = {}
+            if k in replace_syms.keys():
+                k = replace_syms[k]
+            d['symbol'] = k
+            d['amount'] = v
+            newl.append(d)  
+        return newl
+
+    elif exchange==exc.HITBTC:
+        newl = list()
+        """
+        for x in ab:
+            c = x['currency']
+            av = float(x['available'])
+            r = float(x['reserved'])
+            if av+r > 0:
+                blist.append({'currency':c,'total':av+r})
+        """
+        #TODO add to account
+        
+        for x in b:
+            s = x['currency']
+            av = float(x['available'])
+            r = float(x['reserved'])
+            if av+r > 0:
+                d = {}            
+                d['symbol'] = s
+                d['exchange'] = "Hitbtc"            
+                d['amount'] = av+r
+                newl.append(d)
+        return newl

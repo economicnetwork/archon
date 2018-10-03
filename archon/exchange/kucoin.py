@@ -342,6 +342,19 @@ class KuClient(object):
 
         return self._get(path, True, data=data)
 
+    def get_active_orders_all(self, kv_format=False):
+        """Get list of all open orders"""
+
+        data = {
+            'symbol': ''
+        }
+
+        path = 'order/active'
+        if kv_format:
+            path += '-map'
+
+        return self._get(path, True, data=data)        
+
     def cancel_order(self, order_id, order_type, symbol=None):
         """Cancel an order"""
         print ("cancel " + str(order_id) + " " + str(order_type))

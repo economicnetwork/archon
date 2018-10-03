@@ -269,6 +269,36 @@ class Broker:
             return balance_list
         
 
+    def trade_history(self, market, exchange=None):
+        """ personal trades """
+        if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
+        if exchange==exc.CRYPTOPIA:
+            txs, _ = clients[exc.CRYPTOPIA].get_tradehistory(market)
+            return txs
+        elif exchange==exc.BITTREX:
+            pass
+        elif exchange==exc.KUCOIN:
+            r = client.get_dealt_orders(limit=100)
+            f = lambda x: conv_usertx(x,exchange)
+            r = list(map(f,r))
+            return r
+            
+    def get_tradehistory_all(self, exchange=None):
+        if exchange is None: exchange=self.s_exchange
+        client = clients[exchange]
+        if exchange==exc.CRYPTOPIA:
+            txs, _ = client.get_tradehistory_all()
+            return txs
+        elif exchange==exc.BITTREX:
+            r = client.get_order_history()
+            return r
+        elif exchange==exc.KUCOIN:
+            r = client.get_dealt_orders(limit=100)['datas']
+            f = lambda x: conv_usertx(x,exchange)
+            tx = list(map(f,r))
+            return tx
+
     def open_orders(self, symbol, exchange=None):
         if exchange is None: exchange=self.s_exchange
         # ("get open orders " + str(market))
@@ -316,7 +346,8 @@ class Broker:
             #def get_active_orders(self, symbol, kv_format=False):
             #TODO
             #oo = clients[exc.KUCOIN].get_active_orders(symbol,kv_format=True)
-            oo = clients[exc.KUCOIN].get_active_orders(kv_format=True)
+            oo = clients[exc.KUCOIN].get_active_orders_all(kv_format=True)
+            oo = oo['BUY'] + oo['SELL']
             return oo
 
 
@@ -381,36 +412,6 @@ class Broker:
             r = client.get_recent_trades(market,limit=200)
             return r
 
-    def trade_history(self, market, exchange=None):
-        """ personal trades """
-        if exchange is None: exchange=self.s_exchange
-        client = clients[exchange]
-        if exchange==exc.CRYPTOPIA:
-            txs, _ = clients[exc.CRYPTOPIA].get_tradehistory(market)
-            return txs
-        elif exchange==exc.BITTREX:
-            pass
-        elif exchange==exc.KUCOIN:
-            r = client.get_dealt_orders()
-            f = lambda x: conv_usertx(x,exchange)
-            r = list(map(f,r))
-            return r
-            
-    def get_tradehistory_all(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
-        client = clients[exchange]
-        if exchange==exc.CRYPTOPIA:
-            txs, _ = client.get_tradehistory_all()
-            return txs
-        elif exchange==exc.BITTREX:
-            r = client.get_order_history()
-            return r
-        elif exchange==exc.KUCOIN:
-            r = client.get_dealt_orders()['datas']
-            f = lambda x: conv_usertx(x,exchange)
-            tx = list(map(f,r))
-            return tx
-
     def get_orderbook(self, market, exchange=None):
         if exchange is None: exchange=self.s_exchange
         #print ("get orderbook " + str(market))
@@ -439,13 +440,14 @@ class Broker:
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]        
         if exchange==exc.CRYPTOPIA:
-            result, err = client.get_market(market)
-            return result
+            result, err = client.get_market(market,exchange)
+            r = conv_summary(result)
+            return r
         elif exchange==exc.BITTREX:   
-            r = client.get_market_summary(market)
+            r = conv_summary(client.get_market_summary(market,exchange))
             return r['result'][0]
         elif exchange==exc.KUCOIN:
-            r = client.get_tick(market)
+            r = conv_summary(client.get_tick(market),exchange)
             return r
 
     def get_market_summaries(self, exchange=None):
@@ -468,13 +470,12 @@ class Broker:
             r = client.get_tick()
             f = lambda x: conv_summary(x, exchange)  
             markets = [f(x) for x in r]          
-            #print ("?" , len(markets))
+            markets = list(filter(lambda x: x != None, markets))
             return markets
         elif exchange==exc.HITBTC:
             r = client.get_tickers()
             f = lambda x: conv_summary(x, exchange)  
             markets = [f(x) for x in r]          
-            #print ("?" , len(markets))
             return markets
 
     def get_market_summaries_only(self, exchange=None):
@@ -505,7 +506,8 @@ class Broker:
         elif exchange==exc.KUCOIN:
             r = client.get_currencies()
             return r
-        
+        #elif exchange==exc.HITBTC:
+
 
 
     """
