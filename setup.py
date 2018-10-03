@@ -12,7 +12,6 @@ setup(
     url='http://pypi.python.org/pypi/archon1/',
     license='LICENSE',
     description='Trading agent framework',
-    long_description=open('README.md').read(),
     install_requires=[
         #"Django >= 1.1.1",
         #"caldav == 0.1.4",
