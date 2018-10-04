@@ -390,10 +390,11 @@ class Bittrex(object):
         :return:
         :rtype : dict
         """
-        return self._api_query(path_dict={
+        r = self._api_query(path_dict={
             API_V1_1: '/market/cancel',
             API_V2_0: '/key/market/tradecancel'
         }, options={'uuid': uuid, 'orderid': uuid}, protection=PROTECTION_PRV)
+        return r
 
     def get_open_orders(self, market=None):
         """

@@ -46,7 +46,7 @@ class Broker:
         self.email_to = email_to
 
     def set_api_keys(self, exchange, key, secret):
-        log.info("set api " + str(exchange))
+        log.debug("set api " + str(exchange))
         if exchange==exc.CRYPTOPIA:
             clients[exchange] = CryptopiaAPI(key, secret)
         elif exchange==exc.BITTREX:
@@ -96,8 +96,8 @@ class Broker:
         elif exchange==exc.BITTREX:
             if ttype == "BUY":
                 result = clients[exc.BITTREX].buy_limit(market, qty, order_price)
-                log.info("order result %s" %str(r))
-                return r
+                log.info("order result %s" %str(result))
+                return result
             elif ttype == "SELL":
                 r = clients[exc.BITTREX].sell_limit(market, qty, order_price)
                 log.info("order result %s" %str(r))
@@ -128,20 +128,21 @@ class Broker:
     def cancel(self, oid, otype=None,exchange=None,symbol=None):
         """ cancel by id . TODO integrate OMS and internal checks """
         if exchange is None: exchange=self.s_exchange
-        log.info("cancel " + str(oid) + " " + str(exchange))
-        if exchange==exc.CRYPTOPIA:
-            print ("cancel CC " + str(oid))
-            r,err = clients[exc.CRYPTOPIA].cancel_trade_id(oid)
-            return r
-
+        log.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype))
+        result = None
+        if exchange==exc.CRYPTOPIA:            
+            result,err = clients[exc.CRYPTOPIA].cancel_trade_id(oid)
+            
         elif exchange==exc.BITTREX:
-            r = clients[exc.BITTREX].cancel(oid)
-            return r
+            result = clients[exc.BITTREX].cancel(oid)
+            log.info("result " + str(r))
 
         elif exchange==exc.KUCOIN:
             order_type = otype
-            r = clients[exc.KUCOIN].cancel_order(oid,order_type,symbol)
-            return r
+            result = clients[exc.KUCOIN].cancel_order(oid,order_type,symbol)
+        
+        log.info("result " + str(result))
+        return result
 
     def cancel_all(self, market, exchange=None):
         log.info("cancel all")
@@ -163,6 +164,7 @@ class Broker:
     # --- trading info ---
 
     def balance_all(self, exchange=None):
+        log.info("balance")
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
@@ -296,30 +298,25 @@ class Broker:
 
     def open_orders(self, symbol, exchange=None):
         if exchange is None: exchange=self.s_exchange
-        # ("get open orders " + str(market))
-
+        oo = None
         if exchange==exc.CRYPTOPIA:
-            #oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)                
             oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
-            return oo
 
         elif exchange==exc.BITTREX:
-            #TODO
-            #oo = api.get_open_orders(market)["result"]
-            oo = clients[exc.BITTREX].get_open_orders()
-            oor = oo["result"]
-            return oor
+            oo = clients[exc.BITTREX].get_open_orders()["result"]
+            f = lambda x: convert_openorder(x,exchange)
+            oo = list(map(f,oo))  
 
         elif exchange==exc.KUCOIN:
-            #def get_active_orders(self, symbol, kv_format=False):
-            #TODO
             oo = clients[exc.KUCOIN].get_active_orders(symbol, kv_format=True)
             b = oo['BUY']
             a = oo['SELL']
             l = list()
             for x in b: l.append(convert_openorder(x,exchange))
             for x in a: l.append(convert_openorder(x,exchange))
-            return l
+            oo = l
+        log.info("open orders " + str(oo))
+        return oo
 
     def open_orders_all(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -408,7 +405,7 @@ class Broker:
             #print (res)
             #klines = client.get_historical_klines_tv(market, res, '1 hour ago UTC')            
             #print (klines)
-            r = client.get_recent_trades(market,limit=200)
+            r = client.get_recent_trades(market,limit=500)
             return r
 
     def get_orderbook(self, market, exchange=None):

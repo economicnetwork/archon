@@ -25,8 +25,8 @@ import math
 logpath = './log'
 log = setup_logger(logpath, 'info_logger', 'warehouse')
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
+#abroker = broker.Broker()
+#arch.setClientsFromFile(abroker)
 
 db = mongodb.db
 

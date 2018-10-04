@@ -213,12 +213,32 @@ def convert_openorder(order, exchange):
     if exchange==exc.CRYPTOPIA:
         pass
     elif exchange==exc.BITTREX:
-        pass
+        n = exc.NAMES[exchange]
+        oid = order['OrderUuid']        
+        m = order['Exchange']
+        nom = m.split('-')[1]
+        denom = m.split('-')[0]
+        market = nom + "_" + denom
+        price = order['Limit']
+        quantity = order['Quantity']
+        if order['OrderType']=='LIMIT_BUY':
+            ty = 'bid' 
+        else: 
+            ty = 'ask'
+
+        d = {'exchange':n,'oid':oid,'market':market,'quantity':quantity,'price':price,'otype':ty}
+
+        #[{'Uuid': None, 'OrderUuid': '8f024066-6e2f-4c38-af67-8bb300f1d405', 
+        # 'Exchange': 'BTC-BOXX', 'OrderType': 'LIMIT_BUY', 'Quantity': 1522.0, 
+        # 'QuantityRemaining': 1522.0, 'Limit': 2.849e-05, 'CommissionPaid': 0.0, 
+        # 'Price': 0.0, 'PricePerUnit': None, 'Opened': '2018-10-04T10:37:39.817', '
+        # Closed': None, 'CancelInitiated': False, 'ImmediateOrCancel': False,
+        #  'IsConditional': False, 'Condition': 'NONE', 'ConditionTarget': None}]
+        return d
     elif exchange==exc.KUCOIN: 
         n = exc.NAMES[exchange]
         oid = order['oid']
-        #oid = order['userOid']
-        
+        #oid = order['userOid']        
         nom = order['coinType']
         denom = order['coinTypePair']
         market = nom + "_" + denom
@@ -390,13 +410,14 @@ def conv_balance(b,exchange):
         newl = list()
         for x in b:
             s = x['coinType']            
-            bb = x['balance']
-            if bb > 0:
-                
+            bb = float(x['balance'])
+            fb = float(x['freezeBalance'])
+            t = bb+fb
+            if t > 0:                
                 d = {}            
                 d['symbol'] = s
                 d['exchange'] = "Kucoin"            
-                d['amount'] = bb
+                d['amount'] = t
                 #usd_price = get_usd(s)    
                 #d['USD-value'] = bb*usd_price
                 newl.append(d)
