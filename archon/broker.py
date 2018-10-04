@@ -125,8 +125,35 @@ class Broker:
             # ("no")
             pass
 
-    def cancel(self, oid, otype=None,exchange=None,symbol=None):
-        """ cancel by id . TODO integrate OMS and internal checks """
+    def cancel(self, order, exchange):
+        """ cancel by order """
+        if exchange is None: exchange=self.s_exchange
+        result = None
+        oid = order['oid']
+        market = order['market']
+        otype = order['otype']        
+        log.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype) + " " + str(market))
+        
+        if exchange==exc.CRYPTOPIA:            
+            result,err = clients[exc.CRYPTOPIA].cancel_trade_id(oid)
+            
+        elif exchange==exc.BITTREX:
+            result = clients[exc.BITTREX].cancel(oid)
+            log.info("result " + str(r))
+
+        elif exchange==exc.KUCOIN:
+            if otype == 'bid':                
+                f = "BUY"
+            else:
+                f = "SELL"   
+            result = clients[exc.KUCOIN].cancel_order(oid,f,market)                
+                
+        
+        log.info("result " + str(result))
+        return result
+
+    def cancel_id(self, oid, otype=None,exchange=None,symbol=None):
+        """ cancel by id """
         if exchange is None: exchange=self.s_exchange
         log.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype))
         result = None
@@ -315,36 +342,34 @@ class Broker:
             for x in b: l.append(convert_openorder(x,exchange))
             for x in a: l.append(convert_openorder(x,exchange))
             oo = l
-        log.info("open orders " + str(oo))
+        log.info("open orders " + str(exchange) + " " + str(oo))
         return oo
 
     def open_orders_all(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
         # ("get open orders " + str(market))
 
+        oo = None
         if exchange==exc.CRYPTOPIA:
             #oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)                
             oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
-            return oo
 
         elif exchange==exc.BITTREX:
             #TODO
             #oo = api.get_open_orders(market)["result"]
-            oo = clients[exc.BITTREX].get_open_orders()
-            oor = oo["result"]
-            return oor
+            oo = clients[exc.BITTREX].get_open_orders()["result"]            
 
         elif exchange==exc.KUCOIN:
-            #def get_active_orders(self, symbol, kv_format=False):
-            #TODO
-            #oo = clients[exc.KUCOIN].get_active_orders(symbol,kv_format=True)
             oo = clients[exc.KUCOIN].get_active_orders_all(kv_format=True)
             b = oo['BUY']
             a = oo['SELL']
             l = list()
             for x in b: l.append(convert_openorder(x,exchange))
             for x in a: l.append(convert_openorder(x,exchange))
-            return l
+            oo = l
+
+        log.info("open orders " + str(exchange) + " " + str(oo))
+        return oo
 
 
     """

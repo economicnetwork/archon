@@ -353,8 +353,11 @@ class KuClient(object):
         if symbol:
             data['symbol'] = symbol
 
-        r = self._post('cancel-order', True, data=data)
-        return r
+        try:
+            r = self._post('cancel-order', True, data=data)
+            return r
+        except KucoinAPIException as e:
+            print ("error " + str(e))
 
     def cancel_all_orders(self, symbol=None, order_type=None):
         """Cancel all orders"""
@@ -643,7 +646,6 @@ class KuClient(object):
     def get_api_keys(self):
         """Get list of API Keys
         :returns: API Response
-        :raises:  KucoinResponseException, KucoinAPIException
 
         """
 

@@ -236,6 +236,7 @@ def convert_openorder(order, exchange):
         #  'IsConditional': False, 'Condition': 'NONE', 'ConditionTarget': None}]
         return d
     elif exchange==exc.KUCOIN: 
+        #print (order)
         n = exc.NAMES[exchange]
         oid = order['oid']
         #oid = order['userOid']        
