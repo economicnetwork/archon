@@ -35,6 +35,7 @@ log = setup_logger(logpath, 'broker_logger', 'broker')
 class Broker:
 
     def __init__(self):
+        log.info("init broker")
         self.s_exchange = None
 
     def set_mail_config(self, apikey, domain, email_from, email_to):
@@ -45,7 +46,7 @@ class Broker:
         self.email_to = email_to
 
     def set_api_keys(self, exchange, key, secret):
-        #print ("set api " + str(exchange))
+        log.info("set api " + str(exchange))
         if exchange==exc.CRYPTOPIA:
             clients[exchange] = CryptopiaAPI(key, secret)
         elif exchange==exc.BITTREX:
@@ -75,42 +76,43 @@ class Broker:
         """ submit order which is array [type,order,qty] """
         # ("order " + str(order))         
         if exchange is None: exchange=self.s_exchange
-        log.info("submit order " + str(exchange))
+        log.info("submit order " + str(exchange) + " " + str(order))
         market,ttype,order_price,qty = order
         if exchange==exc.CRYPTOPIA:            
-            # (order_price,qty,market)
             if ttype == "BUY":
                 result, err = clients[exc.CRYPTOPIA].submit_trade(market, "BUY", order_price, qty)
                 if err:
-                    print ("! error with order " + str(order) + " " + str(err))
+                    log.error("! error with order " + str(order) + " " + str(err))
                 else:
                     log.info("result " + str(result))
                     return result
             elif ttype == "SELL":
                 result, err = clients[exc.CRYPTOPIA].submit_trade(market, "SELL", order_price, qty)
                 if err:
-                    print ("error order " + str(order))
+                    log.error("error order " + str(order))
                 else:
-                    print ("result " + str(result))
+                    log.info("result " + str(result))
                     log.info("result " + str(result))
         elif exchange==exc.BITTREX:
-            #def trade_buy(self, market=None, order_type=None, quantity=None, rate=None, time_in_effect=None,
-            #      condition_type=None, target=0.0):
             if ttype == "BUY":
-                #def buy_limit(self, market, quantity, rate):
                 result = clients[exc.BITTREX].buy_limit(market, qty, order_price)
-                print (result)
+                log.info("order result %s" %str(r))
+                return r
             elif ttype == "SELL":
-                clients[exc.BITTREX].sell_limit(market, qty, order_price)
+                r = clients[exc.BITTREX].sell_limit(market, qty, order_price)
+                log.info("order result %s" %str(r))
+                return r
 
         elif exchange==exc.KUCOIN:
             c = clients[exc.KUCOIN]
             if ttype == "BUY":
                 r = c.create_buy_order(market,order_price, qty)
-                print (r)
+                log.info("order result %s" %str(r))
+                return r
             elif ttype == "SELL":
                 r = c.create_sell_order(market,order_price, qty)
-                print (r)
+                log.info("order result %s" %str(r))
+                return r
             
 
     def submit_order_check(self, order):
@@ -123,10 +125,10 @@ class Broker:
             # ("no")
             pass
 
-    def cancel(self, oid, exchange=None):
+    def cancel(self, oid, otype=None,exchange=None,symbol=None):
         """ cancel by id . TODO integrate OMS and internal checks """
         if exchange is None: exchange=self.s_exchange
-        print ("cancel " + str(oid) + " " + str(exchange))
+        log.info("cancel " + str(oid) + " " + str(exchange))
         if exchange==exc.CRYPTOPIA:
             print ("cancel CC " + str(oid))
             r,err = clients[exc.CRYPTOPIA].cancel_trade_id(oid)
@@ -137,18 +139,14 @@ class Broker:
             return r
 
         elif exchange==exc.KUCOIN:
-            #def cancel_order(self, order_id, order_type, symbol=None):
-            #TODO
-            order_type = "BUY"
-            symbol = "TOMO-ETH"
+            order_type = otype
             r = clients[exc.KUCOIN].cancel_order(oid,order_type,symbol)
             return r
 
     def cancel_all(self, market, exchange=None):
-        #print ("cancel all.......")
+        log.info("cancel all")
         if exchange is None: exchange=self.s_exchange
         if exchange==exc.CRYPTOPIA:            
-            print ("cancel all")
             oo, err = clients[exc.CRYPTOPIA].get_openorders(market)
 
             if err:
@@ -161,8 +159,6 @@ class Broker:
                 #r, err = clients[exc.CRYPTOPIA].cancel_all_trades()
                 #time.sleep(2)
 
-                oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)
-                print ("open orders ",oo)
 
     # --- trading info ---
 
@@ -346,8 +342,12 @@ class Broker:
             #TODO
             #oo = clients[exc.KUCOIN].get_active_orders(symbol,kv_format=True)
             oo = clients[exc.KUCOIN].get_active_orders_all(kv_format=True)
-            oo = oo['BUY'] + oo['SELL']
-            return oo
+            b = oo['BUY']
+            a = oo['SELL']
+            l = list()
+            for x in b: l.append(convert_openorder(x,exchange))
+            for x in a: l.append(convert_openorder(x,exchange))
+            return l
 
 
     """

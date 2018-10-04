@@ -7,6 +7,9 @@ import archon.feeds.cryptocompare as cryptocompare
 import datetime
 import pytz
 
+#logpath = './log'
+#log = setup_logger(logpath, 'model_logger', 'model')
+
 # ---- key names ----
 
 def price_key(exchange):
@@ -29,30 +32,42 @@ def o_key_price(exchange):
         return "Rate"
     elif exchange==exc.BITTREX:
         return "Limit"
+    elif exchange==exc.KUCOIN:
+        return "price"
+
 
 def o_key_id(exchange):
     if exchange==exc.CRYPTOPIA:
         return "OrderId"
     elif exchange==exc.BITTREX:
         return "OrderUuid"
+    elif exchange==exc.KUCOIN:
+        return "oid"
+    
 
 def otype_key(exchange):
     if exchange==exc.CRYPTOPIA:
         return "Type"
     elif exchange==exc.BITTREX:
         return "OrderType"
+    elif exchange==exc.KUCOIN:
+        return "otype"
 
 def otype_key_buy(exchange):
     if exchange==exc.CRYPTOPIA:
         return "Buy"
     elif exchange==exc.BITTREX:
         return "LIMIT_BUY"
+    elif exchange==exc.KUCOIN:
+        return "bid"
 
 def otype_key_sell(exchange):
     if exchange==exc.CRYPTOPIA:
         return "Sell"
     elif exchange==exc.BITTREX:
         return "LIMIT_SELL"
+    elif exchange==exc.KUCOIN:
+        return "ask"
 
 def tx_amount_key(exchange):
     if exchange==exc.CRYPTOPIA:
@@ -71,6 +86,8 @@ def book_key_price(exchange):
         return key
     elif exchange==exc.BITTREX:
         return "Rate"
+    elif exchange==exc.KUCOIN:
+        return "price"
 
 def bid_key(exchange):
     if exchange==exc.CRYPTOPIA:
@@ -79,7 +96,7 @@ def bid_key(exchange):
     elif exchange==exc.BITTREX:
         return "Bid"    
     elif exchange==exc.KUCOIN:
-        return "buy"    
+        return "bid"    
 
 def ask_key(exchange):
     if exchange==exc.CRYPTOPIA:
@@ -88,7 +105,7 @@ def ask_key(exchange):
     elif exchange==exc.BITTREX:
         return "Ask"
     elif exchange==exc.KUCOIN:
-        return "sell"    
+        return "ask"    
 
 def conv_timestamp_tx(ts, exchange):    
     if exchange==exc.CRYPTOPIA:
@@ -171,12 +188,10 @@ def convert_tx(tx, exchange, market):
         #CET time        
         ts = tx['Timestamp']
         dt = conv_timestamp(ts, exchange)
-        #print (ts,dt)
         ty = tx['Type']
         p = tx['Price']
         market = tx['Label']
         conv_market = markets.convert_markets_to(market, exchange)
-        #print (conv_market)
         d = {'timestamp': dt, 'txtype': ty,'price':p,'exchange':exchange,'market':conv_market}
         return d
     elif exchange==exc.BITTREX:
@@ -202,6 +217,8 @@ def convert_openorder(order, exchange):
     elif exchange==exc.KUCOIN: 
         n = exc.NAMES[exchange]
         oid = order['oid']
+        #oid = order['userOid']
+        
         nom = order['coinType']
         denom = order['coinTypePair']
         market = nom + "_" + denom

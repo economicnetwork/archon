@@ -88,20 +88,7 @@ class KuClient(object):
 
     def __init__(self, api_key, api_secret, language=None, requests_params=None):
         """Kucoin API Client constructor
-
-        https://kucoinapidocs.docs.apiary.io/
-
-        :param api_key: Api Token Id
-        :type api_key: string
-        :param api_secret: Api Secret
-        :type api_secret: string
-        :param requests_params: optional - Dictionary of requests params to use for all calls
-        :type requests_params: dict.
-
-        .. code:: python
-
-            client = Client(api_key, api_secret)
-
+        :param requests_params: optional - Dictionary of requests params to use for all calls        
         """
 
         self.API_KEY = api_key
@@ -357,8 +344,6 @@ class KuClient(object):
 
     def cancel_order(self, order_id, order_type, symbol=None):
         """Cancel an order"""
-        print ("cancel " + str(order_id) + " " + str(order_type))
-        print (symbol)
         data = {
             'orderOid': order_id
         }
@@ -368,7 +353,8 @@ class KuClient(object):
         if symbol:
             data['symbol'] = symbol
 
-        return self._post('cancel-order', True, data=data)
+        r = self._post('cancel-order', True, data=data)
+        return r
 
     def cancel_all_orders(self, symbol=None, order_type=None):
         """Cancel all orders"""
