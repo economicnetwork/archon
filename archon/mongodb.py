@@ -4,21 +4,24 @@ from datetime import datetime
 
 #export MONGO_URL=mongodb://localhost:27017/mxn
 
-try:
-    host = os.environ['MONGO_URL']
-except:
-    host = 'localhost' 
+def get_conn():
+    try:
+        host = os.environ['MONGO_URL']
+    except:
+        host = 'localhost' 
+    try:
+        port = os.environ['MONGODB_PORT_27017_TCP_PORT']
+    except:
+        port = 27017
 
-try:
-    port = os.environ['MONGODB_PORT_27017_TCP_PORT']
-except:
-    port = 27017
+    #host = 'localhost'
+    print ("connecting mongo host %s %i" % (str(host),port))
+    #client = MongoClient(host, port)
+    #client = MongoClient(rui)
+    return client
 
-#host = 'localhost'
-print ("connecting mongo host %s %i" % (str(host),port))
-
-client = MongoClient(host, port)
-db = client.archon
+   
+#db = client.archon
 
 def db_count_report(log):
     d = {"orderbook":db.orderbooks, "balance": db.balance, "balance history": db.balance_history, \

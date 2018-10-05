@@ -47,7 +47,11 @@ def setClientsFromFile(abroker):
     hitbtc_keys = apikeys["HITBTC"]        
     abroker.set_api_keys(exc.HITBTC,hitbtc_keys["public_key"],hitbtc_keys["secret"])
 
-
     gconf = general_config()["MAILGUN"]
     abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
+
+    mongo_conf = general_config()["MONGO"]
+    mongoHost = mongo_conf['host']
+    dbName = mongo_conf['db']        
+    abroker.set_mongo(mongoHost, 27017, dbName)
     

@@ -12,10 +12,11 @@ from archon.exchange.rex import Bittrex
 from archon.exchange.cryptopia import CryptopiaAPI
 from archon.exchange.kucoin import KuClient
 import archon.exchange.hitbtc as hitbtc
+from pymongo import MongoClient
+
 #Wrappers with foreign package
 import binance.client
 import krakenex
-
 
 import time
 import pika
@@ -38,13 +39,6 @@ class Broker:
         log.info("init broker")
         self.s_exchange = None
 
-    def set_mail_config(self, apikey, domain, email_from, email_to):
-        """ mailgun config """
-        self.mail_api_key = apikey
-        self.mail_domain = domain
-        self.email_from = email_from
-        self.email_to = email_to
-
     def set_api_keys(self, exchange, key, secret):
         log.debug("set api " + str(exchange))
         if exchange==exc.CRYPTOPIA:
@@ -62,6 +56,22 @@ class Broker:
             k.load_key('kraken.key')
             clients[exchange] = k            
 
+    def set_mail_config(self, apikey, domain, email_from, email_to):
+        """ mailgun config """
+        self.mail_api_key = apikey
+        self.mail_domain = domain
+        self.email_from = email_from
+        self.email_to = email_to
+
+    def set_mongo(self, mongoHost, mongoPort, dbName):
+        self.mongoHost = mongoHost
+        self.mongoPort = mongoPort
+        print ("using mongo " + str(mongoHost))
+        self.mongoclient = MongoClient(mongoHost, mongoPort)
+        self.db = self.mongoclient[dbName]
+
+    def get_db(self):
+        return self.db
 
     def get_client(self, EXC):
         """ directly get a client """
@@ -122,7 +132,6 @@ class Broker:
         if result:
             self.submit(order)
         else:
-            # ("no")
             pass
 
     def cancel(self, order, exchange):
@@ -217,7 +226,6 @@ class Broker:
 
         elif exchange==exc.HITBTC:      
             b = client.get_trading_balance()        
-            #ab = client.get_account_balance()
             b = conv_balance(b,exchange)
             return b
 
@@ -270,22 +278,13 @@ class Broker:
             return balance_list
 
         elif exchange==exc.KUCOIN:
-            # get balances
             balances = client.get_all_balances()
-            # find unique coin names
-            coins_csl = ','.join([b['coinType'] for b in balances])
-            # get rates for these coins
-            #currency_res = client.get_currencies(coins_csl)
-            #rates = currency_res['rates']
 
             balance_list = list()
             for b in balances:
                 # ignore any coins of 0 value
                 if b['balanceStr'] == '0.0' and b['freezeBalanceStr'] == '0.0':
                     continue
-                # ignore the coin if we don't have a rate for it
-                #if b['coinType'] not in rates:
-                #    continue
 
                 d = {'symbol':b['coinType'],'total':b['balance']}
                 balance_list.append(d)
@@ -351,7 +350,6 @@ class Broker:
 
         oo = None
         if exchange==exc.CRYPTOPIA:
-            #oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)                
             oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
 
         elif exchange==exc.BITTREX:
@@ -371,23 +369,6 @@ class Broker:
         log.info("open orders " + str(exchange) + " " + str(oo))
         return oo
 
-
-    """
-    def open_orders_market(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
-        # ("get open orders " + str(market))
-
-        if exchange==exc.CRYPTOPIA:
-            #oo, _ = clients[exc.CRYPTOPIA].get_openorders(market)                
-            oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
-            return oo
-
-        elif exchange==exc.BITTREX:
-            #oo = api.get_open_orders(market)["result"]
-            oo = clients[exc.BITTREX].get_open_orders()
-            oor = oo["result"]
-            return oor
-    """
 
     def get_deposits(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -528,62 +509,3 @@ class Broker:
             r = client.get_currencies()
             return r
         #elif exchange==exc.HITBTC:
-
-
-
-    """
-    def get_market_summary(self, market):
-        #if exchange is None: exchange=self.s_exchange
-        #exchange = self.parse_exchange(**kwargs)
-        client = clients[market.exchange]
-        m = market.str_rep()
-        if market.exchange==exc.CRYPTOPIA:
-            result, err = client.get_market(m)
-            return result
-        elif market.exchange==exc.BITTREX:   
-            print ("get " + m)
-            r = client.get_market_summary(m)
-            return r['result'][0]
-    """
-
-    """
-    def submit_order_type(self, order,  **kwargs):
-        # submit order which is array [type,order,qty] 
-        # ("order " + str(order)) 
-        exchange = self.parse_exchange(**kwargs)
-        if exchange==exc.CRYPTOPIA:
-            market,ttype,order_price,qty = order.market, order.otype, order.price, order.qty
-            # (order_price,qty,market)
-            if ttype == "BUY":
-                result, err = clients[exc.CRYPTOPIA].submit_trade(market, "BUY", order_price, qty)
-                if err:
-                    print ("! error with order " + str(order) + " " + str(err))
-                else:
-                    print ("result " + str(result))
-                    return result
-            elif ttype == "SELL":
-                result, err = clients[exc.CRYPTOPIA].submit_trade(market, "SELL", order_price, qty)
-                if err:
-                    print ("error order " + str(order))
-                else:
-                    print ("result " + str(result))
-
-        elif exchange==exc.BITTREX:
-            #TODO
-            market = "USDT-BTC"
-            ttype,order_price,qty = order
-            OrderType = "LIMIT"
-            Quantity = qty
-            Rate = order_price
-            TimeInEffect = "GOOD_TIL_CANCELLED"
-            ConditionType = "NONE"
-            target = 0
-            if ttype == "BUY":   
-                #buy_limit(self, market, quantity, rate):         
-                r = clients[exc.BITTREX].buy_limit(market=market, quantity=Quantity, rate=Rate)
-                #TODO handle fails
-                print ("order result " + str(r))
-            elif ttype == "SELL":
-                r = clients[exc.BITTREX].sell_limit(market=market, quantity=Quantity, rate=Rate)
-                print ("order result " + str(r))
-    """
