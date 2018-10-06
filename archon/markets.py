@@ -9,7 +9,7 @@ cwd = os.getcwd()
 print (cwd)
 #sys.path.append('archon')
 
-import archon.broker as broker
+import archon.broker
     
 def get_market(nom,denom,exchange):
     if exchange==exc.BITTREX:        

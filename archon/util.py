@@ -57,7 +57,7 @@ def setup_logger(logpath, name, log_file, level=logging.INFO):
     #logPath = "./"
     logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s,%(message)s",
+    format="%(asctime)s,%(pathname)s,%(message)s (%(lineno)d)",
     handlers=[
         logging.FileHandler("{0}/{1}.log".format(logpath, log_file)),
         logging.StreamHandler()

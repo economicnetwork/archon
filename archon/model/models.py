@@ -338,7 +338,7 @@ def conv_summary(m,exchange):
             d = {'exchange':exchange,'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':exchange}
             return d
         except Exception as err:
-            #print ("!",err)
+            print ("!",err)
             return None
     elif exchange==exc.HITBTC:
         #{'ask': '0.0023110', 'bid': '0.0021000', 'last': '0.0023411', 

@@ -1,5 +1,7 @@
 """
 broker
+
+unified interface to exchanges
 """
 
 import archon.exchange.exchanges as exc
@@ -151,11 +153,12 @@ class Broker:
             log.info("result " + str(r))
 
         elif exchange==exc.KUCOIN:
+            symbol = markets.convert_markets_from(market, exchange)
             if otype == 'bid':                
                 f = "BUY"
             else:
                 f = "SELL"   
-            result = clients[exc.KUCOIN].cancel_order(oid,f,market)                
+            result = clients[exc.KUCOIN].cancel_order(oid,f,symbol)                
                 
         
         log.info("result " + str(result))
@@ -341,7 +344,8 @@ class Broker:
             for x in b: l.append(convert_openorder(x,exchange))
             for x in a: l.append(convert_openorder(x,exchange))
             oo = l
-        log.info("open orders " + str(exchange) + " " + str(oo))
+        n = exc.NAMES[exchange]
+        log.info("open orders: " + str(n) + " " + str(oo))
         return oo
 
     def open_orders_all(self, exchange=None):
@@ -365,8 +369,8 @@ class Broker:
             for x in b: l.append(convert_openorder(x,exchange))
             for x in a: l.append(convert_openorder(x,exchange))
             oo = l
-
-        log.info("open orders " + str(exchange) + " " + str(oo))
+        n = exc.NAMES[exchange]
+        log.info("open orders " + str(n) + " " + str(oo))
         return oo
 
 
@@ -422,7 +426,7 @@ class Broker:
         if exchange==exc.CRYPTOPIA:
             book, err = client.get_orders(market)
             if err:
-                print ("error " + str(err))
+                log.error ("error " + str(err))
             else:
                 book = conv_orderbook(book, exchange)
                 return book
@@ -477,7 +481,11 @@ class Broker:
         elif exchange==exc.HITBTC:
             r = client.get_tickers()
             f = lambda x: conv_summary(x, exchange)  
-            markets = [f(x) for x in r]          
+            markets = list()
+            for z in r:
+                converted = f(z)
+                if converted is not None:
+                    markets.append(converted)            
             return markets
 
     def get_market_summaries_only(self, exchange=None):

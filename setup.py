@@ -7,13 +7,10 @@ setup(
     version='0.0.1',
     author='Ben',
     author_email='ben@enet.io',
-    packages=['archon'],
+    #packages=['archon'],
     #scripts=['bin/example.py'],
     url='http://pypi.python.org/pypi/archon1/',
     license='LICENSE',
     description='Trading agent framework',
-    install_requires=[
-        #"Django >= 1.1.1",
-        #"caldav == 0.1.4",
-    ],
+    packages=setuptools.find_packages(exclude=('tests', 'docs'))
 )

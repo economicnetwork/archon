@@ -8,3 +8,4 @@ dist/
 .vscode
 kraken.key
 *.sh
+*.pyc
