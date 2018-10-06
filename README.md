@@ -34,19 +34,14 @@ user_tx.py - user transactions
 needs python3 
 pip3 install -r requirements.txt
 
-add apikeys.toml
+add apikeys.toml, see apikeys_example.toml
+
 ```
-[apikeys.CRYPTOPIA]
+[apikeys.exchangename]
 public_key = ""
 secret = ""
 ```
 
-add conf.toml with mailgun key
+add conf.toml with mailgun key and mongo details (see example_conf.toml)
 
-```
-[MAILGUN]
-apikey = "key-"
-domain = "https://api.mailgun.net/v3/<YOURDOMAIN>/messages"
-email_from = ""
-email_to = ""
-```
+

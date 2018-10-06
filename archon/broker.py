@@ -65,11 +65,12 @@ class Broker:
         self.email_from = email_from
         self.email_to = email_to
 
-    def set_mongo(self, mongoHost, mongoPort, dbName):
-        self.mongoHost = mongoHost
-        self.mongoPort = mongoPort
-        print ("using mongo " + str(mongoHost))
-        self.mongoclient = MongoClient(mongoHost, mongoPort)
+    def set_mongo(self, url, dbName):
+        #self.mongoHost = mongoHost
+        #self.mongoPort = mongoPort
+        self.mongo_url = url
+        log.info("using mongo " + str(url))
+        self.mongoclient = MongoClient(self.mongo_url)
         self.db = self.mongoclient[dbName]
 
     def get_db(self):
@@ -142,7 +143,8 @@ class Broker:
         result = None
         oid = order['oid']
         market = order['market']
-        otype = order['otype']        
+        otype = order['otype']       
+        log.info("cancel " + str(order)) 
         log.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype) + " " + str(market))
         
         if exchange==exc.CRYPTOPIA:            
@@ -150,7 +152,7 @@ class Broker:
             
         elif exchange==exc.BITTREX:
             result = clients[exc.BITTREX].cancel(oid)
-            log.info("result " + str(r))
+            log.info("result " + str(result))
 
         elif exchange==exc.KUCOIN:
             symbol = markets.convert_markets_from(market, exchange)
@@ -158,7 +160,7 @@ class Broker:
                 f = "BUY"
             else:
                 f = "SELL"   
-            result = clients[exc.KUCOIN].cancel_order(oid,f,symbol)                
+            result = clients[exc.KUCOIN].cancel_order(oid,f,symbol)                        
                 
         
         log.info("result " + str(result))
@@ -192,7 +194,7 @@ class Broker:
             if err:
                 return []
             else:
-                print ("open orders ",oo)
+                log.info("open orders ",oo)
 
                 for o in oo:
                     self.cancel(o['OrderId'])
@@ -241,7 +243,7 @@ class Broker:
 
     def balance_currency(self, currency, exchange=None):
         if exchange is None: exchange=self.s_exchange
-        print ("balance_currency " + currency + " " + str(exchange))
+        log.info("balance_currency " + currency + " " + str(exchange))
         if exchange==exc.CRYPTOPIA:
             currency, err = clients[exc.CRYPTOPIA].get_balance(currency)        
             return currency['Total']
@@ -338,12 +340,16 @@ class Broker:
 
         elif exchange==exc.KUCOIN:
             oo = clients[exc.KUCOIN].get_active_orders(symbol, kv_format=True)
-            b = oo['BUY']
-            a = oo['SELL']
-            l = list()
-            for x in b: l.append(convert_openorder(x,exchange))
-            for x in a: l.append(convert_openorder(x,exchange))
-            oo = l
+            if len(oo) > 0:
+                print (oo)
+                b = oo['BUY']
+                a = oo['SELL']
+                l = list()
+                for x in b: l.append(convert_openorder(x,exchange))
+                for x in a: l.append(convert_openorder(x,exchange))
+                oo = l
+            else:
+                oo = []
         n = exc.NAMES[exchange]
         log.info("open orders: " + str(n) + " " + str(oo))
         return oo

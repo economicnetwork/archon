@@ -51,7 +51,8 @@ def setClientsFromFile(abroker):
     abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
 
     mongo_conf = general_config()["MONGO"]
-    mongoHost = mongo_conf['host']
+    #mongoHost = mongo_conf['host']
     dbName = mongo_conf['db']        
-    abroker.set_mongo(mongoHost, 27017, dbName)
+    url = mongo_conf["url"]
+    abroker.set_mongo(url, dbName)
     

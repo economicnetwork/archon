@@ -9,9 +9,13 @@ import json
 import dateparser
 import pytz
 from datetime import datetime
-from archon.exchange.date_util import *
 
+from archon.exchange.date_util import *
+from archon.util import *
     
+logpath = './log'
+log = setup_logger(logpath, 'kucoin', 'kucoin')
+
 class KucoinAPIException(Exception):
     """Exception class to handle general API Exceptions
         `code` values
@@ -180,6 +184,7 @@ class KuClient(object):
             raise KucoinAPIException(response)
         try:
             json = response.json()
+            log.debug("response " + str(json))
 
             if 'success' in json and not json['success']:
                 raise KucoinAPIException(response)
@@ -190,10 +195,14 @@ class KuClient(object):
 
             # by default return full response
             res = json
+
             # if it's a normal response we have a data attribute, return that
             if 'data' in json:
                 res = json['data']
+
+            #TODO cancel result    
             return res
+
         except ValueError:
             #log
             raise Exception('Invalid Response: %s' % response.text)
@@ -355,9 +364,10 @@ class KuClient(object):
 
         try:
             r = self._post('cancel-order', True, data=data)
+            log.debug("cancel result " + str(r))
             return r
         except KucoinAPIException as e:
-            print ("error " + str(e))
+            log.error ("error " + str(e))
 
     def cancel_all_orders(self, symbol=None, order_type=None):
         """Cancel all orders"""
