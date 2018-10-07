@@ -42,6 +42,7 @@ class Broker:
         self.s_exchange = None
 
     def set_api_keys(self, exchange, key, secret):
+        """ set clients, assumes conf file present """
         log.debug("set api " + str(exchange))
         if exchange==exc.CRYPTOPIA:
             clients[exchange] = CryptopiaAPI(key, secret)
@@ -54,9 +55,7 @@ class Broker:
         elif exchange==exc.BINANCE:
             clients[exchange] = binance.client.Client(key,secret)
         elif exchange==exc.KRAKEN:        
-            k = krakenex.API()
-            k.load_key('kraken.key')
-            clients[exchange] = k            
+            clients[exchange] = krakenex.API(key,secret)
 
     def set_mail_config(self, apikey, domain, email_from, email_to):
         """ mailgun config """

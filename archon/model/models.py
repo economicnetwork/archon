@@ -300,10 +300,13 @@ def conv_summary(m,exchange):
     if exchange==exc.CRYPTOPIA:
         pair = m['Label']
         market = markets.convert_markets_to(pair,exchange)
+        last = m['LastPrice']
         bid = m['BidPrice']
         ask = m['AskPrice']
+        low = m['Low']
+        high = m['High']
         volume = m['BaseVolume']
-        d = {'pair':market,'bid':bid,'ask':ask,'volume':volume,'exchange':exchange}
+        d = {'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':exchange}
         return d
     elif exchange==exc.BITTREX:
         # 'Last': 5.6e-07, 'BaseVolume': 1.42803274, 'TimeStamp': '2018-10-01T08:38:19.217', 'Bid': 5.6e-07, 'Ask': 5.7e-07, 'OpenBuyOrders': 140, 'OpenSellOrders': 617, 'PrevDay': 5.3e-07, 'Created': '2016-05-16T06:44:15.287'}

@@ -22,30 +22,22 @@ def general_config():
     parsed_toml = toml.loads(toml_string)
     return parsed_toml
 
+def set_keys_exchange(abroker, e,keys):
+    pubkey = keys["public_key"]
+    secret = keys["secret"]
+    abroker.set_api_keys(e,pubkey,secret)
+
+
 def setClientsFromFile(abroker):
     apikeys = apikeys_config()["apikeys"]     
         
-    ck = apikeys["CRYPTOPIA"]    
-    
-    abroker.set_api_keys(exc.CRYPTOPIA,ck["public_key"],ck["secret"])
-    #abroker.set_singleton_exchange(broker.EXC_CRYPTOPIA)
+    for k,v in apikeys.items():
+        eid = exc.get_id(k)
+        if eid >= 0:
+            set_keys_exchange(abroker, eid, apikeys[k])
+        else:
+            print ("exchange not supported")
 
-    bk = apikeys["BITTREX"]        
-    abroker.set_api_keys(exc.BITTREX,bk["public_key"],bk["secret"])
-    #abroker.set_singleton_exchange(broker.EXC_BITTREX)
-
-    bk = apikeys["KUCOIN"]        
-    abroker.set_api_keys(exc.KUCOIN,bk["public_key"],bk["secret"])
-
-    binance_keys = apikeys["BINANCE"]        
-    abroker.set_api_keys(exc.BINANCE,binance_keys["public_key"],binance_keys["secret"])
-
-    #binance_keys = apikeys["KRAKEN"]        
-    abroker.set_api_keys(exc.KRAKEN,"","")
-    #k.load_key('kraken.key')
-
-    hitbtc_keys = apikeys["HITBTC"]        
-    abroker.set_api_keys(exc.HITBTC,hitbtc_keys["public_key"],hitbtc_keys["secret"])
 
     gconf = general_config()["MAILGUN"]
     abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
