@@ -189,7 +189,6 @@ def conv_usertx(tx, exchange):
 
     elif exchange==exc.KUCOIN:
         t = tx['createdAt']
-        print (t)
         dt = conv_timestamp(t/1000,exchange)
         #ty = tx['dealDirection']
         ty = tx['direction']
@@ -367,7 +366,7 @@ def conv_summary(m,exchange):
     n = exc.NAMES[exchange]
     if exchange==exc.CRYPTOPIA:
         pair = m['Label']
-        market = conv_markets_to(pair,exchange)
+        market = conv_markets_from(pair,exchange)
         last = m['LastPrice']
         bid = m['BidPrice']
         ask = m['AskPrice']
@@ -379,7 +378,7 @@ def conv_summary(m,exchange):
     elif exchange==exc.BITTREX:
         # 'Last': 5.6e-07, 'BaseVolume': 1.42803274, 'TimeStamp': '2018-10-01T08:38:19.217', 'Bid': 5.6e-07, 'Ask': 5.7e-07, 'OpenBuyOrders': 140, 'OpenSellOrders': 617, 'PrevDay': 5.3e-07, 'Created': '2016-05-16T06:44:15.287'}
         pair = m['MarketName']        
-        market = conv_markets_to(pair,exchange)
+        market = conv_markets_from(pair,exchange)
         bid = m['Bid']
         ask = m['Ask']
         high = m['High']
@@ -397,9 +396,7 @@ def conv_summary(m,exchange):
         # 'changeRate': -0.0374}}
         try:
             pair = m['symbol']
-            x,y = pair.split('-')
-            market = x + "_" + y
-            #market = markets.convert_markets_to(pair,exchange)
+            market = conv_markets_from(pair,exchange)
             bid = m['buy']
             ask = m['sell']
             high = m['high']
@@ -420,7 +417,7 @@ def conv_summary(m,exchange):
             pair = m['symbol']
             x,y = pair[:3],pair[-3:]
             market = x + "_" + y
-            #market = markets.convert_markets_to(pair,exchange)
+            market = conv_markets_from(pair,exchange)
             bid = float(m['bid'])
             ask = float(m['ask'])
             high = float(m['high'])
@@ -535,7 +532,7 @@ def conv_balance(b,exchange):
         return newl
 
 def market_from(nom, denom):
-    return nom + '_' + denom 
+    return nom + '_' + denom     
 
 def conv_markets_from(m, exchange):
     if exchange==exc.CRYPTOPIA:
@@ -552,7 +549,6 @@ def conv_markets_from(m, exchange):
         return market_from(nom,denom)
 
 def conv_markets_to(m, exchange):
-    print (m)
     nom,denom = m.split('_')
     if exchange==exc.BITTREX:        
         return denom + '-' + nom
@@ -562,3 +558,14 @@ def conv_markets_to(m, exchange):
         return nom + '-' + denom  
     elif exchange==exc.HITBTC: 
         return nom + denom 
+     
+
+def get_market(nom,denom,exchange):
+    if exchange==exc.BITTREX:        
+        return denom + '-' + nom
+    elif exchange==exc.CRYPTOPIA: 
+        return nom + '_' + denom 
+    elif exchange==exc.KUCOIN: 
+        return nom + '-' + denom  
+    elif exchange==exc.HITBTC: 
+        return nom + denom  

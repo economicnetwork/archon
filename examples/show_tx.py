@@ -16,7 +16,7 @@ import math
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
 
-def show_book(exchange, market):
+def show(exchange, market):
     i = 0    
     txs = abroker.market_history(market,e)
     name= exc.NAMES[exchange]
@@ -30,5 +30,5 @@ if __name__=='__main__':
     denom = "BTC"
     for e in [exc.CRYPTOPIA, exc.BITTREX, exc.KUCOIN]:
         market = m.get_market(nom,denom,e)
-        show_book(e,market)
+        show(e,market)
         

@@ -14,7 +14,7 @@ from archon.exchange.rex import Bittrex
 from archon.exchange.cryptopia import CryptopiaAPI
 from archon.exchange.kucoin import KuClient
 import archon.exchange.hitbtc as hitbtc
-from pymongo import MongoClient
+
 
 #Wrappers with foreign package
 import binance.client
@@ -64,17 +64,6 @@ class Broker:
         self.mail_domain = domain
         self.email_from = email_from
         self.email_to = email_to
-
-    def set_mongo(self, url, dbName):
-        #self.mongoHost = mongoHost
-        #self.mongoPort = mongoPort
-        self.mongo_url = url
-        log.info("using mongo " + str(url))
-        self.mongoclient = MongoClient(self.mongo_url)
-        self.db = self.mongoclient[dbName]
-
-    def get_db(self):
-        return self.db
 
     def get_client(self, EXC):
         """ directly get a client """
@@ -479,9 +468,12 @@ class Broker:
                 return book
 
         elif exchange==exc.BITTREX:            
-            book = client.get_orderbook(market)["result"]            
-            book = models.conv_orderbook(book, exchange)
-            return book
+            try:
+                book = client.get_orderbook(market)["result"]            
+                book = models.conv_orderbook(book, exchange)
+                return book
+            except:
+                print ("error fetching orderbook",exchange)
 
         elif exchange==exc.KUCOIN:
             ob = client.get_order_book(market,limit=20)
@@ -507,7 +499,6 @@ class Broker:
             r = client.get_ticker(market)
             r = models.conv_summary(r, exchange)
             return r
-
 
     def get_market_summaries(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -570,3 +561,6 @@ class Broker:
             r = client.get_currencies()
             return r
         #elif exchange==exc.HITBTC:
+
+    def get_candles(self):
+        pass

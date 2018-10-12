@@ -4,7 +4,10 @@ import archon.broker as broker
 import archon.exchange.exchanges as exc
 import archon.markets as markets
 import time
+from archon.model import models
 from archon.util import *
+from pymongo import MongoClient
+import datetime
 
 logpath = './log'
 log = setup_logger(logpath, 'archon_logger', 'archon')
@@ -18,8 +21,8 @@ def apikeys_config(filename):
     parsed_toml = toml.loads(toml_string)
     return parsed_toml
 
-def general_config():
-    toml_string = toml_file("conf.toml")
+def general_config(filename):
+    toml_string = toml_file(filename)
     parsed_toml = toml.loads(toml_string)
     return parsed_toml
 
@@ -40,14 +43,10 @@ def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
             print ("exchange not supported")
 
 
-    gconf = general_config()["MAILGUN"]
+    gconf = general_config("conf.toml")["MAILGUN"]
     abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
 
-    mongo_conf = general_config()["MONGO"]
-    #mongoHost = mongo_conf['host']
-    dbName = mongo_conf['db']        
-    url = mongo_conf["url"]
-    abroker.set_mongo(url, dbName)
+    
     
 
 class Arch:
@@ -65,9 +64,27 @@ class Arch:
         self.openorders = list()
         self.submitted_orders = list()
         self.active_exchanges = None
-        e = [exc.KUCOIN, exc.BITTREX, exc.CRYPTOPIA, exc.HITBTC]
+        e = [exc.KUCOIN, exc.BITTREX, exc.CRYPTOPIA] #, exc.HITBTC]
         self.set_active_exchanges(e)
         self.selected_exchange = None
+
+        mongo_conf = general_config("conf.toml")["MONGO"]
+        #mongoHost = mongo_conf['host']
+        dbName = mongo_conf['db']        
+        url = mongo_conf["url"]
+        self.set_mongo(url, dbName)
+        
+
+    def set_mongo(self, url, dbName):
+        #self.mongoHost = mongoHost
+        #self.mongoPort = mongoPort
+        self.mongo_url = url
+        log.info("using mongo " + str(url))
+        self.mongoclient = MongoClient(self.mongo_url)
+        self.db = self.mongoclient[dbName]
+
+    def get_db(self):
+        return self.db
 
     def set_active_exchange(self, exchange):
         self.selected_exchange = exchange
@@ -107,8 +124,7 @@ class Arch:
         
     def global_markets(self):
         allmarkets = list()
-        for e in [exc.CRYPTOPIA,exc.BITTREX,exc.KUCOIN,exc.HITBTC]:
-        #for e in [exc.HITBTC]:
+        for e in self.active_exchanges:
             n = exc.NAMES[e]
             log.info("fetch %s"%n)
             m = self.abroker.get_market_summaries(e)
@@ -119,3 +135,66 @@ class Arch:
         f = lambda x: markets.is_btc(x['pair'])
         m = list(filter(f, m))
         return m
+
+    def sync_orderbook(self, market, exchange):
+        smarket = models.conv_markets_to(market, exchange)  
+        #print ("sync",market," ",exchange)   
+        #TODO check if symbol is supported by exchange   
+        try:
+            n = exc.NAMES[exchange]
+            [bids,asks] = self.abroker.get_orderbook(smarket,exchange)
+            x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks}
+            
+            self.db.orderbooks.remove({'market':market,'exchange':exchange})
+            self.db.orderbooks.insert(x)
+            self.db.orderbooks_history.insert(x)
+        except:
+            print ("symbol not supported")
+
+    def sync_orderbook_all(self, market):        
+        for e in self.active_exchanges:            
+            self.sync_orderbook(market, e)   
+
+    def sync_tx(self, market, exchange):
+        #print ("sync",market," ",exchange)   
+        try:            
+            smarket = models.conv_markets_to(market, exchange)  
+            txs = self.abroker.market_history(smarket,exchange)
+            n = exc.NAMES[exchange]
+            smarket = models.conv_markets_to(market, exchange)
+            x = {'market': market, 'exchange': n, 'tx':txs}
+            print ("???",x)
+            self.db.txs.remove({'market':market,'exchange':n})
+            self.db.txs.insert(x)     
+            self.db.txs_history.insert(x)
+
+            #txs = self.db.txs.find_one({'market':market,'exchange':n})
+            #txs = self.db.txs.find_one({'market':market,'exchange':n})
+            #print ("> ",txs['tx'][0])
+
+            #txs = sorted(txs, key=lambda k: k['timestamp'],reverse=True)[:15]
+        except:
+            print ("symbol not supported")
+
+    def sync_tx_all(self, market):              
+        for e in self.active_exchanges:
+            self.db.txs.remove({'market':market,'exchange':e})
+            self.sync_tx(market, e)   
+
+    def sync_markets(self, exchange):
+        self.db.markets.drop()
+        ms = self.global_markets()
+
+        dt = datetime.datetime.utcnow()
+        #print ("got markets %i"%(len(ms)))
+        #db.markets.insert({'markets':ms,'timestamp':dt})
+        for x in ms:
+            x['timestamp'] = dt
+            n,d = x['pair'].split('_')
+            x['nom'] = n
+            x['denom'] = d
+            self.db.markets.insert(x)
+        
+
+
+
