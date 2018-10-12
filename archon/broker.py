@@ -350,14 +350,7 @@ class Broker:
                 ttype="sell"
             
             result = client.submit_order(oid, market, ttype, qty, order_price)
-            print (result)
-
-
-        """
-        def submit_order(self, pair, side, qty, price):
-        return self.submit_order(pair, "buy", qty, price)
-        """
-            
+            #print (result)
 
     def submit_order_check(self, order):
         """ submit order but require user action """
@@ -392,9 +385,8 @@ class Broker:
             else:
                 f = "SELL"   
             result = clients[exc.KUCOIN].cancel_order(oid,f,symbol)                        
-                
-        
-        log.info("result " + str(result))
+                        
+        log.debug("result " + str(result))
         return result
 
     def cancel_id(self, oid, otype=None, market=None, exchange=None):
@@ -454,18 +446,22 @@ class Broker:
         client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
             txs, _ = clients[exc.CRYPTOPIA].get_history(market)
+            f = lambda x: models.conv_tx(x, exchange, market)
+            txs = list(map(f,txs))
             return txs
 
         elif exchange==exc.BITTREX:
             r = clients[exc.BITTREX].get_market_history(market)
-            r =r["result"]
-            return r
+            txs = r["result"]
+            f = lambda x: models.conv_tx(x, exchange, market)
+            txs = list(map(f,txs))
+            return txs
 
         elif exchange==exc.KUCOIN:
             #res = client.RESOLUTION_1MINUTE
             #klines = client.get_historical_klines_tv(market, res, '1 hour ago UTC')            
-            tx = client.get_recent_trades(market,limit=500)
-            f = lambda x: models.convert_tx(x, exchange, market)
+            tx = client.get_recent_trades(market,limit=5)
+            f = lambda x: models.conv_tx(x, exchange, market)
             tx = list(map(f,tx))  
             return tx
 

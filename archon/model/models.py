@@ -129,11 +129,13 @@ def conv_timestamp_tx(ts, exchange):
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
         utc_dt = utc_dt + datetime.timedelta(hours=4)
-        tsf = utc_dt.strftime('%H:%M:%S')
-        return tsf
+        return utc_dt
+        #tsf = utc_dt.strftime('%H:%M:%S')
+        #return tsf
 
 
 def conv_timestamp(ts, exchange):    
+    target_format = '%Y-%m-%dT%H:%M:%S'
     if exchange==exc.CRYPTOPIA:
         #local = pytz.timezone("Europe/London") 
         #tsf = datetime.datetime.fromtimestamp(ts)
@@ -142,23 +144,26 @@ def conv_timestamp(ts, exchange):
         utc_dt = tsf.astimezone(pytz.utc)
         utc_dt = utc_dt + datetime.timedelta(hours=4)
         #dt = utc_dt.strftime(date_broker_format)        
-        
-        return utc_dt
+        tsf = utc_dt.strftime(target_format)
+        return tsf
     elif exchange==exc.BITTREX:
         ts = ts.split('.')[0]
         tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
         utc_dt = utc_dt + datetime.timedelta(hours=4)
-        return utc_dt
+        tsf = utc_dt.strftime(target_format)
+        return tsf
 
     elif exchange==exc.KUCOIN:
-        tsf = datetime.datetime.utcfromtimestamp(ts)
+        #dt = conv_timestamp(t/1000,exchange)
+        tsf = datetime.datetime.utcfromtimestamp(ts/1000)
         #tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
         utc_dt = utc_dt + datetime.timedelta(hours=4)
-        tsf = utc_dt.strftime('%Y-%m-%dT%H:%M:%S')
+        #tsf = utc_dt.strftime()
+        tsf = utc_dt.strftime(target_format)
         return tsf
 
 def conv_usertx(tx, exchange):
@@ -184,7 +189,7 @@ def conv_usertx(tx, exchange):
 
     elif exchange==exc.KUCOIN:
         t = tx['createdAt']
-        print (tx)
+        print (t)
         dt = conv_timestamp(t/1000,exchange)
         #ty = tx['dealDirection']
         ty = tx['direction']
@@ -196,35 +201,41 @@ def conv_usertx(tx, exchange):
         d = {'price':p,'quantity':q,'txtype':ty,'market':m,'timestamp':dt,'exchange':n}
         return d
 
-def convert_tx(tx, exchange, market):
+def conv_tx(tx, exchange, market):
     """ convert transaction """
     if exchange==exc.CRYPTOPIA:
         #CET time        
         ts = tx['Timestamp']
         dt = conv_timestamp(ts, exchange)
         ty = tx['Type']
+        if ty == "Buy": 
+            ty="BUY"
+        else:
+            ty="SELL"
         p = tx['Price']
         market = tx['Label']
-        conv_market = markets.convert_markets_to(market, exchange)
-        d = {'timestamp': dt, 'txtype': ty,'price':p,'exchange':exchange,'market':conv_market}
+        conv_market = conv_markets_from(market, exchange)
+        d = {'timestamp': dt, 'exchange':exc.NAMES[exchange],'market':conv_market, 'txtype': ty,'price':p,}
         return d
     elif exchange==exc.BITTREX:
         #UTC time
         ts = tx['TimeStamp']
         dt = conv_timestamp(ts, exchange)
         tyt = tx['OrderType']
+        qty = tx['Quantity']
         #TODO
         #ty = conv_type_key(tyt, exchange)
         p = tx['Price']
-        d = {'timestamp': dt, 'txtype': tyt,'price':p,'exchange':exchange,'market':market}
+        market = conv_markets_from(market, exchange)
+        d = {'timestamp': dt, 'exchange':exc.NAMES[exchange],'market':market, 'txtype': tyt,'price':p,'quantity':qty}
         return d
     elif exchange==exc.KUCOIN:
-        print (tx)
         ts,ty,p,qty,total,txid = tx
-        dt = conv_timestamp_tx(ts, exchange)
+        dt = conv_timestamp(ts, exchange)
         #print (ts,dt)
         #[1538390455000, 'SELL', 2.94e-06, 60.0, 0.0001764, '5bb1f9b6a07e5d75b084ae19']
-        d = {'timestamp': dt, 'exchange':exchange,'market':market,'txtype': ty,'price':p,'quantity':qty}
+        market = conv_markets_from(market, exchange)
+        d = {'timestamp': dt, 'exchange':exc.NAMES[exchange],'market':market,'txtype': ty,'price':p,'quantity':qty}
         return d
 
 def conv_openorder(order, exchange):    
@@ -356,7 +367,7 @@ def conv_summary(m,exchange):
     n = exc.NAMES[exchange]
     if exchange==exc.CRYPTOPIA:
         pair = m['Label']
-        market = markets.convert_markets_to(pair,exchange)
+        market = conv_markets_to(pair,exchange)
         last = m['LastPrice']
         bid = m['BidPrice']
         ask = m['AskPrice']
@@ -368,7 +379,7 @@ def conv_summary(m,exchange):
     elif exchange==exc.BITTREX:
         # 'Last': 5.6e-07, 'BaseVolume': 1.42803274, 'TimeStamp': '2018-10-01T08:38:19.217', 'Bid': 5.6e-07, 'Ask': 5.7e-07, 'OpenBuyOrders': 140, 'OpenSellOrders': 617, 'PrevDay': 5.3e-07, 'Created': '2016-05-16T06:44:15.287'}
         pair = m['MarketName']        
-        market = markets.convert_markets_to(pair,exchange)
+        market = conv_markets_to(pair,exchange)
         bid = m['Bid']
         ask = m['Ask']
         high = m['High']
@@ -523,20 +534,22 @@ def conv_balance(b,exchange):
                 newl.append(d)
         return newl
 
+def market_from(nom, denom):
+    return nom + '_' + denom 
+
 def conv_markets_from(m, exchange):
     if exchange==exc.CRYPTOPIA:
-        nom,denom = m.split('_')
-        return nom + '_' + denom
+        nom,denom = m.split('/')
+        return market_from(nom,denom)
     elif exchange==exc.BITTREX:    
-        nom,denom = m.split('_')
-        return denom + '-' + nom
+        denom,nom = m.split('-')
+        return market_from(nom,denom)
     elif exchange==exc.KUCOIN: 
-        nom,denom = m.split('_')
-        return nom + '-' + denom   
+        nom,denom = m.split('-')
+        return market_from(nom,denom)
     elif exchange==exc.HITBTC:
-        x,y = m[:3],m[-3:]
-        market = x + "_" + y
-        return market     
+        nom,denom = m[:3],m[-3:]
+        return market_from(nom,denom)
 
 def conv_markets_to(m, exchange):
     print (m)
