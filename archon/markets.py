@@ -11,14 +11,20 @@ print (cwd)
 
 import archon.broker
     
+def is_btc(m):
+    nom,denom = m.split('_')
+    return denom=='BTC'
+
 def get_market(nom,denom,exchange):
     if exchange==exc.BITTREX:        
         return denom + '-' + nom
     elif exchange==exc.CRYPTOPIA: 
         return nom + '_' + denom 
     elif exchange==exc.KUCOIN: 
-        return nom + '-' + denom     
-    
+        return nom + '-' + denom  
+    elif exchange==exc.HITBTC: 
+        return nom + denom  
+       
 
 def convert_markets_to(m, exchange):
     if exchange==exc.CRYPTOPIA:
@@ -30,6 +36,10 @@ def convert_markets_to(m, exchange):
     elif exchange==exc.KUCOIN:    
         denom,nom = m.split('-')
         return nom + '_' + denom
+    elif exchange==exc.HITBTC:
+        x,y = m[:3],m[-3:]
+        market = x + "_" + y
+        return market
 
 
 def convert_markets_from(m, exchange):
@@ -53,16 +63,7 @@ def nom(m):
     return nom
 
 
-def market_obj(m_str, exchange):
-    if exchange==exc.CRYPTOPIA:
-        nom,denom = m_str.split('/')
-        return Market(nom, denom)
-    elif exchange==exc.BITTREX:    
-        denom,nom = m_str.split('-')
-        return Market(nom, denom)
-
-
-
+"""
 def market_summary(d, exchange):
     if exchange==exc.CRYPTOPIA:
         #{'TradePairId': 5328, 'Label': 'NLC2/BTC',
@@ -86,45 +87,4 @@ def market_summary(d, exchange):
         last = d['Last']
         volume = d['BaseVolume']
         return {'ask':ask,'bid':bid,'last':last,'volume':volume}
-
-
-
-
-
-"""
-#from . import broker
-#import archon.broker as broker
-
-class Market:
-
-    def __init__(self, from_market, to_market, exchange):
-        self.from_market = from_market
-        self.to_market = to_market
-        self.exchange = exchange
-        self.exchange_name = exc.NAMES[exchange]
-
-    def __init__(self, market_string, exchange):
-        if exchange==exc.CRYPTOPIA:
-            delim = '/'
-            nom,denom = market_string.split(delim)
-            super(nom, denom, exchange)            
-        elif exchange==exc.BITTREX:
-            delim = '-'
-            denom,nom = market_string.split(delim)
-            super(nom, denom, exchange)                    
-
-    def str_rep(self):
-        ''' string representation '''
-        #nom,denom = m.split('/')
-        if self.exchange==exc.CRYPTOPIA:
-            delim = '/'
-            srep = delim.join([self.from_market, self.to_market])
-            return srep
-        elif self.exchange==exc.BITTREX:
-            delim = '-'
-            srep = delim.join([self.to_market, self.from_market])
-            return srep            
-
-    def __str__(self):
-        return "%s: [%s - %s]"%(self.exchange_name,self.from_market,self.to_market)
 """

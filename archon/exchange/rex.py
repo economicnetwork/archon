@@ -1,6 +1,7 @@
 """
    See https://bittrex.com/Home/Api
 """
+from archon.util import *
 
 import time
 import hmac
@@ -59,6 +60,10 @@ PROTECTION_PUB = 'pub'  # public methods
 PROTECTION_PRV = 'prv'  # authenticated methods
 
 using_version = API_V1_1
+
+logpath = './log'
+log = setup_logger(logpath, 'rex_logger', 'rex')
+
 
 def encrypt(api_key, api_secret, export=True, export_fn='secrets.json'):
     cipher = AES.new(getpass.getpass(
@@ -390,10 +395,12 @@ class Bittrex(object):
         :return:
         :rtype : dict
         """
+        log.info("cancel " + str(uuid))
         r = self._api_query(path_dict={
             API_V1_1: '/market/cancel',
             API_V2_0: '/key/market/tradecancel'
         }, options={'uuid': uuid, 'orderid': uuid}, protection=PROTECTION_PRV)
+        log.info("result " + str(r))
         return r
 
     def get_open_orders(self, market=None):

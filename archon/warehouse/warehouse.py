@@ -28,7 +28,6 @@ log = setup_logger(logpath, 'info_logger', 'warehouse')
 #abroker = broker.Broker()
 #arch.setClientsFromFile(abroker)
 
-#db = mongodb.db
 
 def total_value(balances):
     total_all = 0
@@ -48,7 +47,7 @@ def store_balances(db, balances):
     #balances["timestamp"] = ds
     db.balances.insert(bd)
 
-def get_balances_latest():
+def get_balances_latest(db):
     b = list(db.balances.find().sort('timestamp').limit(1))[0]
     return b
 

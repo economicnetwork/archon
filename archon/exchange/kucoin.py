@@ -171,7 +171,7 @@ class KuClient(object):
             kwargs['params'] = kwargs['data']
             del(kwargs['data'])
 
-        response = getattr(self.session, method)(uri, **kwargs)
+        response = getattr(self.session, method)(uri, **kwargs)        
         return self._handle_response(response)
 
     def _handle_response(self, response):
@@ -179,7 +179,7 @@ class KuClient(object):
         Raises the appropriate exceptions when necessary; otherwise, returns the
         response.
         """
-
+        log.debug("response " + str(response))
         if not str(response.status_code).startswith('2'):
             raise KucoinAPIException(response)
         try:
@@ -211,7 +211,9 @@ class KuClient(object):
         return self._request('get', path, signed, **kwargs)
 
     def _post(self, path, signed=False, **kwargs):
-        return self._request('post', path, signed, **kwargs)
+        r = self._request('post', path, signed, **kwargs)
+        log.debug("result " + str(r))
+        return r
 
     def _put(self, path, signed=False, **kwargs):
         return self._request('put', path, signed, **kwargs)
@@ -364,7 +366,7 @@ class KuClient(object):
 
         try:
             r = self._post('cancel-order', True, data=data)
-            log.debug("cancel result " + str(r))
+            log.info("cancel result " + str(r))
             return r
         except KucoinAPIException as e:
             log.error ("error " + str(e))

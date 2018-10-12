@@ -4,7 +4,7 @@ import json
 url ="https://min-api.cryptocompare.com/data/price?fsym=%s&tsyms=USD"
 
 
-extra_values = {'ZUSD': 1, 'ZEUR': 1.15, 'XXBT': 6580,'XLTC':0,'XXLM':0,'USDT':1}
+extra_values = {'ZUSD': 1, 'ZEUR': 1.15, 'USDT':1, 'BOXX': 0.20}
 replace_syms = {'XXBT':'BTC'}
 
 def cryptocompare_usdprice(symbol):

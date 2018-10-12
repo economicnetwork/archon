@@ -37,6 +37,7 @@ class RestClient(object):
                     result = self.session.get("%s/%s" % (self.url,endpoint), params=params)
                 else:
                     result = self.session.get("%s/%s" % (self.url, endpoint))
+                #print (result)
                 jresult = result.json()
                 return jresult
             except ConnectionError:                
@@ -144,7 +145,10 @@ class RestClient(object):
 
     def cancel_order(self, client_order_id):
         """Cancel order."""
-        return self.session.delete("%s/order/%s" % (self.url, client_order_id)).json()
+        print ("cancel", client_order_id)
+        r = self.session.delete("%s/order/%s" % (self.url, client_order_id)).json()
+        print (r)
+        return r
 
     def withdraw(self, currency_code, amount, address, network_fee=None):
         """Withdraw."""

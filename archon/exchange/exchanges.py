@@ -14,10 +14,12 @@ KUCOIN_NAME = "Kucoin"
 BINANCE_NAME = "Binance"
 KRAKEN_NAME = "Kraken"
 HITBTC_NAME = "Hitbtc"
-supported_exchanges = [CRYPTOPIA,BITTREX,KUCOIN,BINANCE,KRAKEN,HITBTC]
+#supported_exchanges = [CRYPTOPIA,BITTREX,KUCOIN,BINANCE,KRAKEN,HITBTC]
+supported_exchanges = [CRYPTOPIA,BITTREX,KUCOIN]
 
-names = [CRYPTOPIA_NAME,BITTREX_NAME,KUCOIN_NAME,BINANCE_NAME,KRAKEN_NAME,HITBTC_NAME]
+names_arr = [CRYPTOPIA_NAME,BITTREX_NAME,KUCOIN_NAME,BINANCE_NAME,KRAKEN_NAME,HITBTC_NAME]
 #supported_exchanges = [CRYPTOPIA,BITTREX]
 
 def get_id(name):    
-    return names.index(name)
+    return names_arr.index(name.title())
+

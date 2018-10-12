@@ -3,7 +3,6 @@ send balance report to email
 """
 
 import sys
-sys.path.append('/Users/ben/archon')
 
 import archon.exchange.exchanges as exc
 import archon.broker as broker
