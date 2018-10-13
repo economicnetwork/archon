@@ -107,11 +107,15 @@ def ask_key(exchange):
     elif exchange==exc.KUCOIN:
         return "ask"    
 
-def conv_timestamp_tx(ts, exchange):    
+def conv_timestamp_tx(ts, exchange):   
+    target_format = '%Y-%m-%dT%H:%M:%S' 
     if exchange==exc.CRYPTOPIA:
-        tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
+        tsf = datetime.datetime.utcfromtimestamp(int(ts/1000))
+        #tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
+        tsf = utc_dt.strftime(target_format)
+        return tsf
         #utc_dt = utc_dt + datetime.timedelta(hours=4)
         #dt = utc_dt.strftime(date_broker_format)        
         
@@ -124,12 +128,13 @@ def conv_timestamp_tx(ts, exchange):
         utc_dt = utc_dt + datetime.timedelta(hours=4)
         return utc_dt
     elif exchange==exc.KUCOIN:
-        tsf = datetime.datetime.utcfromtimestamp(ts/1000)
+        tsf = datetime.datetime.utcfromtimestamp(ts)
         #tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
         utc_dt = utc_dt + datetime.timedelta(hours=4)
-        return utc_dt
+        tsf = utc_dt.strftime(target_format)
+        return tsf
         #tsf = utc_dt.strftime('%H:%M:%S')
         #return tsf
 
@@ -530,6 +535,24 @@ def conv_balance(b,exchange):
                 d['amount'] = av+r
                 newl.append(d)
         return newl
+
+def conv_candle(history, exchange):
+    if exchange==exc.CRYPTOPIA:
+        newcandle = list()
+        for x in history:
+            ts,o,h,l,c = x
+            dt = conv_timestamp_tx(ts, exc.CRYPTOPIA)     
+            newcandle.append([dt,c])
+        return newcandle
+    elif exchange==exc.KUCOIN:        
+        newcandle = list()
+        for x in history:
+            ts,o,h,l,c,v = x
+            dt = conv_timestamp_tx(ts, exc.KUCOIN)     
+            newcandle.append([dt,c])
+        return newcandle
+
+
 
 def market_from(nom, denom):
     return nom + '_' + denom     

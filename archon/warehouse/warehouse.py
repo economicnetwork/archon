@@ -22,26 +22,6 @@ from archon.util import setup_logger
 
 import math
 
-import logging
-import os
-
-def setup_logger(logpath, name, log_file, level=logging.INFO):    
-    if not os.path.exists(logpath):
-        os.mkdir(logpath)
-    
-    #logPath = "./"
-    logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s,%(message)s",
-    handlers=[
-        logging.FileHandler("{0}/{1}.log".format(logpath, log_file)),
-        logging.StreamHandler()
-    ])
-    formatter = logging.Formatter('%(asctime)s,%(message)s')
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-    return logger
-
 
 logpath = './log'
 log = setup_logger(logpath, 'info_logger', 'warehouse')

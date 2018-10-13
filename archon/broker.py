@@ -562,5 +562,29 @@ class Broker:
             return r
         #elif exchange==exc.HITBTC:
 
-    def get_candles(self):
-        pass
+    def market_id_map(self, exchange):
+        client = clients[exchange]
+        m = client.get_markets()
+        d = {}
+        for z in m:
+            l = z['Label']
+            market = models.conv_markets_from(l, exchange)
+            p = z['TradePairId']
+            d[market] = p
+        return d
+
+    def get_candles_daily(self, market, exchange):
+        client = clients[exchange]
+        if exchange == exc.CRYPTOPIA:
+            d = self.market_id_map(exchange)
+            pairid = d[market]
+            candles, v = client.candle_request(pairid)
+            return models.conv_candle(candles,exchange)
+            
+        elif exchange==exc.BITTREX:   
+            pass
+        elif exchange==exc.KUCOIN:
+            market = models.conv_markets_to(market, exchange)
+            klines = client.get_historical_klines_tv(market, client.RESOLUTION_1DAY, '1 month ago UTC')    
+            return models.conv_candle(klines,exchange)            
+        

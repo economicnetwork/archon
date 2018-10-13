@@ -57,9 +57,21 @@ class CryptopiaAPI(object):
                         return result, error
 
 
+    def candle_request(self, pairid):
+        baseURL = "https://www.cryptopia.co.nz/Exchange/GetTradePairChart"
+        params = "?tradePairId=%i&dataRange=86400&dataGroup=1440"%pairid
+        req = requests.get(baseURL + params)
+        req = req.json()
+
+        candles = req['Candle']
+        v = req['Volume']
+
+        return [candles,v]
+
+
     def api_query_request(self, feature_requested, get_parameters=None, post_parameters=None):
         """ Performs a generic api request """
-        time.sleep(1)
+        #time.sleep(1)
         baseURL = "https://www.cryptopia.co.nz/Api/"
         if feature_requested in self.private:
             url = baseURL + feature_requested
@@ -118,7 +130,8 @@ class CryptopiaAPI(object):
 
     def get_markets(self):
         """ Gets data for all markets """
-        return self.api_query(feature_requested='GetMarkets')
+        r,err = self.api_query(feature_requested='GetMarkets')
+        return r
 
     def get_market(self, market):
         """ Gets market data """
@@ -192,6 +205,8 @@ class CryptopiaAPI(object):
         """ Gets all transactions (deposits, withdraws) for a user """
         return self.api_query(feature_requested='GetTransactions',
                               post_parameters={'Type': transaction_type})
+
+
 
     # ------- actions -------
 

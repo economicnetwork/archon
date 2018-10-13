@@ -8,8 +8,9 @@ import archon.markets as m
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
 a = arch.Arch()
-a.set_active_exchanges([exc.KUCOIN,exc.BITTREX])
-market = models.market_from("LTC","BTC")
+ae = [exc.KUCOIN] #,exc.BITTREX]
+a.set_active_exchanges(ae)
+market = models.market_from("TOMO","BTC")
 print ("sync ",market)
 a.sync_orderbook_all(market)
 

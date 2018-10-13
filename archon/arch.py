@@ -143,7 +143,8 @@ class Arch:
         try:
             n = exc.NAMES[exchange]
             [bids,asks] = self.abroker.get_orderbook(smarket,exchange)
-            x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks}
+            dt = datetime.datetime.utcnow()
+            x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
             
             self.db.orderbooks.remove({'market':market,'exchange':exchange})
             self.db.orderbooks.insert(x)
@@ -162,17 +163,11 @@ class Arch:
             txs = self.abroker.market_history(smarket,exchange)
             n = exc.NAMES[exchange]
             smarket = models.conv_markets_to(market, exchange)
-            x = {'market': market, 'exchange': n, 'tx':txs}
-            print ("???",x)
+            dt = datetime.datetime.utcnow()
+            x = {'market': market, 'exchange': n, 'tx':txs,'timestamp':dt}
             self.db.txs.remove({'market':market,'exchange':n})
             self.db.txs.insert(x)     
             self.db.txs_history.insert(x)
-
-            #txs = self.db.txs.find_one({'market':market,'exchange':n})
-            #txs = self.db.txs.find_one({'market':market,'exchange':n})
-            #print ("> ",txs['tx'][0])
-
-            #txs = sorted(txs, key=lambda k: k['timestamp'],reverse=True)[:15]
         except:
             print ("symbol not supported")
 
