@@ -504,7 +504,7 @@ class Broker:
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
-            r = client.get_markets()[0]            
+            r = client.get_markets()
             f = lambda x: models.conv_summary(x,exchange)
             markets = [f(x) for x in r]
             #TODO use object

@@ -236,7 +236,6 @@ def conv_tx(tx, exchange, market):
     elif exchange==exc.KUCOIN:
         ts,ty,p,qty,total,txid = tx
         dt = conv_timestamp(ts, exchange)
-        #print (ts,dt)
         #[1538390455000, 'SELL', 2.94e-06, 60.0, 0.0001764, '5bb1f9b6a07e5d75b084ae19']
         market = conv_markets_from(market, exchange)
         d = {'timestamp': dt, 'exchange':exc.NAMES[exchange],'market':market,'txtype': ty,'price':p,'quantity':qty}
@@ -287,7 +286,6 @@ def conv_openorder(order, exchange):
         #  'IsConditional': False, 'Condition': 'NONE', 'ConditionTarget': None}]
         return d
     elif exchange==exc.KUCOIN: 
-        print (order)
         n = exc.NAMES[exchange]
         oid = order['oid']
         #oid = order['userOid']        
@@ -370,27 +368,29 @@ def conv_orderbook(book, exchange):
 def conv_summary(m,exchange):
     n = exc.NAMES[exchange]
     if exchange==exc.CRYPTOPIA:
-        pair = m['Label']
+        pair = m['Label']        
         market = conv_markets_from(pair,exchange)
+        nom,denom = nomdenom(market)
         last = m['LastPrice']
         bid = m['BidPrice']
         ask = m['AskPrice']
         low = m['Low']
         high = m['High']
         volume = m['BaseVolume']
-        d = {'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+        d = {'exchange':n, 'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last}
         return d
     elif exchange==exc.BITTREX:
         # 'Last': 5.6e-07, 'BaseVolume': 1.42803274, 'TimeStamp': '2018-10-01T08:38:19.217', 'Bid': 5.6e-07, 'Ask': 5.7e-07, 'OpenBuyOrders': 140, 'OpenSellOrders': 617, 'PrevDay': 5.3e-07, 'Created': '2016-05-16T06:44:15.287'}
         pair = m['MarketName']        
         market = conv_markets_from(pair,exchange)
+        nom,denom = nomdenom(market)
         bid = m['Bid']
         ask = m['Ask']
         high = m['High']
         low = m['Low']
         last = m['Last']
         volume = m['BaseVolume']
-        d = {'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+        d = {'exchange':n, 'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last}
         return d
     elif exchange==exc.KUCOIN:
         #{'coinType': 'QSP', 'trading': True, 'symbol': 'QSP-ETH', 
@@ -402,13 +402,14 @@ def conv_summary(m,exchange):
         try:
             pair = m['symbol']
             market = conv_markets_from(pair,exchange)
+            nom,denom = nomdenom(market)
             bid = m['buy']
             ask = m['sell']
             high = m['high']
             low = m['low']
             last = m['lastDealPrice']
             volume = m['volValue']            
-            d = {'exchange':exchange,'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+            d = {'exchange':exchange,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
             return d
         except Exception as err:
             print ("!",err)
@@ -446,7 +447,6 @@ def conv_balance(b,exchange):
             t = float(x['Total'])
             if t > 0:
                 #usd_price = cryptocompare.get_usd(s)                
-                #print (usd_price,t)
                 d['amount'] = t
                 #d['USD-value'] = t*usd_price
                 newl.append(d)
@@ -552,7 +552,9 @@ def conv_candle(history, exchange):
             newcandle.append([dt,c])
         return newcandle
 
-
+def nomdenom(market):
+    nom,denom = market.split('_')
+    return [nom,denom]
 
 def market_from(nom, denom):
     return nom + '_' + denom     
@@ -591,4 +593,4 @@ def get_market(nom,denom,exchange):
     elif exchange==exc.KUCOIN: 
         return nom + '-' + denom  
     elif exchange==exc.HITBTC: 
-        return nom + denom  
+        return nom + denom
