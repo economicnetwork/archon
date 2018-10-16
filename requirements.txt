@@ -5,3 +5,5 @@ schedule
 dateparser
 python-binance
 krakenex
+bitmex
+bitmex-ws

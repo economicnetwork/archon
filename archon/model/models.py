@@ -126,13 +126,14 @@ def conv_timestamp_tx(ts, exchange):
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
         utc_dt = utc_dt + datetime.timedelta(hours=4)
-        return utc_dt
+        tsf = utc_dt.strftime(target_format)
+        return tsf
     elif exchange==exc.KUCOIN:
         tsf = datetime.datetime.utcfromtimestamp(ts)
         #tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
-        utc_dt = utc_dt + datetime.timedelta(hours=4)
+        utc_dt = utc_dt + datetime.timedelta(hours=2)
         tsf = utc_dt.strftime(target_format)
         return tsf
         #tsf = utc_dt.strftime('%H:%M:%S')
@@ -194,7 +195,7 @@ def conv_usertx(tx, exchange):
 
     elif exchange==exc.KUCOIN:
         t = tx['createdAt']
-        dt = conv_timestamp(t/1000,exchange)
+        dt = conv_timestamp(t,exchange)
         #ty = tx['dealDirection']
         ty = tx['direction']
         q = tx['amount']
@@ -544,6 +545,14 @@ def conv_candle(history, exchange):
             dt = conv_timestamp_tx(ts, exc.CRYPTOPIA)     
             newcandle.append([dt,c])
         return newcandle
+    elif exchange==exc.BITTREX:
+        newcandle = list()
+        for x in history:
+            ts,c = x['T'],x['C']
+            dt = conv_timestamp_tx(ts, exc.BITTREX)     
+            newcandle.append([dt,c])
+        return newcandle
+
     elif exchange==exc.KUCOIN:        
         newcandle = list()
         for x in history:

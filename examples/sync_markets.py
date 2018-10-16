@@ -8,19 +8,16 @@ import json
 import requests
 import time
 import datetime
+import pymongo
 
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
 a = arch.Arch()
-a.sync_markets
-ms = a.global_markets()
+#a.sync_markets_all()
 
-exs = list(set([x['exchange'] for x in ms]))
-for e in exs:
-    z = list(filter(lambda t: t['exchange']==e, ms))
-    print (e,len(z))
+db = a.get_db()
+l = list(db.markets.find({'denom':'BTC','volume':{'$gte':10}}).sort('volume',pymongo.DESCENDING))
+for x in l:
+    print (x['pair'],x['volume'],x['last'],x['high'],x['exchange'])
 
-for m in ms[:100]:
-    if m['denom']=='BTC':
-        print (m)
-        
+print (len(l))

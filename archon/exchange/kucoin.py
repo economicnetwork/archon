@@ -172,7 +172,11 @@ class KuClient(object):
             del(kwargs['data'])
 
         response = getattr(self.session, method)(uri, **kwargs)        
-        return self._handle_response(response)
+        try:
+            return self._handle_response(response)
+        except Exception as err:
+            print ("error ",err)
+            
 
     def _handle_response(self, response):
         """Internal helper for handling API responses from the Quoine server.

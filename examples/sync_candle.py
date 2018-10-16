@@ -8,19 +8,15 @@ import json
 import requests
 import time
 import datetime
+import pymongo
 
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
 a = arch.Arch()
-a.sync_markets
-ms = a.global_markets()
+#a.sync_candles_all("LTC_BTC")
 
-exs = list(set([x['exchange'] for x in ms]))
-for e in exs:
-    z = list(filter(lambda t: t['exchange']==e, ms))
-    print (e,len(z))
+db = a.get_db()
 
-for m in ms[:100]:
-    if m['denom']=='BTC':
-        print (m)
-        
+l = db.candles.find_one({"exchange":"Kucoin"})
+for x in l['candles']:
+    print (x)

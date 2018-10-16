@@ -73,6 +73,8 @@ class Arch:
         dbName = mongo_conf['db']        
         url = mongo_conf["url"]
         self.set_mongo(url, dbName)
+
+        self.starttime = datetime.datetime.utcnow()
         
 
     def set_mongo(self, url, dbName):
@@ -128,8 +130,34 @@ class Arch:
             n = exc.NAMES[e]
             log.info("fetch %s"%n)
             m = self.abroker.get_market_summaries(e)
+            for x in m:
+                x['exchange'] = n
             allmarkets += m
         return allmarkets
+
+    def global_orderbook(self, market):
+        #self.db.orderbooks.drop()
+        allbids = list()
+        allasks = list()
+        ts = None
+        for e in self.active_exchanges:
+            n = exc.NAMES[e]
+            x = self.db.orderbooks.find({'market':market,'exchange':n})            
+            for z in x:
+                b = z['bids']
+                for xb in b: xb['exchange'] = n
+                allbids += b
+
+                a = z['asks']
+                for xb in a: xb['exchange'] = n
+                allasks += a
+                ts = z['timestamp']
+
+
+        allbids = sorted(allbids, key=lambda k: k['price'])
+        allbids.reverse()        
+        allasks = sorted(allasks, key=lambda k: k['price'])
+        return [allbids,allasks,ts]
 
     def filter_markets(self, m):
         f = lambda x: markets.is_btc(x['pair'])
@@ -146,13 +174,14 @@ class Arch:
             dt = datetime.datetime.utcnow()
             x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
             
-            self.db.orderbooks.remove({'market':market,'exchange':exchange})
+            self.db.orderbooks.remove({'market':market,'exchange':n})
             self.db.orderbooks.insert(x)
             self.db.orderbooks_history.insert(x)
         except:
             print ("symbol not supported")
 
-    def sync_orderbook_all(self, market):        
+    def sync_orderbook_all(self, market):   
+        self.db.orderbooks.drop()     
         for e in self.active_exchanges:            
             self.sync_orderbook(market, e)   
 
@@ -179,17 +208,41 @@ class Arch:
     def sync_markets(self, exchange):
         self.db.markets.drop()
         ms = self.global_markets()
-
         dt = datetime.datetime.utcnow()
-        #print ("got markets %i"%(len(ms)))
+        #snapshot = {'market':ms,'timestamp':dt}
+
+        #ms['timestamp'] = dt
+        
         #db.markets.insert({'markets':ms,'timestamp':dt})
+        
+        nm = list()
         for x in ms:
             x['timestamp'] = dt
             n,d = x['pair'].split('_')
             x['nom'] = n
-            x['denom'] = d
+            x['denom'] = d        
             self.db.markets.insert(x)
         
+    def sync_markets_all(self):
+        for e in self.active_exchanges:            
+            self.sync_markets(e)   
 
+    def sync_candle(self, market, exchange):
+        candles = self.abroker.get_candles_daily(market, exchange)
+        n = exc.NAMES[exchange]
+        self.db.candles.insert({"exchange":n,"market":market,"candles":candles})
 
+    def sync_candles_all(self, market):
+        for e in self.active_exchanges:            
+            self.sync_candle(market, e)   
 
+    def transaction_queue(self,exchange):
+        now = datetime.datetime.utcnow()
+        #delta = now - self.starttime
+        txs = self.abroker.get_tradehistory_all(exchange)
+        for tx in txs[:]:
+            ts = tx['timestamp'][:19]
+            dt = datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')        
+            if dt > self.starttime:
+                print ("new tx")
+            
