@@ -17,26 +17,14 @@ import pickle
 
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
+a = arch.Arch()
+ae = [exc.KUCOIN, exc.BITTREX, exc.CRYPTOPIA, exc.KRAKEN, exc.BINANCE, exc.HITBTC]
+a.set_active_exchanges(ae)
 
-#TMP fix for kraken
-extra_values = {'ZUSD': 1,'ZEUR': 1,'XXBT': 6700,'XLTC':0,'XXLM':0}
-
-
-url ="https://min-api.cryptocompare.com/data/price?fsym=%s&tsyms=USD"
-
-def compare_price(symbol):
-    r = requests.get(url%symbol)
-    j = json.loads(r.content)
-    return j['USD']
-
-def get_usd(symbol):
-    if symbol in extra_values.keys():
-        return extra_values[symbol]
-    else:
-        try:
-            return compare_price(symbol)
-        except:
-            return 0
+def sort_usd(d):
+    d = sorted(d, key=lambda k: k['USDvalue'])
+    d.reverse()   
+    return d
 
 def process(bl):
     newbl = list()    
@@ -44,46 +32,27 @@ def process(bl):
         x['USDvalue'] = round(x['USDvalue'],2)
         if x['USDvalue'] > 1:
             newbl.append(x)
-    newbl = sorted(newbl, key=lambda k: k['USDvalue'])
-    newbl.reverse()
+    newbl = sort_usd(newbl)
     return newbl
-
-def fetch_balances():
-
-    bl = list()
-    for e in [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.BINANCE,exc.KRAKEN]:
-        b = abroker.balance_all(exchange=e)
-        for x in b:
-            n = exc.NAMES[e]
-            x['exchange'] = n
-            s = x['symbol']
-            t = float(x['total'])
-            if t > 0:
-                #print ("total " + str(t))
-                usd_price = get_usd(s)    
-                x['USDprice'] = usd_price        
-                x['USDvalue'] = round(t*usd_price,2)
-                
-                if x['USDvalue'] > 1:
-                    bl.append(x)
-
-
-    return bl
 
 def write_to_file(html):
     #print (total_all)
     date_broker_format = "%Y-%m-%d"
     from datetime import datetime
     ds = datetime.now().strftime("%Y%m%d")
-    with open('reports/balance_report' + ds + '.html','w') as f:
+    fn = '$HOME/balance_report' + ds + '.html'
+    with open(fn,'w') as f:
         f.write(html)
 
+def per_exchange(bl, e):
+    l = list(filter(lambda x: x['exchange']==e,bl))
+    per_exchange = round(sum([float(x['USDvalue']) for x in l]),2)
+    return per_exchange
+
+
 def balance_report():
-    bl = fetch_balances()
-    pickle.dump( bl, open( "balances.p", "wb" ) )
-    #bl = pickle.load( open( "balances.p", "rb" ) )
+    bl = a.global_balances()
     bl = process(bl)
-    print (bl)
 
     total_all = 0
 
@@ -92,12 +61,21 @@ def balance_report():
 
     total_all = round(total_all,2)
 
+    exc = list(set([x['exchange'] for x in bl]))
+    per = list()
+    for e in exc:
+        x = per_exchange(bl,e)
+        per.append({"exchange": e,"USDvalue":x})
+
+    per = sort_usd(per)
+
     loader = jinja2.FileSystemLoader('./balances.html')
     env = jinja2.Environment(loader=loader)
     template = env.get_template('')
-    html = template.render(balances=bl,total=total_all)
-    #write_to_file(html)
-    mail.send_mail_html(abroker, "Balance Report", html)
+    html = template.render(balances=bl,per=per,total=total_all)
+    write_to_file(html)
+    #mail.send_mail_html(abroker, "Balance Report", html)
 
 if __name__=='__main__':
     balance_report()
+    

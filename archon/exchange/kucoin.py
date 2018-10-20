@@ -174,8 +174,18 @@ class KuClient(object):
         response = getattr(self.session, method)(uri, **kwargs)        
         try:
             return self._handle_response(response)
-        except Exception as err:
-            print ("error ",err)
+        except KucoinAPIException as err:
+            log.error(err)
+
+    def _request_retry(self, method, path, signed, **kwargs):
+        numtries = 0    
+        maxtries = 5
+        while numtries < maxtries:
+            try:
+                return self._request(method, path, signed, **kwargs)
+            except KucoinAPIException as err:
+                log.error(err)
+                numtries +=1
             
 
     def _handle_response(self, response):
@@ -213,6 +223,9 @@ class KuClient(object):
 
     def _get(self, path, signed=False, **kwargs):
         return self._request('get', path, signed, **kwargs)
+
+    def _get_retry(self, path, signed=False, **kwargs):
+        return self._request_retry('get', path, signed, **kwargs)
 
     def _post(self, path, signed=False, **kwargs):
         r = self._request('post', path, signed, **kwargs)
@@ -445,7 +458,7 @@ class KuClient(object):
         if symbol:
             data['symbol'] = symbol
 
-        return self._get('open/tick', False, data=data)
+        return self._get_retry('open/tick', False, data=data)
 
     def get_order_book(self, symbol, group=None, limit=None):
         """Get the order book for a symbol"""
@@ -458,7 +471,7 @@ class KuClient(object):
         if limit:
             data['limit'] = limit
 
-        return self._get('open/orders', False, data=data)
+        return self._get_retry('open/orders', False, data=data)
 
     def get_buy_orders(self, symbol, group=None, limit=None):
         """Get the buy orders for a symbol"""
@@ -497,7 +510,7 @@ class KuClient(object):
         if since:
             data['since'] = since
 
-        return self._get('open/deal-orders', False, data=data)
+        return self._get_retry('open/deal-orders', False, data=data)
 
     def get_trading_markets(self):
         """Get list of trading markets"""
@@ -511,7 +524,7 @@ class KuClient(object):
         if market:
             data['market'] = market
 
-        return self._get('market/open/symbols', False, data=data)
+        return self._get_retry('market/open/symbols', False, data=data)
 
     def get_trending_coins(self, market=None):
         """Get list of trending coins for an optional market"""
@@ -519,7 +532,7 @@ class KuClient(object):
         if market:
             data['market'] = market
 
-        return self._get('market/open/coins-trending', False, data=data)
+        return self._get_retry('market/open/coins-trending', False, data=data)
 
     def get_kline_data(self, symbol, resolution, from_time, to_time, limit=None):
         """Get kline data"""
@@ -617,20 +630,6 @@ class KuClient(object):
         """Get a list of coins with trade and withdrawal information"""
 
         return self._get('market/open/coins')
-
-    # -------------
-
-    def set_default_currency(self, currency):
-        """Set your default currency"""
-        data = {
-            'currency': currency
-        }
-
-        return self._post('user/change-currency', False, data=data)
-
-    def get_user(self):
-        """Get user info"""
-        return self._get('user/info', True)
 
 
     # User API Endpoints
@@ -743,5 +742,18 @@ class KuClient(object):
 
         return self._get('open/currencies', False, data=data)
 
+    # -------------
+
+    def set_default_currency(self, currency):
+        """Set your default currency"""
+        data = {
+            'currency': currency
+        }
+
+        return self._post('user/change-currency', False, data=data)
+
+    def get_user(self):
+        """Get user info"""
+        return self._get('user/info', True)
 
     

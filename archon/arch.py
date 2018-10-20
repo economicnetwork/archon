@@ -8,6 +8,7 @@ from archon.model import models
 from archon.util import *
 from pymongo import MongoClient
 import datetime
+from archon.feeds import cryptocompare
 
 logpath = './log'
 log = setup_logger(logpath, 'archon_logger', 'archon')
@@ -83,6 +84,7 @@ class Arch:
         self.mongo_url = url
         log.info("using mongo " + str(url))
         self.mongoclient = MongoClient(self.mongo_url)
+        log.info("db %s"%dbName)
         self.db = self.mongoclient[dbName]
 
     def get_db(self):
@@ -101,6 +103,28 @@ class Arch:
     def get_by_id(self, oid):
         x = list(filter(lambda x: x['oid'] == oid, self.openorders))
         return x[0]
+
+    def global_balances(self):
+        #for e in [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.BINANCE,exc.KRAKEN]:
+        bl = list()
+        for e in self.active_exchanges:
+            n = exc.NAMES[e]
+            b = self.abroker.balance_all(exchange=e)
+            if b == None: print ("could not fetch balances from %s"%n)
+            for x in b:
+                print (x)                
+                x['exchange'] = n
+                s = x['symbol']
+                t = float(x['amount'])
+                if t > 0:
+                    #print ("total " + str(t))
+                    usd_price = cryptocompare.get_usd(s)    
+                    x['USDprice'] = usd_price        
+                    x['USDvalue'] = round(t*usd_price,2)
+                    
+                    if x['USDvalue'] > 1:
+                        bl.append(x)
+        return bl
 
     def submit_order(self, order, exchange=None):
         if exchange is None: exchange=self.selected_exchange
@@ -205,8 +229,8 @@ class Arch:
             self.db.txs.remove({'market':market,'exchange':e})
             self.sync_tx(market, e)   
 
-    def sync_markets(self, exchange):
-        self.db.markets.drop()
+    def sync_markets_all(self):
+        #self.db.markets.drop()
         ms = self.global_markets()
         dt = datetime.datetime.utcnow()
         #snapshot = {'market':ms,'timestamp':dt}
@@ -220,12 +244,14 @@ class Arch:
             x['timestamp'] = dt
             n,d = x['pair'].split('_')
             x['nom'] = n
-            x['denom'] = d        
+            x['denom'] = d   
+            #print (x)     
             self.db.markets.insert(x)
+
+        #for z in self.db.markets.find():
+        #    print (z)
         
-    def sync_markets_all(self):
-        for e in self.active_exchanges:            
-            self.sync_markets(e)   
+
 
     def sync_candle(self, market, exchange):
         candles = self.abroker.get_candles_daily(market, exchange)

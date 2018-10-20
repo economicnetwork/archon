@@ -121,10 +121,13 @@ class Broker:
                 print ("error fetching orderbook",exchange)
 
         elif exchange==exc.KUCOIN:
-            ob = client.get_order_book(market,limit=20)
-            book = models.conv_orderbook(ob, exchange)
-            #timestamp
-            return book
+            try:
+                ob = client.get_order_book(market,limit=20)
+                book = models.conv_orderbook(ob, exchange)
+                #timestamp
+                return book
+            except Exception:
+                 raise Exception
 
     def get_market_summary(self, market, exchange):        
         if exchange is None: exchange=self.s_exchange

@@ -367,18 +367,19 @@ def conv_orderbook(book, exchange):
         return book
 
 def conv_summary(m,exchange):
-    n = exc.NAMES[exchange]
+    n = exc.NAMES[exchange]    
     if exchange==exc.CRYPTOPIA:
         pair = m['Label']        
         market = conv_markets_from(pair,exchange)
         nom,denom = nomdenom(market)
+        change = m['Change']
         last = m['LastPrice']
         bid = m['BidPrice']
         ask = m['AskPrice']
         low = m['Low']
         high = m['High']
         volume = m['BaseVolume']
-        d = {'exchange':n, 'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last}
+        d = {'exchange':n, 'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'change':change}
         return d
     elif exchange==exc.BITTREX:
         # 'Last': 5.6e-07, 'BaseVolume': 1.42803274, 'TimeStamp': '2018-10-01T08:38:19.217', 'Bid': 5.6e-07, 'Ask': 5.7e-07, 'OpenBuyOrders': 140, 'OpenSellOrders': 617, 'PrevDay': 5.3e-07, 'Created': '2016-05-16T06:44:15.287'}
@@ -391,9 +392,11 @@ def conv_summary(m,exchange):
         low = m['Low']
         last = m['Last']
         volume = m['BaseVolume']
-        d = {'exchange':n, 'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last}
+        change = last/m['PrevDay']-1
+        d = {'exchange':n, 'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'change':change}
         return d
     elif exchange==exc.KUCOIN:
+        
         #{'coinType': 'QSP', 'trading': True, 'symbol': 'QSP-ETH', 
         # 'lastDealPrice': 0.0001569, 'buy': 0.0001497, 'sell': 0.0001569, 
         # #'change': -6.1e-06, 'coinTypePair': 'ETH', 'sort': 0, 
@@ -401,16 +404,17 @@ def conv_summary(m,exchange):
         #  'datetime': 1538417238000, 'vol': 17420.292237, 'low': 0.0001426, 
         # 'changeRate': -0.0374}}
         try:
-            pair = m['symbol']
+            pair = m['symbol']            
+            change = m['changeRate']
             market = conv_markets_from(pair,exchange)
             nom,denom = nomdenom(market)
             bid = m['buy']
             ask = m['sell']
             high = m['high']
             low = m['low']
-            last = m['lastDealPrice']
+            last = m['lastDealPrice']            
             volume = m['volValue']            
-            d = {'exchange':exchange,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+            d = {'exchange':n,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'change':change}
             return d
         except Exception as err:
             print ("!",err)
@@ -439,12 +443,14 @@ def conv_summary(m,exchange):
 
 def conv_balance(b,exchange):
     """ balance: amount, price, USD-value """
+    n = exc.NAMES[exchange]
     if exchange==exc.CRYPTOPIA:
         newl = list()
         for x in b:
             d = {}
             s = x['Symbol']
-            d['symbol'] = s            
+            d['symbol'] = s   
+            d['exchange'] = n         
             t = float(x['Total'])
             if t > 0:
                 #usd_price = cryptocompare.get_usd(s)                
@@ -460,6 +466,7 @@ def conv_balance(b,exchange):
             s = x['Currency']
             d['symbol'] = s
             t = float(x['Balance'])
+            d['exchange'] = n
             if t > 0:
                 #usd_price = get_usd(s)                
                 d['amount'] = t
@@ -477,7 +484,7 @@ def conv_balance(b,exchange):
                 
                 d = {}
                 d['symbol'] = s
-                d['exchange'] = "Binance"            
+                d['exchange'] = n       
                 d['amount'] = f+l
                 #usd_price = get_usd(s)    
                 #d['USD-value'] = (f+l)*usd_price
@@ -494,7 +501,7 @@ def conv_balance(b,exchange):
             if t > 0:                
                 d = {}            
                 d['symbol'] = s
-                d['exchange'] = "Kucoin"            
+                d['exchange'] = n
                 d['amount'] = t
                 #usd_price = get_usd(s)    
                 #d['USD-value'] = bb*usd_price
@@ -510,6 +517,7 @@ def conv_balance(b,exchange):
                 k = replace_syms[k]
             d['symbol'] = k
             d['amount'] = v
+            d['exchange'] = n
             newl.append(d)  
         return newl
 
@@ -532,7 +540,7 @@ def conv_balance(b,exchange):
             if av+r > 0:
                 d = {}            
                 d['symbol'] = s
-                d['exchange'] = "Hitbtc"            
+                d['exchange'] = n          
                 d['amount'] = av+r
                 newl.append(d)
         return newl
@@ -542,6 +550,7 @@ def conv_candle(history, exchange):
         newcandle = list()
         for x in history:
             ts,o,h,l,c = x
+            #TODO volume
             dt = conv_timestamp_tx(ts, exc.CRYPTOPIA)     
             newcandle.append([dt,c])
         return newcandle
@@ -549,6 +558,7 @@ def conv_candle(history, exchange):
         newcandle = list()
         for x in history:
             ts,c = x['T'],x['C']
+            #TODO volume
             dt = conv_timestamp_tx(ts, exc.BITTREX)     
             newcandle.append([dt,c])
         return newcandle
@@ -558,7 +568,7 @@ def conv_candle(history, exchange):
         for x in history:
             ts,o,h,l,c,v = x
             dt = conv_timestamp_tx(ts, exc.KUCOIN)     
-            newcandle.append([dt,c])
+            newcandle.append([dt,c,v])
         return newcandle
 
 def nomdenom(market):
