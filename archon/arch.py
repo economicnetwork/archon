@@ -148,7 +148,7 @@ class Arch:
             log.info("cancel " + str(o))
             self.cancel_order(o['oid'])
         
-    def global_markets(self):
+    def fetch_global_markets(self):
         allmarkets = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
@@ -177,7 +177,6 @@ class Arch:
                 allasks += a
                 ts = z['timestamp']
 
-
         allbids = sorted(allbids, key=lambda k: k['price'])
         allbids.reverse()        
         allasks = sorted(allasks, key=lambda k: k['price'])
@@ -186,6 +185,17 @@ class Arch:
     def filter_markets(self, m):
         f = lambda x: markets.is_btc(x['pair'])
         m = list(filter(f, m))
+        return m
+
+    def get_markets(self,exchange=None,denom=None):
+        f = {}
+        if exchange:
+            f = {'exchange':exchange}
+        if denom:
+            f['denom'] = denom
+        m = list(self.db.markets.find(f))
+        #else:
+        #    m = list(self.db.markets.find())
         return m
 
     def sync_orderbook(self, market, exchange):
@@ -230,15 +240,9 @@ class Arch:
             self.sync_tx(market, e)   
 
     def sync_markets_all(self):
-        #self.db.markets.drop()
-        ms = self.global_markets()
-        dt = datetime.datetime.utcnow()
-        #snapshot = {'market':ms,'timestamp':dt}
-
-        #ms['timestamp'] = dt
-        
-        #db.markets.insert({'markets':ms,'timestamp':dt})
-        
+        self.db.markets.drop()
+        ms = self.fetch_global_markets()
+        dt = datetime.datetime.utcnow()        
         nm = list()
         for x in ms:
             x['timestamp'] = dt
@@ -247,20 +251,20 @@ class Arch:
             x['denom'] = d   
             #print (x)     
             self.db.markets.insert(x)
+            self.db.markets_history.insert(x)
 
         #for z in self.db.markets.find():
-        #    print (z)
-        
+        #    print (z)        
 
-
-    def sync_candle(self, market, exchange):
+    def sync_candle_daily(self, market, exchange):
         candles = self.abroker.get_candles_daily(market, exchange)
         n = exc.NAMES[exchange]
         self.db.candles.insert({"exchange":n,"market":market,"candles":candles})
 
     def sync_candles_all(self, market):
         for e in self.active_exchanges:            
-            self.sync_candle(market, e)   
+            self.sync_candle_daily(market, e)   
+
 
     def transaction_queue(self,exchange):
         now = datetime.datetime.utcnow()
@@ -272,3 +276,39 @@ class Arch:
             if dt > self.starttime:
                 print ("new tx")
             
+"""
+def tx_history_converted(nom, denom, exchange):
+    if exchange == exc.CRYPTOPIA:   
+        market = markets.get_market(nom,denom,exchange) 
+        txs = abroker.market_history(market,exchange)
+        txs.reverse()
+        new_txs_list = list() 
+        print (len(txs))   
+        for txitem in txs[:]:
+            #print ("convert "+ str(txitem))
+            txd = model.convert_tx(txitem, exc.CRYPTOPIA, market)
+            new_txs_list.append(txd)
+        return new_txs_list
+    elif exchange == exc.BITTREX:  
+        market = markets.get_market(nom,denom,exc.BITTREX)
+        txs = abroker.market_history(market,exc.BITTREX)
+        txs.reverse()
+        #log.info("txs " + str(txs[:3]))    
+        new_txs_list = list()            
+        for txitem in txs[:]:
+            txd = model.convert_tx(txitem, exc.BITTREX, market)
+            new_txs_list.append(txd)
+        return new_txs_list
+
+    elif exchange == exc.KUCOIN:  
+        market = markets.get_market(nom,denom,exc.KUCOIN)
+        txs = abroker.market_history(market,exc.KUCOIN)
+        new_txs_list = list()
+        for txitem in txs:
+            txd = model.convert_tx(txitem, exchange, market)
+            new_txs_list.append(txd)
+        return new_txs_list
+"""            
+        
+
+

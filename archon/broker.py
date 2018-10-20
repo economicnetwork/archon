@@ -250,7 +250,18 @@ class Broker:
         elif exchange==exc.KUCOIN:
             market = models.conv_markets_to(market, exchange)
             klines = client.get_historical_klines_tv(market, client.RESOLUTION_1HOUR, '1 week ago UTC')    
-            return models.conv_candle(klines,exchange)              
+            return models.conv_candle(klines,exchange)  
+
+    def get_candles_minute(self, market, exchange):
+        client = clients[exchange]
+        if exchange == exc.CRYPTOPIA:
+            pass            
+        elif exchange==exc.BITTREX:   
+            pass
+        elif exchange==exc.KUCOIN:
+            market = models.conv_markets_to(market, exchange)
+            klines = client.get_historical_klines_tv(market, client.RESOLUTION_1MINUTE, '1 day ago UTC')    
+            return models.conv_candle(klines,exchange)                       
 
     # --- trading info ---
 

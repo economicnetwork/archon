@@ -563,12 +563,12 @@ def conv_candle(history, exchange):
             newcandle.append([dt,c])
         return newcandle
 
-    elif exchange==exc.KUCOIN:        
+    elif exchange==exc.KUCOIN:          
         newcandle = list()
         for x in history:
             ts,o,h,l,c,v = x
             dt = conv_timestamp_tx(ts, exc.KUCOIN)     
-            newcandle.append([dt,c,v])
+            newcandle.append([dt,o,h,l,c,v])
         return newcandle
 
 def nomdenom(market):

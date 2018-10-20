@@ -61,39 +61,3 @@ def get_balances(db):
 
 
 
-"""
-def tx_history_converted(nom, denom, exchange):
-    if exchange == exc.CRYPTOPIA:   
-        market = markets.get_market(nom,denom,exchange) 
-        txs = abroker.market_history(market,exchange)
-        txs.reverse()
-        new_txs_list = list() 
-        print (len(txs))   
-        for txitem in txs[:]:
-            #print ("convert "+ str(txitem))
-            txd = model.convert_tx(txitem, exc.CRYPTOPIA, market)
-            new_txs_list.append(txd)
-        return new_txs_list
-    elif exchange == exc.BITTREX:  
-        market = markets.get_market(nom,denom,exc.BITTREX)
-        txs = abroker.market_history(market,exc.BITTREX)
-        txs.reverse()
-        #log.info("txs " + str(txs[:3]))    
-        new_txs_list = list()            
-        for txitem in txs[:]:
-            txd = model.convert_tx(txitem, exc.BITTREX, market)
-            new_txs_list.append(txd)
-        return new_txs_list
-
-    elif exchange == exc.KUCOIN:  
-        market = markets.get_market(nom,denom,exc.KUCOIN)
-        txs = abroker.market_history(market,exc.KUCOIN)
-        new_txs_list = list()
-        for txitem in txs:
-            txd = model.convert_tx(txitem, exchange, market)
-            new_txs_list.append(txd)
-        return new_txs_list
-"""            
-        
-
-
