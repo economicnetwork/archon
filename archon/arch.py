@@ -198,6 +198,12 @@ class Arch:
         #    m = list(self.db.markets.find())
         return m
 
+    def get_candle(self, market):
+        print ("get candle " + market)
+        result = self.db.candles.find_one({'market': market})
+        print (result)
+        return result
+
     def sync_orderbook(self, market, exchange):
         smarket = models.conv_markets_to(market, exchange)  
         #print ("sync",market," ",exchange)   
@@ -259,6 +265,7 @@ class Arch:
 
     def sync_candle_daily(self, market, exchange):
         candles = self.abroker.get_candles_daily(market, exchange)
+        print ("candles ",candles," market",market)
         n = exc.NAMES[exchange]
         self.db.candles.insert({"exchange":n,"market":market,"candles":candles})
 

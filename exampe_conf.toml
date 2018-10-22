@@ -1,9 +1,11 @@
 [MAILGUN]
-apikey = "key-"
-domain = "https://api.mailgun.net/v3/XXXX/messages"
+apikey = ""
+domain = ""
 email_from = ""
 email_to = ""
 
 [MONGO]
-url = "mongodb://myhost:27017"
+host = "localhost"
+port = 27107
 db = "arch"
+url = "mongodb://localhost:27017"
