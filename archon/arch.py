@@ -245,7 +245,8 @@ class Arch:
         dt = datetime.datetime.utcnow()        
         nm = list()
         for x in ms:
-            x['timestamp'] = dt
+            dts = dt.strftime('%H:%M:%S')
+            x['timestamp'] = dts
             n,d = x['pair'].split('_')
             x['nom'] = n
             x['denom'] = d   
