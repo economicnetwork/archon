@@ -1,0 +1,18 @@
+# Archon
+
+Archon is a general trading and broker framework for Internet/Crypto exchanges
+
+The framework interacts with the exchanges through the API keys for the purpose of 
+
+* tracking assets
+* order-execution
+* exchange functionality indepedent from web-view 
+
+It abstracts from exchanges in that datastructures are generic for all exchanges
+
+Ecosystem which can be built on top
+
+* Multi-Exchange trading interface
+* Streaming service
+* Bot and strategy framework
+* ...
