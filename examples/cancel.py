@@ -3,7 +3,6 @@ cancel tool. ask user for each open order if to cancel
 """
 
 import sys
-sys.path.append('/Users/x/archon')
 import archon
 import archon.broker as broker
 import archon.arch as arch
