@@ -65,7 +65,7 @@ class RestClient(object):
         """Get symbol."""
         return self.get_request("public/symbol/%s" % (symbol_code))
 
-    def get_candles(self, symbol_code):
+    def get_candles_daily(self, symbol_code):
         """
         limit   Number  Limit of candles, default 100.
         period  String  One of: M1 (one minute), M3, M5, M15, M30, H1, H4, D1, D7, 1M (one month). Default is M30 (30 minutes).
@@ -75,10 +75,7 @@ class RestClient(object):
         #return self.session.get("%s/public/candles/%s" % (self.url, symbol_code)).json()   
         data = {'limit': 100, 'period': 'D1'}
         ret = self.session.get("%s/public/candles/%s" % (self.url, symbol_code), params=data)
-        #ret = self.session.get("%s/public/candles/%s" % (self.url, symbol_code))        
         return ret.json()
-        #return self.session.post("%s/account/crypto/withdraw" % self.url, data=data).json()
-        #return self.session.post("%s/account/crypto/withdraw" % self.url, data=data).json()
 
     def get_orderbook(self, symbol_code):
         """Get orderbook. """

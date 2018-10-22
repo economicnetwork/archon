@@ -139,6 +139,16 @@ def conv_timestamp_tx(ts, exchange):
         #tsf = utc_dt.strftime('%H:%M:%S')
         #return tsf
 
+    elif exchange==exc.HITBTC:
+        #2018-10-18T00:00:00.000Z
+        ts = ts[:-5]
+        x = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
+        utc_dt = x.astimezone(pytz.utc)
+        utc_dt = utc_dt + datetime.timedelta(hours=2)
+        tsf = utc_dt.strftime(target_format)
+        return tsf
+
+
 
 def conv_timestamp(ts, exchange):    
     target_format = '%Y-%m-%dT%H:%M:%S'
@@ -548,19 +558,23 @@ def conv_balance(b,exchange):
 def conv_candle(history, exchange):
     if exchange==exc.CRYPTOPIA:
         newcandle = list()
-        for x in history:
+        [candles,vhist] = history
+        i = 0
+        for x in candles:
+            vi = vhist[i]['basev']
             ts,o,h,l,c = x
             #TODO volume
             dt = conv_timestamp_tx(ts, exc.CRYPTOPIA)     
-            newcandle.append([dt,c])
+            newcandle.append([dt,o,h,l,c,vi])
+            i+=1
         return newcandle
+
     elif exchange==exc.BITTREX:
         newcandle = list()
         for x in history:
-            ts,c = x['T'],x['C']
-            #TODO volume
+            ts,o,h,l,c,v = x['T'],x['O'],x['H'],x['L'],x['C'],x['V']            
             dt = conv_timestamp_tx(ts, exc.BITTREX)     
-            newcandle.append([dt,c])
+            newcandle.append([dt,o,h,l,c,v])
         return newcandle
 
     elif exchange==exc.KUCOIN:          
@@ -568,6 +582,19 @@ def conv_candle(history, exchange):
         for x in history:
             ts,o,h,l,c,v = x
             dt = conv_timestamp_tx(ts, exc.KUCOIN)     
+            newcandle.append([dt,o,h,l,c,v])
+        return newcandle
+
+    elif exchange==exc.HITBTC:
+        newcandle = list()
+        for x in history:
+            ts,o,h,l,c,v = x['timestamp'],x['open'],x['min'],x['max'],x['close'],x['volumeQuote']
+            dt = conv_timestamp_tx(ts, exc.HITBTC) 
+            o = float(o)    
+            h = float(h)
+            l = float(l)
+            c = float(c)
+            v = float(v)
             newcandle.append([dt,o,h,l,c,v])
         return newcandle
 

@@ -13,12 +13,13 @@ abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
 client = abroker.get_client(exc.KUCOIN)
 
-es = [exc.KUCOIN,exc.CRYPTOPIA,exc.BITTREX]
+es = [exc.KUCOIN,exc.CRYPTOPIA,exc.BITTREX,exc.HITBTC]
 
 
 def history(e):
     market = "LTC_BTC"
-    print (e)
+    n = exc.NAMES[e]
+    print (n)
     
     candles = abroker.get_candles_daily(market, e)    
     for x in candles[-5:]:

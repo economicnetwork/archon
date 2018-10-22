@@ -34,7 +34,8 @@ clients = {}
 logpath = './log'
 log = setup_logger(logpath, 'broker_logger', 'broker')
 
-
+rex_API_v2= "rex_API_v2"
+ 
 class Broker:
 
     def __init__(self):
@@ -49,8 +50,8 @@ class Broker:
             clients[exchange] = CryptopiaAPI(key, secret)
         elif exchange==exc.BITTREX:
             clients[exchange] = bittrex.Bittrex(key,secret)
-            #hack
-            clients[99] = bittrex.Bittrex(key,secret,api_version=bittrex.API_V2_0)  
+            #maintain version for candles
+            clients[rex_API_v2] = bittrex.Bittrex(key,secret,api_version=bittrex.API_V2_0)  
         elif exchange==exc.KUCOIN:
             clients[exchange] = KuClient(key,secret)   
         elif exchange==exc.HITBTC:
@@ -227,11 +228,12 @@ class Broker:
             d = self.market_id_map(exchange)
             pairid = d[market]
             candles, v = client.candle_request(pairid)
-            return models.conv_candle(candles,exchange)
+            return models.conv_candle([candles,v],exchange)
             
         elif exchange==exc.BITTREX: 
             market = models.conv_markets_to(market, exchange)  
-            r = clients[99].get_candles(market,"day")
+            #hack second client for candles
+            r = clients[rex_API_v2].get_candles(market,"day")
             r = r['result']
             candles = models.conv_candle(r, exchange)
             return candles
@@ -239,7 +241,13 @@ class Broker:
         elif exchange==exc.KUCOIN:
             market = models.conv_markets_to(market, exchange)
             klines = client.get_historical_klines_tv(market, client.RESOLUTION_1DAY, '1 month ago UTC')    
-            return models.conv_candle(klines,exchange)            
+            return models.conv_candle(klines,exchange)  
+
+        elif exchange==exc.HITBTC:
+            market = models.conv_markets_to(market, exchange)
+            candles = client.get_candles_daily(market)
+            candles = models.conv_candle(candles, exchange)
+            return candles
         
     def get_candles_hourly(self, market, exchange):
         client = clients[exchange]

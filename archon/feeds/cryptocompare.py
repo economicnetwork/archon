@@ -34,14 +34,12 @@ def get_usd(symbol):
             return 0
 
 def get_hist(fsym, tsym, e):
+    #"https://min-api.cryptocompare.com/data/histoday?fsym=" + fsym + "&tsym=" + tsym + "&limit=500&e=CCCAGG";
     resolution=60
     histurl = baseURL + "histoday"
     #/data/histohour' : '/data/histominute'
     # "BitTrex" #"Bitfinex"    
     #e = "Bitfinex"
-    fromt=1534847201
-    tot=1540031261
-    first=True 
     limit=1000  
     payload = {'fsym': fsym, 'tsym': tsym, 'limit': limit,'e': e}
     payload_str = "&".join("%s=%s" % (k,v) for k,v in payload.items())
