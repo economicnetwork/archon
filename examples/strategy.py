@@ -1,5 +1,7 @@
 """
-basic strategy WIP
+basic strategy
+will submit a bid and ask only once
+
 """
 
 import sys
@@ -37,13 +39,11 @@ log = setup_logger(logpath, 'info_logger', 'mm')
 class Agent(threading.Thread):
 
     def __init__(self):
-        threading.Thread.__init__(self)
-        self.threadID = "mm-strategy1"
-        #self.name = name
-        #self.counter = counter
+        threading.Thread.__init__(self)        
         config = agent_config()["AGENT"]
         m = config["market"]    
         self.agent_id = config["agentid"]
+        self.threadID = "thread-" + self.agent_id
         self.abroker = broker.Broker()
         self.arch = arch.Arch()
         arch.setClientsFromFile(self.abroker)        
@@ -53,6 +53,10 @@ class Agent(threading.Thread):
         self.rho = config["rho"]
 
         self.openorders = list()
+
+        self.round_precision = 8
+        #pip paramter for ordering
+        self.pip = 0.0000001
 
     def cancel_all(self):
         oo = self.abroker.open_orders_symbol(self.market,self.e)
@@ -90,9 +94,7 @@ class Agent(threading.Thread):
         [obids,oasks] = self.abroker.get_orderbook(self.market,self.e)
         return [obids,oasks]
 
-    def submit_bid(self):
-        pip = 0.0000001
-        round_precision = 7
+    def submit_bid(self):                
         [obids,oasks] = self.orderbook()
         
         bestbid = obids[0]['price']
@@ -106,20 +108,19 @@ class Agent(threading.Thread):
         self.submit_buy(price_target, qty)
 
     def submit_ask(self):
-        pip = 0.0000001
-        round_precision = 7
         [obids,oasks] = self.orderbook()
         
         bestbid = obids[0]['price']
         bestask = oasks[0]['price']
         spread = (bestask-bestbid)/bestask
         mid = (bestask+bestbid)/2
-        rho = 0.0015
+        rho = 0.002
         price_target = round(mid*(1+rho),7)
         qty = 100
         self.submit_sell(price_target, qty)        
 
     def show_ob(self):
+        """ show orderbook """
         oo = self.abroker.open_orders_symbol(self.market,self.e)
         open_bids = list(filter(lambda x: x['otype']=='bid',oo))
         open_asks = list(filter(lambda x: x['otype']=='ask',oo))
@@ -170,7 +171,6 @@ class Agent(threading.Thread):
             print ("bids %i  asks %i"%(len(self.open_bids), len(self.open_asks)))
 
             [obids,oasks] = self.orderbook()
-            self.show_stats([obids,oasks])
 
             if len(self.openorders) > 0:
                 mybidprice = self.open_bids[0]['price']                
@@ -179,18 +179,15 @@ class Agent(threading.Thread):
                 self.show_ob()            
 
             else:
-                print ("no open orders")
+                print ("no open orders. submit bid once")
                 #submit only once
                 self.submit_bid()
-                self.submit_ask()
-            
+                #self.submit_ask()
 
             #self.arch.transaction_queue(self.e)
             time.sleep(10)
 
-        #cancel_bids()
-         
-
+        #cancel_bids()        
                 
 if __name__=='__main__':    
     strategy = Agent()

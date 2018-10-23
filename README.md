@@ -29,6 +29,8 @@ cancel.py - cancel open order by command line
 
 user_tx.py - user transactions
 
+strategy.py - basic strategy example
+
 ## install 
 
 needs python3 
