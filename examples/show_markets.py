@@ -12,15 +12,17 @@ import datetime
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
 a = arch.Arch()
-a.sync_markets
-ms = a.global_markets()
+a.sync_markets_all()
+ms = a.get_markets()
 
+print ("markets per exchange")
 exs = list(set([x['exchange'] for x in ms]))
 for e in exs:
     z = list(filter(lambda t: t['exchange']==e, ms))
     print (e,len(z))
 
-for m in ms[:100]:
+"""
+for m in ms[:10]:
     if m['denom']=='BTC':
         print (m)
-        
+"""

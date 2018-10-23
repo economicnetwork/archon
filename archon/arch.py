@@ -248,17 +248,17 @@ class Arch:
         dt = datetime.datetime.utcnow()        
         nm = list()
         for x in ms:
-            dts = dt.strftime('%H:%M:%S')
-            x['timestamp'] = dts
-            n,d = x['pair'].split('_')
-            x['nom'] = n
-            x['denom'] = d   
-            #print (x)     
-            self.db.markets.insert(x)
-            self.db.markets_history.insert(x)
+            try:
+                dts = dt.strftime('%H:%M:%S')
+                x['timestamp'] = dts
+                n,d = x['pair'].split('_')
+                x['nom'] = n
+                x['denom'] = d   
+                self.db.markets.insert(x)
+                self.db.markets_history.insert(x)
+            except:
+                pass
 
-        #for z in self.db.markets.find():
-        #    print (z)        
 
     def sync_candle_daily(self, market, exchange):
         log.debug("get candles %s %s "%(market, str(exchange)))
