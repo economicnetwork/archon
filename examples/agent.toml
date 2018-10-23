@@ -1,4 +1,4 @@
 [AGENT]
-market = "TIO_ETH"
-agentid = "mmstrategy1"
+market = "LTC_BTC"
+agentid = "somestrategy"
 rho = 0.03

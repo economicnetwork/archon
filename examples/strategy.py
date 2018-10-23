@@ -21,6 +21,7 @@ import archon.model.models as models
 from util import *
 import random
 import math
+from agent import Agent
 
 def toml_file(fs):
     with open(fs, "r") as f:
@@ -36,65 +37,15 @@ logpath = './log'
 log = setup_logger(logpath, 'info_logger', 'mm')
 
 
-class Agent(threading.Thread):
+class MyStrategy(Agent):
 
     def __init__(self):
-        threading.Thread.__init__(self)        
-        config = agent_config()["AGENT"]
-        m = config["market"]    
-        self.agent_id = config["agentid"]
-        self.threadID = "thread-" + self.agent_id
-        self.abroker = broker.Broker()
-        self.arch = arch.Arch()
-        arch.setClientsFromFile(self.abroker)        
-        nom,denom = m.split('_')
-        self.e = exc.KUCOIN
-        self.market = models.get_market(nom,denom,self.e)
-        self.rho = config["rho"]
+        round_precision = 6
+        super().__init__(round_precision)
+        
 
-        self.openorders = list()
-
-        self.round_precision = 8
-        #pip paramter for ordering
-        self.pip = 0.0000001
-
-    def cancel_all(self):
-        oo = self.abroker.open_orders_symbol(self.market,self.e)
-        for o in oo:
-            print ("cancelling ",o)
-            result = self.abroker.cancel(o, exchange=self.e)
-            print ("result" + str(result))
-
-
-    def cancel_bids(self):
-        oo = self.abroker.open_orders_symbol(self.market,self.e)
-        n = exc.NAMES[self.e]
-        i = 0
-        for o in oo:
-            if o['otype']=='bid':
-                print ("cancelling ",o)
-                k = "oid"
-                oid = o[k]
-                result = self.abroker.cancel(o, exchange=self.e)
-                print ("result" + str(result))
-
-    def submit_buy(self,price, qty):
-        o = [self.market, "BUY", price, qty]
-        print ("submit ",o)
-        r = self.abroker.submit_order(o, self.e)
-        print (r)
-
-    def submit_sell(self,price, qty):
-        o = [self.market, "SELL", price, qty]
-        print ("submit ",o)
-        r = self.abroker.submit_order(o, self.e)
-        print (r)        
-
-    def orderbook(self):
-        [obids,oasks] = self.abroker.get_orderbook(self.market,self.e)
-        return [obids,oasks]
-
-    def submit_bid(self):                
+    def submit_bid(self): 
+        """ submit bid strategy """               
         [obids,oasks] = self.orderbook()
         
         bestbid = obids[0]['price']
@@ -102,9 +53,10 @@ class Agent(threading.Thread):
         spread = (bestask-bestbid)/bestask
         mid = (bestask+bestbid)/2
         print (bestbid,bestask,spread,mid)    
-        rho = self.rho
-        price_target = round(bestask*(1-rho),7)
-        qty = 100
+        rho = 0.1
+        price_target = round(bestask*(1-rho),self.round_precision)
+        qty = round(0.05/mid,self.round_precision)
+        print ("submit ", price_target, " ",qty)
         self.submit_buy(price_target, qty)
 
     def submit_ask(self):
@@ -114,51 +66,10 @@ class Agent(threading.Thread):
         bestask = oasks[0]['price']
         spread = (bestask-bestbid)/bestask
         mid = (bestask+bestbid)/2
-        rho = 0.002
-        price_target = round(mid*(1+rho),7)
-        qty = 100
-        self.submit_sell(price_target, qty)        
-
-    def show_ob(self):
-        """ show orderbook """
-        oo = self.abroker.open_orders_symbol(self.market,self.e)
-        open_bids = list(filter(lambda x: x['otype']=='bid',oo))
-        open_asks = list(filter(lambda x: x['otype']=='ask',oo))
-        mybidprice = -1
-        myaskprice = -1
-        if len(open_bids)>0:
-            mybidprice = open_bids[0]['price']
-        if len(open_asks)>0:
-            myaskprice = open_asks[0]['price']            
-
-        else:
-            mybidprice = 0
-        [obids,oasks] = self.orderbook()
-        
-        #print (oo)
-        oasks.reverse()
-        for a in oasks[-3:]:
-            p,q = a['price'],a['quantity']
-            if p == myaskprice:
-                print (p,q,"*")
-            else:
-                print (p,q)
-        print ('-----')        
-        for b in obids[:5]:
-            p,q = b['price'],b['quantity']
-            if p == mybidprice:
-                print (p,q,"*")
-            else:
-                print (p,q)
-
-
-    def sync_openorders(self):
-        try:
-            self.openorders = self.abroker.open_orders_symbol(self.market,self.e)
-            self.open_bids = list(filter(lambda x: x['otype']=='bid',self.openorders))
-            self.open_asks = list(filter(lambda x: x['otype']=='ask',self.openorders))
-        except:
-            pass
+        rho = 0.1
+        price_target = round(mid*(1+rho),self.round_precision)
+        qty = 0.05/mid
+        self.submit_sell(price_target, qty)   
 
     def run(self):
         print ("starting strategy")
@@ -190,7 +101,7 @@ class Agent(threading.Thread):
         #cancel_bids()        
                 
 if __name__=='__main__':    
-    strategy = Agent()
+    strategy = MyStrategy()
     strategy.start()
     strategy.join()
         
