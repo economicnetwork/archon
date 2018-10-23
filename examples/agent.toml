@@ -1,0 +1,4 @@
+[AGENT]
+market = "TIO_ETH"
+agentid = "mmstrategy1"
+rho = 0.03
