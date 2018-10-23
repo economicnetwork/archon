@@ -148,6 +148,14 @@ def conv_timestamp_tx(ts, exchange):
         tsf = utc_dt.strftime(target_format)
         return tsf
 
+    elif exchange==exc.BINANCE:
+        tsf = datetime.datetime.utcfromtimestamp(int(ts/1000))
+        utc=pytz.UTC
+        utc_dt = tsf.astimezone(pytz.utc)
+        tsf = utc_dt.strftime(target_format)
+        return tsf
+
+
 
 
 def conv_timestamp(ts, exchange):    
@@ -182,6 +190,13 @@ def conv_timestamp(ts, exchange):
         tsf = utc_dt.strftime(target_format)
         return tsf
 
+    elif exchange==exc.BINANCE:
+        tsf = datetime.datetime.utcfromtimestamp(int(ts/1000))
+        utc=pytz.UTC
+        utc_dt = tsf.astimezone(pytz.utc)
+        tsf = utc_dt.strftime(target_format)
+        return tsf        
+
 def conv_usertx(tx, exchange):
     n = exc.NAMES[exchange]
     if exchange==exc.CRYPTOPIA:
@@ -215,6 +230,26 @@ def conv_usertx(tx, exchange):
         m = nom + "_" + denom        
         d = {'price':p,'quantity':q,'txtype':ty,'market':m,'timestamp':dt,'exchange':n}
         return d
+
+    elif exchange==exc.BINANCE:
+        #{'symbol': 'RVNBTC', 'id': 884854, 'orderId': 3351299, 'price': '0.00000796', 'qty': '4541.00000000', 
+        # 'commission': '0.00003615', 'commissionAsset': 'BTC',
+        #  'time': 1540282010960, 'isBuyer': False, 'isMaker': False, 'isBestMatch': True}
+        t = tx['time']
+        dt = conv_timestamp(t,exchange)
+        #ty = tx['dealDirection']
+        if tx['isBuyer']:
+            ty = "BUY"
+        else:
+            ty = "SELL"
+
+        q = float(tx['qty'])
+        p = float(tx['price'])
+        nom = tx['symbol'][:3]
+        denom = tx['symbol'][3:]
+        m = nom + "_" + denom        
+        d = {'price':p,'quantity':q,'txtype':ty,'market':m,'timestamp':dt,'exchange':n}
+        return d        
 
 def conv_tx(tx, exchange, market):
     """ convert transaction """
@@ -628,6 +663,8 @@ def conv_markets_to(m, exchange):
     elif exchange==exc.KUCOIN: 
         return nom + '-' + denom  
     elif exchange==exc.HITBTC: 
+        return nom + denom 
+    elif exchange==exc.BINANCE:
         return nom + denom 
      
 

@@ -14,10 +14,10 @@ import archon.exchange.rex as bittrex
 from archon.exchange.cryptopia import CryptopiaAPI
 from archon.exchange.kucoin import KuClient
 import archon.exchange.hitbtc as hitbtc
-
+import archon.exchange.binance as binance
 
 #Wrappers with foreign package
-import binance.client
+#import binance.client
 import krakenex
 
 import time
@@ -57,7 +57,7 @@ class Broker:
         elif exchange==exc.HITBTC:
             clients[exchange] = hitbtc.RestClient(key,secret)   
         elif exchange==exc.BINANCE:
-            clients[exchange] = binance.client.Client(key,secret)
+            clients[exchange] = binance.Client(key,secret)
         elif exchange==exc.KRAKEN:        
             clients[exchange] = krakenex.API(key,secret)
 
@@ -375,6 +375,15 @@ class Broker:
             r = client.get_dealt_orders(limit=500)
             f = lambda x: models.conv_usertx(x,exchange)
             r = list(map(f,r))
+            return r
+        elif exchange==exc.HITBTC:
+            pass
+        elif exchange==exc.BINANCE:
+            #{'symbol': 'RVNBTC', 'id': 884854, 'orderId': 3351299, 'price': '0.00000796', 'qty': '4541.00000000', 'commission': '0.00003615', 'commissionAsset': 'BTC', 'time': 1540282010960, 'isBuyer': False, 'isMaker': False, 'isBestMatch': True}
+            market = "RVNBTC"
+            tx = client.get_my_trades(symbol=market)
+            f = lambda x: models.conv_usertx(x,exchange)
+            r = list(map(f,tx))
             return r
             
     def get_tradehistory_all(self, exchange=None):

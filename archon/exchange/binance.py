@@ -344,11 +344,6 @@ class Client(object):
         """Return list of products currently listed on Binance
 
         Use get_exchange_info() call instead
-
-        :returns: list - List of product dictionaries
-
-        :raises: BinanceRequestException, BinanceAPIException
-
         """
 
         products = self._request_website('get', 'exchange/public/product')
@@ -675,41 +670,6 @@ class Client(object):
 
     def create_order(self, **params):
         """Send in a new order
-
-
-        :returns: API response
-
-        Response ACK:
-
-        .. code-block:: python
-
-            {
-                "symbol":"LTCBTC",
-                "orderId": 1,
-                "clientOrderId": "myOrder1" # Will be newClientOrderId
-                "transactTime": 1499827319559
-            }
-
-        Response RESULT:
-
-        .. code-block:: python
-
-            {
-                "symbol": "BTCUSDT",
-                "orderId": 28,
-                "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
-                "transactTime": 1507725176595,
-                "price": "0.00000000",
-                "origQty": "10.00000000",
-                "executedQty": "10.00000000",
-                "status": "FILLED",
-                "timeInForce": "GTC",
-                "type": "MARKET",
-                "side": "SELL"
-            }
-
-        :raises: BinanceRequestException, BinanceAPIException, BinanceOrderException, BinanceOrderMinAmountException, BinanceOrderMinPriceException, BinanceOrderMinTotalException, BinanceOrderUnknownSymbolException, BinanceOrderInactiveSymbolException
-
         """
         return self._post('order', True, data=params)
 
@@ -726,11 +686,7 @@ class Client(object):
 
     def order_limit_buy(self, timeInForce=TIME_IN_FORCE_GTC, **params):
         """Send in a new limit buy order
-
         Any order with an icebergQty MUST have timeInForce set to GTC.
-
-        :raises: BinanceRequestException, BinanceAPIException, BinanceOrderException, BinanceOrderMinAmountException, BinanceOrderMinPriceException, BinanceOrderMinTotalException, BinanceOrderUnknownSymbolException, BinanceOrderInactiveSymbolException
-
         """
         params.update({
             'side': self.SIDE_BUY,
@@ -811,9 +767,7 @@ class Client(object):
 
     # User Stream Endpoints
     def get_account(self, **params):
-        """Get current account information.
-
-        """
+        """Get current account information."""
         return self._get('account', True, data=params)
 
     def get_asset_balance(self, asset, **params):
@@ -829,15 +783,11 @@ class Client(object):
         return None
 
     def get_my_trades(self, **params):
-        """Get trades for a specific symbol.
-
-        """
+        """Get trades for a specific symbol."""
         return self._get('myTrades', True, data=params)
 
     def get_system_status(self):
-        """Get system status detail.
-
-        """
+        """Get system status detail."""
         return self._request_withdraw_api('get', 'systemStatus.html')
 
     def get_account_status(self, **params):
@@ -859,10 +809,7 @@ class Client(object):
         return res
 
     def get_trade_fee(self, **params):
-        """Get trade fee.
-
-
-        """
+        """Get trade fee."""
         res = self._request_withdraw_api('get', 'tradeFee.html', True, data=params)
         if not res['success']:
             raise BinanceWithdrawException(res['msg'])

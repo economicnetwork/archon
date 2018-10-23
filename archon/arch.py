@@ -48,8 +48,6 @@ def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
     abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
 
     
-    
-
 class Arch:
     """ 
     communitates with broker
