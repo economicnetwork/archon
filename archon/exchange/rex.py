@@ -715,33 +715,14 @@ class Bittrex(object):
             API_V2_0: '/key/balance/getpendingdeposits'
         }, options={'currencyname': currency}, protection=PROTECTION_PRV)
 
-    def get_candles(self, market, tick_interval):
+    def get_candles(self, market, tick_interval):        
         """
         Used to get all tick candles for a market.
+        [“oneMin”, “fiveMin”, “thirtyMin”, “hour”, “day”]
 
         Endpoint:
         1.1 NO EQUIVALENT
         2.0 /pub/market/GetTicks
-
-        Example  ::
-            { success: true,
-              message: '',
-              result:
-               [ { O: 421.20630125,
-                   H: 424.03951276,
-                   L: 421.20630125,
-                   C: 421.20630125,
-                   V: 0.05187504,
-                   T: '2016-04-08T00:00:00',
-                   BV: 21.87921187 },
-                 { O: 420.206,
-                   H: 420.206,
-                   L: 416.78743422,
-                   C: 416.78743422,
-                   V: 2.42281573,
-                   T: '2016-04-09T00:00:00',
-                   BV: 1012.63286332 }]
-            }
 
         :return: Available tick candles in JSON
         :rtype: dict

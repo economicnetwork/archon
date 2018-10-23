@@ -10,7 +10,7 @@ arch.setClientsFromFile(abroker)
 a = arch.Arch()
 ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA]
 a.set_active_exchanges(ae)
-market = models.market_from("LTC","BTC")
+market = models.market_from("DCR","BTC")
 print ("sync ",market)
 a.sync_orderbook_all(market)
 [allbids,allasks] = a.global_orderbook(market)

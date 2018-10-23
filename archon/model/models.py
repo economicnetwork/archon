@@ -212,10 +212,12 @@ def conv_usertx(tx, exchange):
     elif exchange==exc.BITTREX:
         t = tx['TimeStamp']
         #2018-09-10T17:07:44.507
+        #{'Id': 57612064, 'TimeStamp': '2018-10-23T17:39:49.347', 'Quantity': 57.78390446, 'Price': 0.00746612, 'Total': 0.43142156, 'FillType': 'PARTIAL_FILL', 'OrderType': 'BUY'}]}
         dt = conv_timestamp(t,exchange)
-        p = tx['Limit']
+        p = tx['Price']
         q = tx['Quantity']
-        d = {'price':p,'quantity':q,'timestamp':dt} #,'txtype':ty,'market':m,'timestamp':timestamp_from}
+        ty = tx['OrderType']
+        d = {'price':p,'quantity':q,'txtype':ty,'timestamp':dt} #,'txtype':ty,'market':m,'timestamp':timestamp_from}
         return d
 
     elif exchange==exc.KUCOIN:

@@ -254,7 +254,10 @@ class Broker:
         if exchange == exc.CRYPTOPIA:
             pass            
         elif exchange==exc.BITTREX:   
-            pass
+            r = clients[rex_API_v2].get_candles(market,"hour")
+            r = r['result']
+            candles = models.conv_candle(r, exchange)
+            return candles
         elif exchange==exc.KUCOIN:
             market = models.conv_markets_to(market, exchange)
             klines = client.get_historical_klines_tv(market, client.RESOLUTION_1HOUR, '1 week ago UTC')    
@@ -265,10 +268,14 @@ class Broker:
         if exchange == exc.CRYPTOPIA:
             pass            
         elif exchange==exc.BITTREX:   
-            pass
+            r = clients[rex_API_v2].get_candles(market,"oneMin")
+            r = r['result']
+            candles = models.conv_candle(r, exchange)
+            return candles
         elif exchange==exc.KUCOIN:
             market = models.conv_markets_to(market, exchange)
             klines = client.get_historical_klines_tv(market, client.RESOLUTION_1MINUTE, '1 day ago UTC')    
+            #print (klines)
             return models.conv_candle(klines,exchange)                       
 
     # --- trading info ---
@@ -367,10 +374,13 @@ class Broker:
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
-            txs, _ = clients[exc.CRYPTOPIA].get_tradehistory(market)
+            txs, _ = client.get_tradehistory(market)
             return txs
         elif exchange==exc.BITTREX:
-            pass
+            r = client.get_market_history(market)['result']
+            f = lambda x: models.conv_usertx(x,exchange)
+            r = list(map(f,r))
+            return r
         elif exchange==exc.KUCOIN:
             r = client.get_dealt_orders(limit=500)
             f = lambda x: models.conv_usertx(x,exchange)
@@ -380,7 +390,6 @@ class Broker:
             pass
         elif exchange==exc.BINANCE:
             #{'symbol': 'RVNBTC', 'id': 884854, 'orderId': 3351299, 'price': '0.00000796', 'qty': '4541.00000000', 'commission': '0.00003615', 'commissionAsset': 'BTC', 'time': 1540282010960, 'isBuyer': False, 'isMaker': False, 'isBestMatch': True}
-            market = "RVNBTC"
             tx = client.get_my_trades(symbol=market)
             f = lambda x: models.conv_usertx(x,exchange)
             r = list(map(f,tx))
