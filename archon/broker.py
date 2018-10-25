@@ -2,11 +2,12 @@
 broker
 
 unified interface to exchanges
+broker takes care of the translating logic in models
+functions take exchange as the parameters and are forwarded to the exchange
 """
 
 import archon.exchange.exchanges as exc
 from archon.util import *
-
 from archon.model import models
 
 #Wrappers
@@ -17,7 +18,6 @@ import archon.exchange.hitbtc as hitbtc
 import archon.exchange.binance as binance
 
 #Wrappers with foreign package
-#import binance.client
 import krakenex
 
 import time
@@ -27,7 +27,6 @@ import time
 import random
 import json
 
-#from util import *
 
 clients = {}
 
@@ -86,14 +85,12 @@ class Broker:
             f = lambda x: models.conv_tx(x, exchange, market)
             txs = list(map(f,txs))
             return txs
-
         elif exchange==exc.BITTREX:
             r = clients[exc.BITTREX].get_market_history(market)
             txs = r["result"]
             f = lambda x: models.conv_tx(x, exchange, market)
             txs = list(map(f,txs))
             return txs
-
         elif exchange==exc.KUCOIN:
             tx = client.get_recent_trades(market,limit=50)
             f = lambda x: models.conv_tx(x, exchange, market)
@@ -112,7 +109,6 @@ class Broker:
             else:
                 book = models.conv_orderbook(book, exchange)
                 return book
-
         elif exchange==exc.BITTREX:            
             try:
                 book = client.get_orderbook(market)["result"]            
@@ -120,7 +116,6 @@ class Broker:
                 return book
             except:
                 print ("error fetching orderbook",exchange)
-
         elif exchange==exc.KUCOIN:
             try:
                 ob = client.get_order_book(market,limit=20)
@@ -134,16 +129,17 @@ class Broker:
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]        
         if exchange==exc.CRYPTOPIA:
-            result, err = client.get_market(market)
-            r = models.conv_summary(result, exchange)
+            r, err = client.get_market(market)
+            r = models.conv_summary(r, exchange)
             return r
         elif exchange==exc.BITTREX:  
-            s =  client.get_market_summary(market)["result"][0]
-            r = models.conv_summary(s, exchange)
+            r = client.get_market_summary(market)["result"][0]
+            r = models.conv_summary(r, exchange)
             return r
         elif exchange==exc.KUCOIN:
-            r = models.conv_summary(client.get_tick(market),exchange)
-            return r
+            r = client.get_tick(market)
+            c = models.conv_summary(r,exchange)
+            return c
         elif exchange==exc.HITBTC:
             r = client.get_ticker(market)
             r = models.conv_summary(r, exchange)
@@ -152,6 +148,7 @@ class Broker:
     def get_market_summaries(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]
+
         if exchange==exc.CRYPTOPIA:
             r = client.get_markets()
             f = lambda x: models.conv_summary(x,exchange)
@@ -161,9 +158,7 @@ class Broker:
         elif exchange==exc.BITTREX:   
             r = client.get_market_summaries()['result']
             f = lambda x: models.conv_summary(x, exchange)            
-            #rex_markets = [x['MarketName'] for x in r]
             markets = [f(x) for x in r]
-            #rex_markets = [Market(x,exc.BITTREX) for x in rex_markets]
             return markets
         elif exchange==exc.KUCOIN:
             r = client.get_tick()
@@ -212,6 +207,7 @@ class Broker:
         #elif exchange==exc.HITBTC:
 
     def market_id_map(self, exchange):
+        #cryptocopia
         client = clients[exchange]
         m = client.get_markets()
         d = {}
@@ -224,6 +220,7 @@ class Broker:
 
     def get_candles_daily(self, market, exchange):
         client = clients[exchange]
+
         if exchange == exc.CRYPTOPIA:
             d = self.market_id_map(exchange)
             pairid = d[market]
@@ -251,9 +248,11 @@ class Broker:
         
     def get_candles_hourly(self, market, exchange):
         client = clients[exchange]
+
         if exchange == exc.CRYPTOPIA:
             pass            
         elif exchange==exc.BITTREX:   
+            market = models.conv_markets_to(market, exchange)
             r = clients[rex_API_v2].get_candles(market,"hour")
             r = r['result']
             candles = models.conv_candle(r, exchange)
@@ -265,18 +264,21 @@ class Broker:
 
     def get_candles_minute(self, market, exchange):
         client = clients[exchange]
+        market = models.conv_markets_to(market, exchange)
         if exchange == exc.CRYPTOPIA:
             pass            
-        elif exchange==exc.BITTREX:   
+        elif exchange==exc.BITTREX:            
             r = clients[rex_API_v2].get_candles(market,"oneMin")
             r = r['result']
             candles = models.conv_candle(r, exchange)
             return candles
         elif exchange==exc.KUCOIN:
-            market = models.conv_markets_to(market, exchange)
-            klines = client.get_historical_klines_tv(market, client.RESOLUTION_1MINUTE, '1 day ago UTC')    
-            #print (klines)
-            return models.conv_candle(klines,exchange)                       
+            klines = client.get_historical_klines_tv(market, client.RESOLUTION_1MINUTE, '1 day ago UTC')
+            return models.conv_candle(klines,exchange)
+
+    def get_latest_candle(self, market, exchange):
+        pass
+        #get_latest_candle                    
 
     # --- trading info ---
 
@@ -284,16 +286,17 @@ class Broker:
         log.info("balance")
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]
+
         if exchange==exc.CRYPTOPIA:
             b, error = clients[exc.CRYPTOPIA].get_balance_all()        
             b = models.conv_balance(b,exchange)
             return b
         
         elif exchange==exc.BITTREX:
-            b = clients[exc.BITTREX].get_balances()
-            br = b["result"]
-            br = models.conv_balance(br,exchange) 
-            return br    
+            r = clients[exc.BITTREX].get_balances()
+            b = r["result"]
+            b = models.conv_balance(b,exchange) 
+            return b
 
         elif exchange==exc.KUCOIN:
             b = clients[exc.KUCOIN].get_all_balances()       
@@ -311,14 +314,15 @@ class Broker:
             return b
 
         elif exchange==exc.KRAKEN:
-            b = clients[exc.KRAKEN].query_private('Balance')
-            r = b['result']
-            r = models.conv_balance(r,exchange) 
-            return r            
+            r = clients[exc.KRAKEN].query_private('Balance')
+            b = r['result']
+            b = models.conv_balance(b,exchange) 
+            return b
 
     def balance_currency(self, currency, exchange=None):
         if exchange is None: exchange=self.s_exchange
         log.info("balance_currency " + currency + " " + str(exchange))
+
         if exchange==exc.CRYPTOPIA:
             currency, err = clients[exc.CRYPTOPIA].get_balance(currency)        
             return currency['Total']
@@ -335,6 +339,7 @@ class Broker:
         """Get total balance in your currency, USD by default"""
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]
+
         if exchange==exc.CRYPTOPIA:
             allb = self.balance_all(exchange)
             balance_list = list()
@@ -377,7 +382,7 @@ class Broker:
             txs, _ = client.get_tradehistory(market)
             return txs
         elif exchange==exc.BITTREX:
-            r = client.get_market_history(market)['result']
+            r = client.get_market_history(market)['result']            
             f = lambda x: models.conv_usertx(x,exchange)
             r = list(map(f,r))
             return r
@@ -389,7 +394,6 @@ class Broker:
         elif exchange==exc.HITBTC:
             pass
         elif exchange==exc.BINANCE:
-            #{'symbol': 'RVNBTC', 'id': 884854, 'orderId': 3351299, 'price': '0.00000796', 'qty': '4541.00000000', 'commission': '0.00003615', 'commissionAsset': 'BTC', 'time': 1540282010960, 'isBuyer': False, 'isMaker': False, 'isBestMatch': True}
             tx = client.get_my_trades(symbol=market)
             f = lambda x: models.conv_usertx(x,exchange)
             r = list(map(f,tx))
@@ -399,16 +403,16 @@ class Broker:
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
-            txs, _ = client.get_tradehistory_all()
+            txs, err = client.get_tradehistory_all()
             return txs
         elif exchange==exc.BITTREX:
-            r = client.get_order_history()
-            return r
+            txs = client.get_order_history()
+            return txs
         elif exchange==exc.KUCOIN:
             r = client.get_dealt_orders(limit=100)['datas']
             f = lambda x: models.conv_usertx(x,exchange)
-            tx = list(map(f,r))
-            return tx
+            txs = list(map(f,r))
+            return txs
 
     def open_orders_symbol(self, symbol, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -460,13 +464,12 @@ class Broker:
             l = list()
             for x in b: l.append(models.conv_openorder(x,exchange))
             for x in a: l.append(models.conv_openorder(x,exchange))
-            oo = l
+            oo = l            
 
         elif exchange==exc.HITBTC:
             oo = clients[exchange].get_orders()
             f = lambda x: models.conv_openorder(x,exchange)
-            oo = list(map(f,oo))
-            return oo
+            oo = list(map(f,oo))            
 
 
         n = exc.NAMES[exchange]
@@ -559,10 +562,9 @@ class Broker:
 
     def submit_order_check(self, order):
         """ submit order but require user action """
-        # ("order " + str(order))
         result = ask_user("submit order " + str(order)+ " ? ")
         if result:
-            self.submit(order)
+            self.submit_order(order)
         else:
             pass
 
@@ -606,7 +608,6 @@ class Broker:
         elif exchange==exc.BITTREX:
             result = clients[exc.BITTREX].cancel(oid)
             
-
         elif exchange==exc.KUCOIN:
             order_type = otype
             market = models.conv_markets_from(market, exchange)

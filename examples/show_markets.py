@@ -12,6 +12,8 @@ import datetime
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
 a = arch.Arch()
+ae = [exc.KUCOIN, exc.BITTREX, exc.CRYPTOPIA, exc.HITBTC] # exc.KRAKEN, exc.BINANCE, 
+a.set_active_exchanges(ae)
 a.sync_markets_all()
 ms = a.get_markets()
 
@@ -21,8 +23,8 @@ for e in exs:
     z = list(filter(lambda t: t['exchange']==e, ms))
     print (e,len(z))
 
-"""
+ms = sorted(ms, key=lambda k: k['volume']) 
+
+print ("simple screen sorted by volume\npair last")
 for m in ms[:10]:
-    if m['denom']=='BTC':
-        print (m)
-"""
+        print (m['pair'],m['last'])

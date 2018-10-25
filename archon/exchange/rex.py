@@ -295,8 +295,6 @@ class Bittrex(object):
             API_V2_0: '/pub/Market/GetMarketOrderBook'
         }, options={'market': market, 'marketname': market, 'type': depth_type}, protection=PROTECTION_PUB)
 
-    # ---- private ---- 
-
     def get_market_history(self, market):
         """
         Used to retrieve the latest trades that have occurred for a
@@ -328,6 +326,8 @@ class Bittrex(object):
         return self._api_query(path_dict={
             API_V1_1: '/public/getmarkethistory',
         }, options={'market': market, 'marketname': market}, protection=PROTECTION_PUB)
+
+    # ---- private ---- 
 
     def buy_limit(self, market, quantity, rate):
         """
@@ -551,12 +551,14 @@ class Bittrex(object):
                 API_V1_1: '/account/getorderhistory',
                 API_V2_0: '/key/market/GetOrderHistory'
             }, options={'market': market, 'marketname': market}, protection=PROTECTION_PRV)
+            print ("result ",r)
             return r
         else:
             r = self._api_query(path_dict={
                 API_V1_1: '/account/getorderhistory',
                 API_V2_0: '/key/orders/getorderhistory'
             }, protection=PROTECTION_PRV)
+            print ("result ",r)            
             return r['result']
 
     def get_order(self, uuid):
