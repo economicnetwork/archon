@@ -350,14 +350,11 @@ class Client(object):
         return products
 
     def get_exchange_info(self):
-        """Return rate limits and list of symbols
-        """
+        """Return rate limits and list of symbols"""
 
         return self._get('exchangeInfo')
 
     def get_symbol_info(self, symbol):
-        """Return information about a symbol
-        """
 
         res = self._get('exchangeInfo')
 
@@ -394,31 +391,20 @@ class Client(object):
         return self._get('ticker/allBookTickers')
 
     def get_order_book(self, **params):
-        """Get the Order Book for the market
-
-
-        """
+        """Get the Order Book for the market"""
         return self._get('depth', data=params)
 
     def get_recent_trades(self, **params):
-        """Get recent trades (up to last 500).
-
-
-        """
+        """Get recent trades (up to last 500)."""
         return self._get('trades', data=params)
 
     def get_historical_trades(self, **params):
-        """Get older trades.
-
-        """
+        """Get older trades."""
         return self._get('historicalTrades', data=params)
 
     def get_aggregate_trades(self, **params):
         """Get compressed, aggregate trades. Trades that fill at the time,
-        from the same order, with the same price will have the quantity aggregated.
-
-
-        """
+        from the same order, with the same price will have the quantity aggregated."""
         return self._get('aggTrades', data=params)
 
     def aggregate_trade_iter(self, symbol, start_str=None, last_id=None):
@@ -496,9 +482,7 @@ class Client(object):
             last_id = trades[-1][self.AGG_ID]
 
     def get_klines(self, **params):
-        """Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time.
-
-        """
+        """Kline/candlestick bars for a symbol. Klines are uniquely identified by their open time."""
         return self._get('klines', data=params)
 
     def _get_earliest_valid_timestamp(self, symbol, interval):
@@ -515,9 +499,7 @@ class Client(object):
         return kline[0][0]
 
     def get_historical_klines(self, symbol, interval, start_str, end_str=None):
-        """Get Historical Klines from Binance
-
-        """
+        """Get Historical Klines from Binance"""
         # init our list
         output_data = []
 
@@ -582,9 +564,7 @@ class Client(object):
         return output_data
 
     def get_historical_klines_generator(self, symbol, interval, start_str, end_str=None):
-        """Get Historical Klines from Binance
-
-        """
+        """Get Historical Klines"""
 
         # setup the max limit
         limit = 500
@@ -645,24 +625,33 @@ class Client(object):
             if idx % 3 == 0:
                 time.sleep(1)
 
+    def get_candles(self):
+        """1m 3m 5m 15m 30m 1h 2h 4h 6h 8h 12h 1d 3d 1w"""
+        resolution = "1h"
+        #start = int(time.time())-500*1000
+        #end_ts = date_to_milliseconds(end_str)
+        #end_ts = int(time.time())*1000
+        #startTime=start
+        #endTime=end_ts
+        #x = self.get_klines(symbol="DCRBTC",startTime=startTime,endTime=endTime,limit=5000,interval=resolution)
+        #return x
+
+    def get_candles_hourly(self, market):
+        resolution = "1h"
+        x = self.get_klines(symbol=market,limit=100,interval=resolution)
+        return x
+
+
     def get_ticker(self, **params):
-        """24 hour price change statistics.
-
-
-        """
+        """24 hour price change statistics."""
         return self._get('ticker/24hr', data=params)
 
     def get_symbol_ticker(self, **params):
-        """Latest price for a symbol or symbols.
-
-
-        """
+        """Latest price for a symbol or symbols."""
         return self._get('ticker/price', data=params, version=self.PRIVATE_API_VERSION)
 
     def get_orderbook_ticker(self, **params):
         """Latest price for a symbol or symbols.
-
-
         """
         return self._get('ticker/bookTicker', data=params, version=self.PRIVATE_API_VERSION)
 

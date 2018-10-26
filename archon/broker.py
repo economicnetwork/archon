@@ -145,6 +145,7 @@ class Broker:
             r = models.conv_summary(r, exchange)
             return r
 
+
     def get_market_summaries(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
         client = clients[exchange]
@@ -153,12 +154,13 @@ class Broker:
             r = client.get_markets()
             f = lambda x: models.conv_summary(x,exchange)
             markets = [f(x) for x in r]
-            #TODO use object
+            markets = list(filter(lambda x: x != None, markets))
             return markets
         elif exchange==exc.BITTREX:   
             r = client.get_market_summaries()['result']
             f = lambda x: models.conv_summary(x, exchange)            
             markets = [f(x) for x in r]
+            markets = list(filter(lambda x: x != None, markets))
             return markets
         elif exchange==exc.KUCOIN:
             r = client.get_tick()
@@ -173,8 +175,16 @@ class Broker:
             for z in r:
                 converted = f(z)
                 if converted is not None:
-                    markets.append(converted)            
+                    markets.append(converted)   
+            markets = list(filter(lambda x: x != None, markets))         
             return markets
+        elif exchange==exc.BINANCE:
+            r = client.get_ticker()
+            f = lambda x: models.conv_summary(x, exchange)
+            markets = [f(x) for x in r]          
+            markets = list(filter(lambda x: x != None, markets))            
+            return markets
+            
 
     def get_market_summaries_only(self, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -260,7 +270,13 @@ class Broker:
         elif exchange==exc.KUCOIN:
             market = models.conv_markets_to(market, exchange)
             klines = client.get_historical_klines_tv(market, client.RESOLUTION_1HOUR, '1 week ago UTC')    
-            return models.conv_candle(klines,exchange)  
+            return models.conv_candle(klines,exchange)
+
+        elif exchange==exc.BINANCE:
+            market = models.conv_markets_to(market, exchange)
+            klines = client.get_candles_hourly(market)    
+            return models.conv_candle(klines,exchange)
+
 
     def get_candles_minute(self, market, exchange):
         client = clients[exchange]

@@ -10,6 +10,11 @@ import pytz
 #logpath = './log'
 #log = setup_logger(logpath, 'model_logger', 'model')
 
+COL_OPEN = 1
+COL_HIGH = 2
+COL_LOW = 3
+COL_CLOSE = 4
+
 # ---- key names ----
 
 def price_key(exchange):
@@ -149,9 +154,13 @@ def conv_timestamp_tx(ts, exchange):
         return tsf
 
     elif exchange==exc.BINANCE:
+        #ts = int(t1/1000)
+        #ts = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        
         tsf = datetime.datetime.utcfromtimestamp(int(ts/1000))
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
+        utc_dt = utc_dt + datetime.timedelta(hours=2)
         tsf = utc_dt.strftime(target_format)
         return tsf
 
@@ -194,6 +203,7 @@ def conv_timestamp(ts, exchange):
         tsf = datetime.datetime.utcfromtimestamp(int(ts/1000))
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
+        utc_dt = utc_dt + datetime.timedelta(hours=4)
         tsf = utc_dt.strftime(target_format)
         return tsf        
 
@@ -448,7 +458,7 @@ def conv_summary(m,exchange):
             d = {'exchange':n, 'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'change':change}
             return d
         except:
-            return {}
+            return None
     elif exchange==exc.KUCOIN:
         
         #{'coinType': 'QSP', 'trading': True, 'symbol': 'QSP-ETH', 
@@ -473,6 +483,7 @@ def conv_summary(m,exchange):
         except Exception as err:
             print ("!",err)
             return None
+            
     elif exchange==exc.HITBTC:
         #{'ask': '0.0023110', 'bid': '0.0021000', 'last': '0.0023411', 
         # 'open': '0.0027753', 'low': '0.0017000', 'high': '0.0029999', 'volume': '9075000',
@@ -482,6 +493,7 @@ def conv_summary(m,exchange):
             pair = m['symbol']
             x,y = pair[:3],pair[-3:]
             market = x + "_" + y
+            nom,denom = x,y
             market = conv_markets_from(pair,exchange)
             bid = float(m['bid'])
             ask = float(m['ask'])
@@ -489,10 +501,28 @@ def conv_summary(m,exchange):
             low = float(m['low'])
             volume = float(m['volumeQuote'])
             last = float(m['last'])
-            d = {'exchange':exchange,'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+            d = {'exchange':exchange,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+            return d
         except:
-            d = None
-        return d
+           return None
+
+    elif exchange==exc.BINANCE:
+        try:
+            pair = m['symbol']
+            x,y = pair[:3],pair[-3:]
+            market = x + "_" + y
+            nom,denom = x,y
+            bid = float(m['bidPrice'])
+            ask = float(m['askPrice'])
+            high = float(m['highPrice'])
+            low = float(m['lowPrice'])
+            volume = float(m['quoteVolume'])
+            last = float(m['lastPrice'])
+            d = {'exchange':exchange,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+            return d
+        except:
+            return None
+        
         
 
 def conv_balance(b,exchange):
@@ -625,7 +655,7 @@ def conv_candle(history, exchange):
         newcandle = list()
         for x in history:
             ts,o,h,l,c,v = x
-            dt = conv_timestamp_tx(ts, exc.KUCOIN)     
+            dt = conv_timestamp_tx(ts, exchange)     
             newcandle.append([dt,o,h,l,c,v])
         return newcandle
 
@@ -641,6 +671,16 @@ def conv_candle(history, exchange):
             v = float(v)
             newcandle.append([dt,o,h,l,c,v])
         return newcandle
+
+    elif exchange==exc.BINANCE:
+        newcandle = list()
+        for x in history:
+            print (x)
+            ts,o,h,l,c,v = x[:6]
+            dt = conv_timestamp_tx(ts, exchange)     
+            newcandle.append([dt,o,h,l,c,v])
+        return newcandle
+
 
 def nomdenom(market):
     nom,denom = market.split('_')
@@ -685,4 +725,6 @@ def get_market(nom,denom,exchange):
     elif exchange==exc.KUCOIN: 
         return nom + '-' + denom  
     elif exchange==exc.HITBTC: 
+        return nom + denom
+    elif exchange==exc.BINANCE:
         return nom + denom
