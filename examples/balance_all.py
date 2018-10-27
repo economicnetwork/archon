@@ -40,7 +40,7 @@ def write_to_file(html):
     date_broker_format = "%Y-%m-%d"
     from datetime import datetime
     ds = datetime.now().strftime("%Y%m%d")
-    fn = '$HOME/balance_report' + ds + '.html'
+    fn = '../../balance_report' + ds + '.html'
     with open(fn,'w') as f:
         f.write(html)
 
@@ -49,11 +49,18 @@ def per_exchange(bl, e):
     per_exchange = round(sum([float(x['USDvalue']) for x in l]),2)
     return per_exchange
 
+def per_currency(bl, c):
+    l = list(filter(lambda x: x['symbol']==c,bl))
+    per = round(sum([float(x['USDvalue']) for x in l]),2)
+    print (c,per)
+    return per
+
 
 def balance_report():
     bl = a.global_balances()
-    bl = process(bl)
 
+    bl = process(bl)
+    
     total_all = 0
 
     for x in bl:
@@ -69,10 +76,22 @@ def balance_report():
 
     per = sort_usd(per)
 
+    syms = list(set([x['symbol'] for x in bl]))
+    print (syms)
+    per_currency_list = list()
+    for c in syms:
+        print (c)
+        x = per_currency(bl,c)
+        per_currency_list.append({"symbol": c,"USDvalue":x})
+
+    per_currency_list = sort_usd(per_currency_list)
+    print ("per currency ",per_currency_list)
+
+
     loader = jinja2.FileSystemLoader('./balances.html')
     env = jinja2.Environment(loader=loader)
     template = env.get_template('')
-    html = template.render(balances=bl,per=per,total=total_all)
+    html = template.render(balances=bl,per=per,total=total_all,per_currency=per_currency_list)
     write_to_file(html)
     #mail.send_mail_html(abroker, "Balance Report", html)
 

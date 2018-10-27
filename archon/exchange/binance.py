@@ -641,6 +641,10 @@ class Client(object):
         x = self.get_klines(symbol=market,limit=100,interval=resolution)
         return x
 
+    def get_candles_daily(self, market):
+        resolution = "1d"
+        x = self.get_klines(symbol=market,limit=100,interval=resolution)
+        return x
 
     def get_ticker(self, **params):
         """24 hour price change statistics."""

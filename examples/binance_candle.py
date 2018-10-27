@@ -15,7 +15,9 @@ abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
 client = abroker.get_client(exc.BINANCE)
 
-x = abroker.get_candles_hourly("DCR_BTC",exc.BINANCE)
+market = models.get_market("RVN","BTC")
+
+x = abroker.get_candles_hourly(market,exc.BINANCE)
 
 for z in x:
     ts = z[0]

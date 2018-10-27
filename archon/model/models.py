@@ -230,14 +230,12 @@ def conv_usertx(tx, exchange):
             ty = "BUY"
         else:
             ty = "SELL"
-        #m = tx['Exchange'] 'market':m,
         d = {'price':p,'quantity':q,'txtype':ty,'timestamp':dt} #,'txtype':ty,'market':m,'timestamp':timestamp_from}
         return d
 
     elif exchange==exc.KUCOIN:
         t = tx['createdAt']
         dt = conv_timestamp(t,exchange)
-        #ty = tx['dealDirection']
         ty = tx['direction']
         q = tx['amount']
         p = tx['dealPrice']
@@ -248,7 +246,7 @@ def conv_usertx(tx, exchange):
         return d
 
     elif exchange==exc.BINANCE:
-        #{'symbol': 'RVNBTC', 'id': 884854, 'orderId': 3351299, 'price': '0.00000796', 'qty': '4541.00000000', 
+        #{'symbol': '', 'id': , 'orderId': ,
         # 'commission': '0.00003615', 'commissionAsset': 'BTC',
         #  'time': 1540282010960, 'isBuyer': False, 'isMaker': False, 'isBestMatch': True}
         t = tx['time']
@@ -485,8 +483,6 @@ def conv_summary(m,exchange):
             return None
             
     elif exchange==exc.HITBTC:
-        #{'ask': '0.0023110', 'bid': '0.0021000', 'last': '0.0023411', 
-        # 'open': '0.0027753', 'low': '0.0017000', 'high': '0.0029999', 'volume': '9075000',
         #  'volumeQuote': '19015.3803', 'timestamp': '2018-10-01T21:17:44.681Z',
         # # 'symbol': 'CDCCUSD'}
         try:
@@ -537,9 +533,7 @@ def conv_balance(b,exchange):
             d['exchange'] = n         
             t = float(x['Total'])
             if t > 0:
-                #usd_price = cryptocompare.get_usd(s)                
                 d['amount'] = t
-                #d['USD-value'] = t*usd_price
                 newl.append(d)
         return newl
 
@@ -552,9 +546,7 @@ def conv_balance(b,exchange):
             t = float(x['Balance'])
             d['exchange'] = n
             if t > 0:
-                #usd_price = get_usd(s)                
                 d['amount'] = t
-                #d['USD-value'] = t*usd_price
                 newl.append(d)
         return newl
 
@@ -570,8 +562,6 @@ def conv_balance(b,exchange):
                 d['symbol'] = s
                 d['exchange'] = n       
                 d['amount'] = f+l
-                #usd_price = get_usd(s)    
-                #d['USD-value'] = (f+l)*usd_price
                 newl.append(d)
         return newl
 
@@ -587,8 +577,6 @@ def conv_balance(b,exchange):
                 d['symbol'] = s
                 d['exchange'] = n
                 d['amount'] = t
-                #usd_price = get_usd(s)    
-                #d['USD-value'] = bb*usd_price
                 newl.append(d)
         return newl
 
@@ -606,17 +594,7 @@ def conv_balance(b,exchange):
         return newl
 
     elif exchange==exc.HITBTC:
-        newl = list()
-        """
-        for x in ab:
-            c = x['currency']
-            av = float(x['available'])
-            r = float(x['reserved'])
-            if av+r > 0:
-                blist.append({'currency':c,'total':av+r})
-        """
-        #TODO add to account
-        
+        newl = list()        
         for x in b:
             s = x['currency']
             av = float(x['available'])
@@ -675,7 +653,6 @@ def conv_candle(history, exchange):
     elif exchange==exc.BINANCE:
         newcandle = list()
         for x in history:
-            print (x)
             ts,o,h,l,c,v = x[:6]
             dt = conv_timestamp_tx(ts, exchange)     
             newcandle.append([dt,o,h,l,c,v])
