@@ -443,10 +443,14 @@ class Broker:
 
         if exchange==exc.CRYPTOPIA:
             txs, err = client.get_tradehistory_all()
+            f = lambda x: models.conv_usertx(x,exchange)
+            txs = list(map(f,txs))
             return txs
 
         elif exchange==exc.BITTREX:
             txs = client.get_order_history()
+            f = lambda x: models.conv_usertx(x,exchange)
+            txs = list(map(f,txs))
             return txs
 
         elif exchange==exc.KUCOIN:
@@ -454,6 +458,12 @@ class Broker:
             f = lambda x: models.conv_usertx(x,exchange)
             txs = list(map(f,r))
             return txs
+
+        elif exchange==exc.HITBTC:
+            pass
+
+        elif exchange==exc.BINANCE:
+            #get_my_trades
 
     def open_orders_symbol(self, symbol, exchange=None):
         if exchange is None: exchange=self.s_exchange

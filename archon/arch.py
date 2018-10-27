@@ -103,7 +103,6 @@ class Arch:
         return x[0]
 
     def global_balances(self):
-        #for e in [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.BINANCE,exc.KRAKEN]:
         bl = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
@@ -114,7 +113,6 @@ class Arch:
                 s = x['symbol']
                 t = float(x['amount'])
                 if t > 0:
-                    #print ("total " + str(t))
                     usd_price = cryptocompare.get_usd(s)    
                     x['USDprice'] = usd_price        
                     x['USDvalue'] = round(t*usd_price,2)
@@ -122,6 +120,16 @@ class Arch:
                     if x['USDvalue'] > 1:
                         bl.append(x)
         return bl
+
+    def global_tradehistory(self):
+        txlist = list()
+        for e in self.active_exchanges:
+            n = exc.NAMES[e]
+            tx = self.abroker.get_tradehistory_all(exchange=e)
+            for x in tx:
+                txlist.append(x)
+        return txlist
+        
 
     def submit_order(self, order, exchange=None):
         if exchange is None: exchange=self.selected_exchange

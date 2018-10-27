@@ -115,16 +115,14 @@ def ask_key(exchange):
 def conv_timestamp_tx(ts, exchange):   
     target_format = '%Y-%m-%dT%H:%M:%S' 
     if exchange==exc.CRYPTOPIA:
-        tsf = datetime.datetime.utcfromtimestamp(int(ts/1000))
-        #tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
+        #tsf = datetime.datetime.utcfromtimestamp(int(ts)/1000)
+        tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
         tsf = utc_dt.strftime(target_format)
         return tsf
-        #utc_dt = utc_dt + datetime.timedelta(hours=4)
-        #dt = utc_dt.strftime(date_broker_format)        
         
-        return utc_dt
+        #return utc_dt
     elif exchange==exc.BITTREX:
         ts = ts.split('.')[0]
         tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
@@ -221,8 +219,13 @@ def conv_usertx(tx, exchange):
 
     elif exchange==exc.BITTREX:
         t = tx['TimeStamp']
-        #{'Id': 57612064, 'TimeStamp': '2018-10-23T17:39:49.347', 'Quantity': 57.78390446, 'Price': 0.00746612, 'Total': 0.43142156, 'FillType': 'PARTIAL_FILL', 'OrderType': 'BUY'}]}
+        #print (tx)
+        #{'Id': 57612064, 'TimeStamp': '2018-10-23T17:39:49.347', 
+        # 'Quantity': 57.78390446, 'Price': 0.00746612, 'Total': 0.43142156, 'FillType': 'PARTIAL_FILL', 'OrderType': 'BUY'}]}
         dt = conv_timestamp(t,exchange)    
+        market = tx['Exchange']
+        nom,denom = market.split('-')
+        m = market_from(nom,denom)
         p = tx['Price']
         q = tx['Quantity']
         ty = tx['OrderType']
@@ -230,7 +233,7 @@ def conv_usertx(tx, exchange):
             ty = "BUY"
         else:
             ty = "SELL"
-        d = {'price':p,'quantity':q,'txtype':ty,'timestamp':dt} #,'txtype':ty,'market':m,'timestamp':timestamp_from}
+            d = {'price':p,'quantity':q,'txtype':ty,'market':m,'timestamp':dt} #,'txtype':ty,'market':m,'timestamp':timestamp_from}
         return d
 
     elif exchange==exc.KUCOIN:

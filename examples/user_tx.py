@@ -13,23 +13,29 @@ import math
 
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
-s_exchange = exc.CRYPTOPIA
-abroker.set_singleton_exchange(s_exchange)
 
 def user_tx():
-    #db.user_txs.find()
-    txs = abroker.get_tradehistory_all()
-    for tx in txs[:]:
-        ts = tx['TimeStamp'][:19]
+    #db.user_txs.find()   
+    a = arch.Arch()
+    ae = [exc.KUCOIN, exc.BITTREX, exc.CRYPTOPIA, exc.BINANCE]
+    #ae = [exc.BITTREX] #, exc.BINANCE]
+    a.set_active_exchanges(ae)
+
+    txs = a.global_tradehistory()
+    print (len(txs))
+    for tx in txs[:]:        
+        #print (tx)
+        ts = tx['timestamp'][:19]
         timestamp_from = datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')        
-        tx["timestamp"] = timestamp_from
-        m = tx['Market']        
-        tday = tx["timestamp"].day        
-        if tday==27:
-            r = tx['Rate']
-            a = tx['Amount']
-            ty = tx['Type']
-            print (m,r,a,ty)
+        #tx["timestamp"] = timestamp_from
+        m = tx['market']        
+        tday = timestamp_from.day        
+        #print (tx)
+        if tday>20:
+            r = tx['price']
+            a = tx['quantity']
+            ty = tx['txtype']
+            #print (m,r,a,ty)
      
 if __name__=='__main__':
     user_tx()
