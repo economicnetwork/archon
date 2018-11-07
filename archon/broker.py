@@ -463,6 +463,7 @@ class Broker:
             pass
 
         elif exchange==exc.BINANCE:
+            pass
             #get_my_trades
 
     def open_orders_symbol(self, symbol, exchange=None):

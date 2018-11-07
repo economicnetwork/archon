@@ -80,7 +80,7 @@ def balance_report():
     print (syms)
     per_currency_list = list()
     for c in syms:
-        print (c)
+        #print (c)
         x = per_currency(bl,c)
         per_currency_list.append({"symbol": c,"USDvalue":x})
 

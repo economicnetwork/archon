@@ -15,12 +15,12 @@ abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
 client = abroker.get_client(exc.BINANCE)
 
-market = models.get_market("RVN","BTC")
+market = models.market_from("RVN","BTC")
 
 x = abroker.get_candles_hourly(market,exc.BINANCE)
 
-for z in x:
+for z in x[-10:]:
     ts = z[0]
     o,h,l,c = z[1:5]
-    print (ts,c,c>o,z[5])
+    print (ts,c,z[5])
 
