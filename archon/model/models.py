@@ -10,6 +10,11 @@ import pytz
 #logpath = './log'
 #log = setup_logger(logpath, 'model_logger', 'model')
 
+COL_OPEN = 1
+COL_HIGH = 2
+COL_LOW = 3
+COL_CLOSE = 4
+
 # ---- key names ----
 
 def price_key(exchange):
@@ -110,16 +115,14 @@ def ask_key(exchange):
 def conv_timestamp_tx(ts, exchange):   
     target_format = '%Y-%m-%dT%H:%M:%S' 
     if exchange==exc.CRYPTOPIA:
-        tsf = datetime.datetime.utcfromtimestamp(int(ts/1000))
-        #tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
+        #tsf = datetime.datetime.utcfromtimestamp(int(ts)/1000)
+        tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
         tsf = utc_dt.strftime(target_format)
         return tsf
-        #utc_dt = utc_dt + datetime.timedelta(hours=4)
-        #dt = utc_dt.strftime(date_broker_format)        
         
-        return utc_dt
+        #return utc_dt
     elif exchange==exc.BITTREX:
         ts = ts.split('.')[0]
         tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
@@ -149,9 +152,13 @@ def conv_timestamp_tx(ts, exchange):
         return tsf
 
     elif exchange==exc.BINANCE:
+        #ts = int(t1/1000)
+        #ts = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        
         tsf = datetime.datetime.utcfromtimestamp(int(ts/1000))
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
+        utc_dt = utc_dt + datetime.timedelta(hours=2)
         tsf = utc_dt.strftime(target_format)
         return tsf
 
@@ -194,6 +201,7 @@ def conv_timestamp(ts, exchange):
         tsf = datetime.datetime.utcfromtimestamp(int(ts/1000))
         utc=pytz.UTC
         utc_dt = tsf.astimezone(pytz.utc)
+        utc_dt = utc_dt + datetime.timedelta(hours=4)
         tsf = utc_dt.strftime(target_format)
         return tsf        
 
@@ -211,8 +219,13 @@ def conv_usertx(tx, exchange):
 
     elif exchange==exc.BITTREX:
         t = tx['TimeStamp']
-        #{'Id': 57612064, 'TimeStamp': '2018-10-23T17:39:49.347', 'Quantity': 57.78390446, 'Price': 0.00746612, 'Total': 0.43142156, 'FillType': 'PARTIAL_FILL', 'OrderType': 'BUY'}]}
+        #print (tx)
+        #{'Id': 57612064, 'TimeStamp': '2018-10-23T17:39:49.347', 
+        # 'Quantity': 57.78390446, 'Price': 0.00746612, 'Total': 0.43142156, 'FillType': 'PARTIAL_FILL', 'OrderType': 'BUY'}]}
         dt = conv_timestamp(t,exchange)    
+        market = tx['Exchange']
+        nom,denom = market.split('-')
+        m = market_from(nom,denom)
         p = tx['Price']
         q = tx['Quantity']
         ty = tx['OrderType']
@@ -220,14 +233,12 @@ def conv_usertx(tx, exchange):
             ty = "BUY"
         else:
             ty = "SELL"
-        #m = tx['Exchange'] 'market':m,
-        d = {'price':p,'quantity':q,'txtype':ty,'timestamp':dt} #,'txtype':ty,'market':m,'timestamp':timestamp_from}
+            d = {'price':p,'quantity':q,'txtype':ty,'market':m,'timestamp':dt} #,'txtype':ty,'market':m,'timestamp':timestamp_from}
         return d
 
     elif exchange==exc.KUCOIN:
         t = tx['createdAt']
         dt = conv_timestamp(t,exchange)
-        #ty = tx['dealDirection']
         ty = tx['direction']
         q = tx['amount']
         p = tx['dealPrice']
@@ -238,7 +249,7 @@ def conv_usertx(tx, exchange):
         return d
 
     elif exchange==exc.BINANCE:
-        #{'symbol': 'RVNBTC', 'id': 884854, 'orderId': 3351299, 'price': '0.00000796', 'qty': '4541.00000000', 
+        #{'symbol': '', 'id': , 'orderId': ,
         # 'commission': '0.00003615', 'commissionAsset': 'BTC',
         #  'time': 1540282010960, 'isBuyer': False, 'isMaker': False, 'isBestMatch': True}
         t = tx['time']
@@ -448,7 +459,7 @@ def conv_summary(m,exchange):
             d = {'exchange':n, 'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'change':change}
             return d
         except:
-            return {}
+            return None
     elif exchange==exc.KUCOIN:
         
         #{'coinType': 'QSP', 'trading': True, 'symbol': 'QSP-ETH', 
@@ -473,15 +484,15 @@ def conv_summary(m,exchange):
         except Exception as err:
             print ("!",err)
             return None
+            
     elif exchange==exc.HITBTC:
-        #{'ask': '0.0023110', 'bid': '0.0021000', 'last': '0.0023411', 
-        # 'open': '0.0027753', 'low': '0.0017000', 'high': '0.0029999', 'volume': '9075000',
         #  'volumeQuote': '19015.3803', 'timestamp': '2018-10-01T21:17:44.681Z',
         # # 'symbol': 'CDCCUSD'}
         try:
             pair = m['symbol']
             x,y = pair[:3],pair[-3:]
             market = x + "_" + y
+            nom,denom = x,y
             market = conv_markets_from(pair,exchange)
             bid = float(m['bid'])
             ask = float(m['ask'])
@@ -489,10 +500,28 @@ def conv_summary(m,exchange):
             low = float(m['low'])
             volume = float(m['volumeQuote'])
             last = float(m['last'])
-            d = {'exchange':exchange,'pair':market,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+            d = {'exchange':exchange,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+            return d
         except:
-            d = None
-        return d
+           return None
+
+    elif exchange==exc.BINANCE:
+        try:
+            pair = m['symbol']
+            x,y = pair[:3],pair[-3:]
+            market = x + "_" + y
+            nom,denom = x,y
+            bid = float(m['bidPrice'])
+            ask = float(m['askPrice'])
+            high = float(m['highPrice'])
+            low = float(m['lowPrice'])
+            volume = float(m['quoteVolume'])
+            last = float(m['lastPrice'])
+            d = {'exchange':exchange,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+            return d
+        except:
+            return None
+        
         
 
 def conv_balance(b,exchange):
@@ -507,9 +536,7 @@ def conv_balance(b,exchange):
             d['exchange'] = n         
             t = float(x['Total'])
             if t > 0:
-                #usd_price = cryptocompare.get_usd(s)                
                 d['amount'] = t
-                #d['USD-value'] = t*usd_price
                 newl.append(d)
         return newl
 
@@ -522,9 +549,7 @@ def conv_balance(b,exchange):
             t = float(x['Balance'])
             d['exchange'] = n
             if t > 0:
-                #usd_price = get_usd(s)                
                 d['amount'] = t
-                #d['USD-value'] = t*usd_price
                 newl.append(d)
         return newl
 
@@ -540,8 +565,6 @@ def conv_balance(b,exchange):
                 d['symbol'] = s
                 d['exchange'] = n       
                 d['amount'] = f+l
-                #usd_price = get_usd(s)    
-                #d['USD-value'] = (f+l)*usd_price
                 newl.append(d)
         return newl
 
@@ -557,8 +580,6 @@ def conv_balance(b,exchange):
                 d['symbol'] = s
                 d['exchange'] = n
                 d['amount'] = t
-                #usd_price = get_usd(s)    
-                #d['USD-value'] = bb*usd_price
                 newl.append(d)
         return newl
 
@@ -576,17 +597,7 @@ def conv_balance(b,exchange):
         return newl
 
     elif exchange==exc.HITBTC:
-        newl = list()
-        """
-        for x in ab:
-            c = x['currency']
-            av = float(x['available'])
-            r = float(x['reserved'])
-            if av+r > 0:
-                blist.append({'currency':c,'total':av+r})
-        """
-        #TODO add to account
-        
+        newl = list()        
         for x in b:
             s = x['currency']
             av = float(x['available'])
@@ -625,7 +636,7 @@ def conv_candle(history, exchange):
         newcandle = list()
         for x in history:
             ts,o,h,l,c,v = x
-            dt = conv_timestamp_tx(ts, exc.KUCOIN)     
+            dt = conv_timestamp_tx(ts, exchange)     
             newcandle.append([dt,o,h,l,c,v])
         return newcandle
 
@@ -641,6 +652,15 @@ def conv_candle(history, exchange):
             v = float(v)
             newcandle.append([dt,o,h,l,c,v])
         return newcandle
+
+    elif exchange==exc.BINANCE:
+        newcandle = list()
+        for x in history:
+            ts,o,h,l,c,v = x[:6]
+            dt = conv_timestamp_tx(ts, exchange)     
+            newcandle.append([dt,o,h,l,c,v])
+        return newcandle
+
 
 def nomdenom(market):
     nom,denom = market.split('_')
@@ -685,4 +705,6 @@ def get_market(nom,denom,exchange):
     elif exchange==exc.KUCOIN: 
         return nom + '-' + denom  
     elif exchange==exc.HITBTC: 
+        return nom + denom
+    elif exchange==exc.BINANCE:
         return nom + denom

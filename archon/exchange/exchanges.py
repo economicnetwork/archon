@@ -21,5 +21,8 @@ names_arr = [CRYPTOPIA_NAME,BITTREX_NAME,KUCOIN_NAME,BINANCE_NAME,KRAKEN_NAME,HI
 #supported_exchanges = [CRYPTOPIA,BITTREX]
 
 def get_id(name):    
-    return names_arr.index(name.title())
+    try:
+        return names_arr.index(name.title())
+    except:
+        print ("exchange does not exist %s"%name)
 

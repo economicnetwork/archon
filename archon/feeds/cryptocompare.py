@@ -2,10 +2,10 @@ import requests
 import json
 
 baseURL = "https://min-api.cryptocompare.com/data/"
-priceurl = baseURL + "?fsym=%s&tsyms=USD" #price"
 
 usdprice_url = "https://min-api.cryptocompare.com/data/price?fsym=%s&tsyms=USD"
 
+priceurl = baseURL + "price?fsym=%s&tsyms=USD"
 
 #TMP fix for kraken
 extra_values = {'ZUSD': 1,'ZEUR': 1,'XXBT': 6700,'XLTC':0,'XXLM':0, 'BOXX': 0.18}
@@ -13,10 +13,11 @@ replace_syms = {'XXBT':'BTC'}
 
 
 def fetch_usdprice(symbol):
-    url = usdprice_url%symbol
+    url = priceurl%symbol
     r = requests.get(url)
     j = json.loads(r.content)
-    return j['USD']
+    usd = j['USD']
+    return usd
 
 def get_usd(symbol):
     #kraken fix, should be done by caller

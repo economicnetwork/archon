@@ -551,14 +551,14 @@ class Bittrex(object):
                 API_V1_1: '/account/getorderhistory',
                 API_V2_0: '/key/market/GetOrderHistory'
             }, options={'market': market, 'marketname': market}, protection=PROTECTION_PRV)
-            print ("result ",r)
+            #print ("result ",r)
             return r
         else:
             r = self._api_query(path_dict={
                 API_V1_1: '/account/getorderhistory',
                 API_V2_0: '/key/orders/getorderhistory'
             }, protection=PROTECTION_PRV)
-            print ("result ",r)            
+            #print ("result ",r)            
             return r['result']
 
     def get_order(self, uuid):

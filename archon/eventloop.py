@@ -28,19 +28,20 @@ class Eventloop(threading.Thread):
         self.abroker = abroker
         self.last_published_minute = -1
         self.market = "DCR_BTC"
-        self.exchange = exc.BITTREX
+        #self.exchange = exc.BITTREX
+        self.exchange = exc.BINANCE
 
     def emit_candle(self, now):
         print ("new minute")
         candles = self.abroker.get_candles_minute(self.market, self.exchange)
-        print (candles[-1])
+        print ("pub ",candles[-1])
         self.last_published_minute = now.minute
 
     def run(self):
         #setup
         log.debug("start loop")
         candles = self.abroker.get_candles_minute(self.market, self.exchange)
-        print (candles[-1])
+        print ("last candle ",candles[-1])
         while True:
             #log.info('loop')
 

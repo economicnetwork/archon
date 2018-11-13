@@ -41,4 +41,20 @@
     {% endfor %}
 </table>
 
+<hr>&nbsp;
+
+<table style="font-size:14px;font-weight:400;border-collapse: collapse;padding: 15px;border: 1px solid rgb(126, 126, 126);">
+    <tr>
+        <th>Currency</th>
+        <th>Total</th>
+    </tr>
+    {% for x in per_currency %}
+    <tr>
+        <td>{{x.symbol}}</td>
+        <td>{{x.USDvalue}}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+
 <p style="font-size:12px;font-weight:400">Total: {{total}} $</p>
