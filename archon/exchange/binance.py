@@ -747,23 +747,17 @@ class Client(object):
 
     def get_all_orders(self, **params):
         """Get all account orders; active, canceled, or filled.
-
         :raises: BinanceRequestException, BinanceAPIException
-
         """
         return self._get('allOrders', True, data=params)
 
-    def cancel_order(self, **params):
-        """Cancel an active order. Either orderId or origClientOrderId must be sent.
-
-        """
-        return self._delete('order', True, data=params)
-
     def get_open_orders(self, **params):
-        """Get all open orders on a symbol.
-
-        """
+        """Get all open orders on a symbol"""
         return self._get('openOrders', True, data=params)
+
+    def cancel_order(self, **params):
+        """Cancel an active order. Either orderId or origClientOrderId must be sent"""
+        return self._delete('order', True, data=params)
 
     # User Stream Endpoints
     def get_account(self, **params):

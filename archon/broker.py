@@ -74,6 +74,9 @@ class Broker:
     def set_singleton_exchange(self, exchange):
         self.s_exchange = exchange  
 
+    def set_active_exchanges(self, exchanges):
+        self.active_exchanges = exchanges
+
 
     # --- public info ---
 
@@ -124,6 +127,8 @@ class Broker:
                 return book
             except Exception:
                  raise Exception
+        elif exchange==exc.BINANCE:
+            pass
 
     def get_market_summary(self, market, exchange):        
         if exchange is None: exchange=self.s_exchange
@@ -471,6 +476,8 @@ class Broker:
             f = lambda x: models.conv_openorder(x,exchange)
             oo = list(map(f,oo))            
 
+        elif exchange==exc.BINANCE:
+            oo = clients[exc.BINANCE].get_open_orders()            
 
         n = exc.NAMES[exchange]
         #log.info("open orders " + str(n) + " " + str(oo))
@@ -478,9 +485,9 @@ class Broker:
 
     # --- facade data ---    
 
-    def all_open_orders(self, exchanges):
+    def all_open_orders(self):
         oo = list()
-        for e in exchanges:
+        for e in self.active_exchanges:
             z = self.open_orders(e)
             n = exc.NAMES[e]
             for x in z:
@@ -490,10 +497,11 @@ class Broker:
         log.info("all open orders " + str(oo))
         return oo  
 
-    def all_balance(self, exchanges):        
+    def all_balance(self):        
         bl = list()
-        for e in exchanges:
+        for e in self.active_exchanges:
             z = self.balance_all(e)
+            print (z,e)
             n = exc.NAMES[e]
             for x in z:
                 x['exchange'] = n
@@ -568,15 +576,17 @@ class Broker:
         else:
             pass
 
-    def cancel(self, order, exchange):
+    def cancel(self, order):
         """ cancel by order """
-        if exchange is None: exchange=self.s_exchange
+        #if exchange is None: exchange=self.s_exchange
+        e = order['exchange']
+        exchange = exc.get_id(e)
         result = None
         oid = order['oid']
         market = order['market']
         otype = order['otype']       
-        log.info("cancel " + str(order)) 
-        log.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype) + " " + str(market))
+        #log.info("cancel " + str(order)) 
+        log.info("cancel " + str(oid) + " " + str(e) + " " + str(otype) + " " + str(market))
         
         if exchange==exc.CRYPTOPIA:            
             result,err = clients[exc.CRYPTOPIA].cancel_trade_id(oid)
@@ -591,8 +601,9 @@ class Broker:
                 f = "BUY"
             else:
                 f = "SELL"   
-            print ("cancel ",symbol,oid,f)
-            result = clients[exc.KUCOIN].cancel_order(oid,f,symbol)                        
+            print ("!!cancel ",symbol,oid,f)
+            result = clients[exc.KUCOIN].cancel_order(oid,f,symbol)      
+            return result                  
                         
         log.debug("result " + str(result))
         return result

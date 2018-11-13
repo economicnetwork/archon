@@ -26,5 +26,6 @@ for e in exs:
 ms = sorted(ms, key=lambda k: k['volume']) 
 
 print ("simple screen sorted by volume\npair last")
-for m in ms[:10]:
+for m in ms[:100]:
+        if m['denom']!="BTC": continue
         print (m['pair'],m['last'])

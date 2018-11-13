@@ -17,12 +17,7 @@ def toml_file(fs):
     with open(fs, "r") as f:
         return f.read()
 
-def apikeys_config(filename):
-    toml_string = toml_file(filename)
-    parsed_toml = toml.loads(toml_string)
-    return parsed_toml
-
-def general_config(filename):
+def parse_toml(filename):
     toml_string = toml_file(filename)
     parsed_toml = toml.loads(toml_string)
     return parsed_toml
@@ -34,7 +29,7 @@ def set_keys_exchange(abroker, e, keys):
 
 
 def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
-    apikeys = apikeys_config(keys_filename)["apikeys"]     
+    apikeys = parse_toml(keys_filename)["apikeys"]     
         
     for k,v in apikeys.items():
         eid = exc.get_id(k)
@@ -44,7 +39,7 @@ def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
             print ("exchange not supported")
 
 
-    gconf = general_config("conf.toml")["MAILGUN"]
+    gconf = parse_toml("conf.toml")["MAILGUN"]
     abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
 
     
