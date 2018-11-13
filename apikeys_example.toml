@@ -1,11 +1,23 @@
-[apikeys.HITBTC]
+[HITBTC]
 public_key = ""
 secret = ""
 
-[apikeys.KUCOIN]
+[KUCOIN]
 public_key = ""
 secret = ""
 
-[apikeys.CRYPTOPIA]
+[CRYPTOPIA]
+public_key = ""
+secret = ""
+
+[BITTREX]
+public_key = ""
+secret = ""
+
+[BINANCE]
+public_key = ""
+secret = ""
+
+[KRAKEN]
 public_key = ""
 secret = ""

@@ -29,7 +29,7 @@ def set_keys_exchange(abroker, e, keys):
 
 
 def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
-    apikeys = parse_toml(keys_filename)["apikeys"]     
+    apikeys = parse_toml(keys_filename)
         
     for k,v in apikeys.items():
         eid = exc.get_id(k)
