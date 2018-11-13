@@ -62,7 +62,7 @@ class Arch:
         self.set_active_exchanges(e)
         self.selected_exchange = None
 
-        mongo_conf = general_config("conf.toml")["MONGO"]
+        mongo_conf = parse_toml("conf.toml")["MONGO"]
         #mongoHost = mongo_conf['host']
         dbName = mongo_conf['db']        
         url = mongo_conf["url"]
@@ -159,6 +159,21 @@ class Arch:
             allmarkets += m
         return allmarkets
 
+    def aggregate_book(self, books):
+        allbids = list()
+        allasks = list()
+        for z in books:
+            b = z['bids']
+            allbids += b
+            a = z['asks']
+            allasks += a
+            ts = z['timestamp']
+        allbids = sorted(allbids, key=lambda k: k['price'])
+        allbids.reverse()        
+        allasks = sorted(allasks, key=lambda k: k['price'])
+        return [allbids,allasks,ts]
+
+
     def global_orderbook(self, market):
         #self.db.orderbooks.drop()
         allbids = list()
@@ -224,6 +239,26 @@ class Arch:
         for e in self.active_exchanges:            
             self.sync_orderbook(market, e)   
 
+    def get_global_orderbook(self, market):
+        books = list()
+        for e in self.active_exchanges:
+            smarket = models.conv_markets_to(market, e)  
+            try:
+                n = exc.NAMES[e]
+                [bids,asks] = self.abroker.get_orderbook(smarket,e)
+                dt = datetime.datetime.utcnow()
+                n = exc.NAMES[e]
+                for xb in bids: xb['exchange'] = n
+                for xa in asks: xa['exchange'] = n
+
+                x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
+                #print (x)                        
+                books.append(x)
+            except:
+                print ("symbol not supported")
+        [bids,asks,ts] = self.aggregate_book(books)
+        return [bids,asks,ts]
+
     def sync_tx(self, market, exchange):
         #print ("sync",market," ",exchange)   
         try:            
@@ -260,6 +295,7 @@ class Arch:
                 self.db.markets_history.insert(x)
             except:
                 pass
+
 
 
     def sync_candle_daily(self, market, exchange):

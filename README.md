@@ -39,7 +39,7 @@ pip3 install -r requirements.txt
 add apikeys.toml, see apikeys_example.toml
 
 ```
-[apikeys.exchangename]
+[exchangename]
 public_key = ""
 secret = ""
 ```

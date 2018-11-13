@@ -5,8 +5,7 @@
 import archon.broker as broker
 import archon.arch as arch
 import archon.exchange.exchanges as exc
-import archon.markets as m
-import archon.model as model
+import archon.model.models as model
 from archon.util import *
 
 import time
@@ -34,6 +33,6 @@ if __name__=='__main__':
     nom = "LTC"
     denom = "BTC"
     for e in [exc.CRYPTOPIA, exc.BITTREX, exc.KUCOIN]:
-        market = m.get_market(nom,denom,e)
+        market = model.get_market(nom,denom,e)
         show_book(e,market)
         
