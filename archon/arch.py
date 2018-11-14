@@ -97,6 +97,35 @@ class Arch:
         x = list(filter(lambda x: x['oid'] == oid, self.openorders))
         return x[0]
 
+
+    # --- facade data ---    
+
+    def all_open_orders(self):
+        oo = list()
+        for e in self.active_exchanges:
+            z = self.abroker.open_orders(e)
+            n = exc.NAMES[e]
+            for x in z:
+                x['exchange'] = n
+                oo.append(x)
+            
+        log.info("all open orders " + str(oo))
+        return oo  
+
+    def all_balance(self):        
+        bl = list()
+        for e in self.active_exchanges:
+            print ("get balance ",e)
+            z = self.abroker.balance_all(e)
+            print (z,e)
+            n = exc.NAMES[e]
+            for x in z:
+                x['exchange'] = n
+                bl.append(x)
+        log.info("balance all %s"%(str(bl)))
+        return bl
+
+
     def global_balances(self):
         bl = list()
         for e in self.active_exchanges:

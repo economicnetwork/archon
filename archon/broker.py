@@ -74,11 +74,18 @@ class Broker:
     def set_singleton_exchange(self, exchange):
         self.s_exchange = exchange  
 
-    def set_active_exchanges(self, exchanges):
-        self.active_exchanges = exchanges
-
 
     # --- public info ---
+
+    def exchange_status(self):
+        status = {}
+        for e in self.active_exchanges:
+            try:
+                self.balance_all(e)
+                status[e] = "connected"
+            except:
+                status[e] = "disconnected"
+
 
     def market_history(self, market, exchange=None):
         if exchange is None: exchange=self.s_exchange
@@ -534,32 +541,6 @@ class Broker:
         n = exc.NAMES[exchange]
         #log.info("open orders " + str(n) + " " + str(oo))
         return oo    
-
-    # --- facade data ---    
-
-    def all_open_orders(self):
-        oo = list()
-        for e in self.active_exchanges:
-            z = self.open_orders(e)
-            n = exc.NAMES[e]
-            for x in z:
-                x['exchange'] = n
-                oo.append(x)
-            
-        log.info("all open orders " + str(oo))
-        return oo  
-
-    def all_balance(self):        
-        bl = list()
-        for e in self.active_exchanges:
-            z = self.balance_all(e)
-            print (z,e)
-            n = exc.NAMES[e]
-            for x in z:
-                x['exchange'] = n
-                bl.append(x)
-        log.info("balance all %s"%(str(bl)))
-        return bl
 
     # --- actions ---
         
