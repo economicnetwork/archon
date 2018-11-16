@@ -38,67 +38,64 @@ log = setup_logger(logpath, 'info_logger', 'mm')
 
 class Agent(threading.Thread):
 
-    def __init__(self, round_precision):
-        threading.Thread.__init__(self)        
-        config = agent_config()["AGENT"]
-        m = config["market"]    
-        self.agent_id = config["agentid"]
+    def __init__(self, exchange, market):        
+        threading.Thread.__init__(self)   
+        self.exchange=exchange     
+        #config = agent_config()["AGENT"]
+        #m = config["market"]    
+        self.agent_id = "strategy" #config["agentid"]
         self.threadID = "thread-" + self.agent_id
         self.abroker = broker.Broker()
         self.arch = arch.Arch()
         arch.setClientsFromFile(self.abroker)        
-        nom,denom = m.split('_')
-        self.e = exc.KUCOIN
-        self.market = models.get_market(nom,denom,self.e)
-        self.rho = config["rho"]
-
+        nom,denom = market.split('_')
+        
+        self.market = models.get_market(nom,denom,self.exchange)
+        self.rho = 0.03        
         self.openorders = list()
-
-        self.round_precision = round_precision
+        self.round_precision = 8
         #pip paramter for ordering
         self.pip = 0.0000001
 
     def cancel_all(self):
-        oo = self.abroker.open_orders_symbol(self.market,self.e)
+        oo = self.abroker.open_orders_symbol(self.market,self.exchange)
         for o in oo:
             print ("cancelling ",o)
-            result = self.abroker.cancel(o, exchange=self.e)
+            result = self.abroker.cancel(o)
             print ("result" + str(result))
 
 
     def cancel_bids(self):
-        oo = self.abroker.open_orders_symbol(self.market,self.e)
-        n = exc.NAMES[self.e]
+        oo = self.abroker.open_orders_symbol(self.market,self.exchange)
+        n = exc.NAMES[self.exchange]
         i = 0
         for o in oo:
             if o['otype']=='bid':
                 print ("cancelling ",o)
                 k = "oid"
                 oid = o[k]
-                result = self.abroker.cancel(o, exchange=self.e)
+                result = self.abroker.cancel(o)
                 print ("result" + str(result))
 
     def submit_buy(self,price, qty):
         o = [self.market, "BUY", price, qty]
         print ("submit ",o)
-        r = self.abroker.submit_order(o, self.e)
+        r = self.abroker.submit_order(o, self.exchange)
         print (r)
 
     def submit_sell(self,price, qty):
         o = [self.market, "SELL", price, qty]
         print ("submit ",o)
-        r = self.abroker.submit_order(o, self.e)
+        r = self.abroker.submit_order(o, self.exchange)
         print (r)        
 
     def orderbook(self):
-        [obids,oasks] = self.abroker.get_orderbook(self.market,self.e)
+        [obids,oasks] = self.abroker.get_orderbook(self.market,self.exchange)
         return [obids,oasks]
-
-     
-
+    
     def show_ob(self):
         """ show orderbook """
-        oo = self.abroker.open_orders_symbol(self.market,self.e)
+        oo = self.abroker.open_orders_symbol(self.market,self.exchange)
         open_bids = list(filter(lambda x: x['otype']=='bid',oo))
         open_asks = list(filter(lambda x: x['otype']=='ask',oo))
         mybidprice = -1
@@ -130,7 +127,7 @@ class Agent(threading.Thread):
 
     def sync_openorders(self):
         try:
-            self.openorders = self.abroker.open_orders_symbol(self.market,self.e)
+            self.openorders = self.abroker.open_orders_symbol(self.market,self.exchange)
             self.open_bids = list(filter(lambda x: x['otype']=='bid',self.openorders))
             self.open_asks = list(filter(lambda x: x['otype']=='ask',self.openorders))
         except:

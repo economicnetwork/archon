@@ -39,10 +39,10 @@ log = setup_logger(logpath, 'info_logger', 'mm')
 
 class MyStrategy(Agent):
 
-    def __init__(self):
-        round_precision = 6
-        super().__init__(round_precision)
-        
+    def __init__(self):        
+        e = exc.BITTREX
+        market = "LTC_BTC"
+        super().__init__(e, market)        
 
     def submit_bid(self): 
         """ submit bid strategy """               
@@ -100,7 +100,7 @@ class MyStrategy(Agent):
 
         #cancel_bids()        
                 
-if __name__=='__main__':    
+if __name__=='__main__':        
     strategy = MyStrategy()
     strategy.start()
     strategy.join()

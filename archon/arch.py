@@ -67,10 +67,8 @@ class Arch:
         dbName = mongo_conf['db']        
         url = mongo_conf["url"]
         self.set_mongo(url, dbName)
-
         self.starttime = datetime.datetime.utcnow()
         
-
     def set_mongo(self, url, dbName):
         #self.mongoHost = mongoHost
         #self.mongoPort = mongoPort
@@ -87,8 +85,28 @@ class Arch:
         self.selected_exchange = exchange
 
     def set_active_exchanges(self, exchanges):
-        self.active_exchanges = exchanges        
+        self.active_exchanges = exchanges       
 
+    def set_keys_exchange_file(self,keys_filename="apikeys.toml"):
+        apikeys = parse_toml(keys_filename)
+            
+        for k,v in apikeys.items():
+            eid = exc.get_id(k)
+            if eid >= 0:
+                self.set_keys_exchange(eid, apikeys[k])
+            else:
+                print ("exchange not supported")
+
+    def set_keys_exchange(self, exchange, keys):
+        pubkey = keys["public_key"]
+        secret = keys["secret"]
+        print ("set.....",keys)
+        self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
+        self.abroker.set_api_keys(exchange, pubkey, secret)
+
+    def get_apikeys_all(self):
+        return list(self.db.apikeys.find())
+    
     def sync_orders(self):
         #TODO compare status of submitted_orders
         self.openorders = self.abroker.all_open_orders(self.active_exchanges)
