@@ -19,6 +19,10 @@ Ecosystem which can be built on top
 
 Currently in alpha
 
+## Telegram group
+
+https://t.me/joinchat/Dzif7RALfRB98BocX72Z3Q
+
 ## examples
 
 balance_all.py - send balance report via mail 
