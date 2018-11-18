@@ -28,9 +28,9 @@ def sort_usd(d):
 
 def process(bl):
     newbl = list()    
-    for x in bl:
-        x['USDvalue'] = round(x['USDvalue'],2)
+    for x in bl:        
         if x['USDvalue'] > 1:
+            x['USDvalue'] = round(x['USDvalue'],2)
             newbl.append(x)
     newbl = sort_usd(newbl)
     return newbl
@@ -57,7 +57,8 @@ def per_currency(bl, c):
 
 
 def balance_report():
-    bl = a.global_balances()
+    bl = a.global_balances_usd()
+    print (bl)
 
     bl = process(bl)
     
