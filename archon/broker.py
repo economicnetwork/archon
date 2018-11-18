@@ -39,8 +39,6 @@ class Broker:
 
     def __init__(self):
         log.info("init broker")
-        self.s_exchange = None
-        self.active_exchanges = list()
 
     def set_api_keys(self, exchange, key, secret):
         """ set clients, assumes conf file present """
@@ -71,9 +69,6 @@ class Broker:
         """ directly get a client """
         return clients[EXC]
 
-    def set_singleton_exchange(self, exchange):
-        self.s_exchange = exchange  
-
 
     # --- public info ---
 
@@ -88,7 +83,7 @@ class Broker:
 
 
     def market_history(self, market, exchange=None):
-        if exchange is None: exchange=self.s_exchange
+
         client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
             txs, _ = clients[exc.CRYPTOPIA].get_history(market)
@@ -108,9 +103,10 @@ class Broker:
             return tx
 
     def get_orderbook(self, market, exchange=None):
-        if exchange is None: exchange=self.s_exchange
-        log.debug ("get orderbook " + str(market))
+
         client = clients[exchange]
+        market = models.conv_markets_to(market, exchange)
+        log.info("get orderbook %s %i" %(str(market),exchange))
 
         if exchange==exc.CRYPTOPIA:
             book, err = client.get_orders(market)
@@ -138,7 +134,7 @@ class Broker:
             pass
 
     def get_market_summary(self, market, exchange):        
-        if exchange is None: exchange=self.s_exchange
+
         client = clients[exchange]        
         if exchange==exc.CRYPTOPIA:
             r, err = client.get_market(market)
@@ -159,7 +155,7 @@ class Broker:
 
 
     def get_market_summaries(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
+
         client = clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
@@ -203,7 +199,7 @@ class Broker:
             
 
     def get_market_summaries_only(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
+
         client = clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
@@ -328,7 +324,7 @@ class Broker:
 
     def balance_all(self, exchange=None):
         log.info("balance")
-        if exchange is None: exchange=self.s_exchange
+
         client = clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
@@ -364,7 +360,7 @@ class Broker:
             return b
 
     def balance_currency(self, currency, exchange=None):
-        if exchange is None: exchange=self.s_exchange
+
         log.info("balance_currency " + currency + " " + str(exchange))
 
         if exchange==exc.CRYPTOPIA:
@@ -382,7 +378,7 @@ class Broker:
         
     def get_total_balance(self, currency='USD',exchange=None):
         """Get total balance in your currency, USD by default"""
-        if exchange is None: exchange=self.s_exchange
+
         client = clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
@@ -421,7 +417,7 @@ class Broker:
 
     def trade_history(self, market, exchange=None):
         """ personal trades """
-        if exchange is None: exchange=self.s_exchange
+
         client = clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
@@ -450,7 +446,7 @@ class Broker:
             return r
             
     def get_tradehistory_all(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
+
         client = clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
@@ -479,8 +475,9 @@ class Broker:
             #get_my_trades
 
     def open_orders_symbol(self, symbol, exchange=None):
-        if exchange is None: exchange=self.s_exchange
+
         oo = None
+        symbol = models.conv_markets_to(symbol, exchange)
         if exchange==exc.CRYPTOPIA:
             oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
 
@@ -505,7 +502,7 @@ class Broker:
         return oo
 
     def open_orders(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
+
         #log.info("get open orders " + str(exchange))
 
         oo = None
@@ -547,7 +544,7 @@ class Broker:
     def submit_order(self, order, exchange=None):
         """ submit order which is array [type,order,qty] """
         # ("order " + str(order))         
-        if exchange is None: exchange=self.s_exchange
+
         log.info("submit order " + str(exchange) + " " + str(order))
         market,ttype,order_price,qty = order
 
@@ -642,7 +639,7 @@ class Broker:
 
     def cancel_id(self, oid, otype=None, market=None, exchange=None):
         """ cancel by id """
-        if exchange is None: exchange=self.s_exchange            
+            
         log.info("cancel! " + str(oid) + " " + str(exchange) + " " + str(otype))
         result = None
         if exchange==exc.CRYPTOPIA:            
@@ -667,7 +664,7 @@ class Broker:
         return result
 
     def get_deposits(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
+
         client = clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
@@ -679,7 +676,7 @@ class Broker:
             return deposit_txs
 
     def get_funding(self, exchange=None):
-        if exchange is None: exchange=self.s_exchange
+
         client = clients[exchange]
 
         if exchange==exc.CRYPTOPIA:

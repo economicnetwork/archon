@@ -58,8 +58,6 @@ class Arch:
         self.openorders = list()
         self.submitted_orders = list()
         self.active_exchanges = None
-        e = [exc.KUCOIN, exc.BITTREX, exc.CRYPTOPIA] #, exc.HITBTC]
-        self.set_active_exchanges(e)
         self.selected_exchange = None
 
         mongo_conf = parse_toml("conf.toml")["MONGO"]
@@ -85,7 +83,8 @@ class Arch:
         self.selected_exchange = exchange
 
     def set_active_exchanges(self, exchanges):
-        self.active_exchanges = exchanges       
+        log.info("set active exchanges %s"%exchanges)
+        self.active_exchanges = exchanges        
 
     def set_keys_exchange_file(self,keys_filename="apikeys.toml"):
         apikeys = parse_toml(keys_filename)
@@ -118,14 +117,16 @@ class Arch:
 
     # --- facade data ---    
 
-    def all_open_orders(self):
+    def global_openorders(self):
         oo = list()
         for e in self.active_exchanges:
             z = self.abroker.open_orders(e)
             n = exc.NAMES[e]
-            for x in z:
-                x['exchange'] = n
-                oo.append(x)
+            print (n)
+            if len(z) > 0:
+                for x in z:
+                    x['exchange'] = n
+                    oo.append(x)
             
         log.info("all open orders " + str(oo))
         return oo  
@@ -143,8 +144,20 @@ class Arch:
         log.info("balance all %s"%(str(bl)))
         return bl
 
-
     def global_balances(self):
+        bl = list()
+        for e in self.active_exchanges:
+            n = exc.NAMES[e]
+            b = self.abroker.balance_all(exchange=e)
+            if b == None: print ("could not fetch balances from %s"%n)
+            for x in b:
+                x['exchange'] = n
+                s = x['symbol']
+                t = float(x['amount'])
+                bl.append(x)
+        return bl
+
+    def global_balances_usd(self):
         bl = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
@@ -209,6 +222,7 @@ class Arch:
     def aggregate_book(self, books):
         allbids = list()
         allasks = list()
+        ts = None
         for z in books:
             b = z['bids']
             allbids += b
@@ -216,17 +230,18 @@ class Arch:
             allasks += a
             ts = z['timestamp']
         allbids = sorted(allbids, key=lambda k: k['price'])
-        allbids.reverse()        
+        allbids.reverse()
         allasks = sorted(allasks, key=lambda k: k['price'])
         return [allbids,allasks,ts]
 
 
     def global_orderbook(self, market):
         #self.db.orderbooks.drop()
+        log.info("global orderbook for %s"%market)
         allbids = list()
         allasks = list()
         ts = None
-        for e in self.active_exchanges:
+        for e in self.active_exchanges:            
             n = exc.NAMES[e]
             x = self.db.orderbooks.find({'market':market,'exchange':n})            
             for z in x:
@@ -279,7 +294,7 @@ class Arch:
             self.db.orderbooks.insert(x)
             self.db.orderbooks_history.insert(x)
         except:
-            print ("symbol not supported")
+            log.info("sync book failed. symbol not supported")
 
     def sync_orderbook_all(self, market):   
         self.db.orderbooks.drop()     
@@ -289,6 +304,7 @@ class Arch:
     def get_global_orderbook(self, market):
         books = list()
         for e in self.active_exchanges:
+            log.info("global orderbook %i %s"%(e,market))
             smarket = models.conv_markets_to(market, e)  
             try:
                 n = exc.NAMES[e]
@@ -302,8 +318,9 @@ class Arch:
                 #print (x)                        
                 books.append(x)
             except:
-                print ("symbol not supported")
+                log.error("error global orderbook %i %s"%(e,market))
         [bids,asks,ts] = self.aggregate_book(books)
+        print ("!! ",bids)
         return [bids,asks,ts]
 
     def sync_tx(self, market, exchange):
