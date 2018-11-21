@@ -311,7 +311,8 @@ class Arch:
         balances = self.global_balances()
         print ("insert ",balances)
         self.db.balances.drop()
-        self.db.balances.insert(balances)
+        dt = datetime.datetime.utcnow()
+        self.db.balances.insert({'balance_items':balances,'t':dt})
         self.db.balances_history.insert(balances)
 
     def latest_balances(self):

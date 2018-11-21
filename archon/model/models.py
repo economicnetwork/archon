@@ -427,6 +427,23 @@ def conv_orderbook(book, exchange):
             newa.append(d)
         book = [newb,newa]
         return book
+    elif exchange==exc.HITBTC:
+        bids = book["bid"]
+        asks = book["ask"]
+        newb = list()
+        for b in bids:
+            p,v = float(b['price']),float(b['size'])
+            d = {'price':p,'quantity':v}
+            newb.append(d)
+        newa = list()
+        for a in asks:
+            p,v = float(a['price']),float(a['size'])
+            d = {'price':p,'quantity':v}
+            newa.append(d)
+        book = [newb,newa]
+        return book
+
+
 
 def conv_summary(m,exchange):
     n = exc.NAMES[exchange]    

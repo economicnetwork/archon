@@ -130,6 +130,14 @@ class Broker:
                 return book
             except Exception:
                  raise Exception
+        elif exchange==exc.HITBTC:
+            try:
+                ob = client.get_orderbook(market)
+                book = models.conv_orderbook(ob, exchange)
+                print (book)
+                return book
+            except:
+                log.error("error fetching orderbook",exchange)
         elif exchange==exc.BINANCE:
             pass
 

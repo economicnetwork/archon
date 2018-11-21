@@ -14,6 +14,10 @@ import math
 
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
+a = arch.Arch()
+ae = [exc.HITBTC]
+a.set_active_exchanges(ae)
+
 
 def show_book(exchange, market):
     i = 0    
@@ -32,7 +36,8 @@ def show_book(exchange, market):
 if __name__=='__main__':
     nom = "LTC"
     denom = "BTC"
-    for e in [exc.CRYPTOPIA, exc.BITTREX, exc.KUCOIN]:
-        market = model.get_market(nom,denom,e)
+    #for e in [exc.CRYPTOPIA, exc.BITTREX, exc.KUCOIN]:
+    for e in [exc.HITBTC]:
+        market = model.market_from(nom,denom)
         show_book(e,market)
         
