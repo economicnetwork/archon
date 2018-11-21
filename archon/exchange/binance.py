@@ -213,12 +213,10 @@ class Client(object):
         self.API_SECRET = api_secret
         self.session = self._init_session()
         self._requests_params = requests_params
-
         # init DNS and SSL cert
         self.ping()
-
-    def _init_session(self):
-
+                
+    def _init_session(self):    
         session = requests.session()
         session.headers.update({'Accept': 'application/json',
                                 'User-Agent': 'binance/python',

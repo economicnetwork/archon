@@ -30,6 +30,7 @@ def set_keys_exchange(abroker, e, keys):
 
 def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
     apikeys = parse_toml(keys_filename)
+    print (apikeys)
         
     for k,v in apikeys.items():
         eid = exc.get_id(k)
@@ -38,9 +39,12 @@ def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
         else:
             print ("exchange not supported")
 
-
-    gconf = parse_toml("conf.toml")["MAILGUN"]
-    abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
+    try:
+        gconf = parse_toml("conf.toml")
+        mailconf = gconf["MAILGUN"]
+        abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
+    except:
+        print ("conf.toml not found. skipping config")
 
     
 class Arch:
@@ -52,7 +56,7 @@ class Arch:
     def __init__(self):
         filename = "apikeys.toml"
         self.abroker = broker.Broker()
-        setClientsFromFile(self.abroker, filename)
+        #setClientsFromFile(self.abroker, filename)
         #in memory data
         self.balances = None
         self.openorders = list()
@@ -87,19 +91,20 @@ class Arch:
         self.active_exchanges = exchanges        
 
     def set_keys_exchange_file(self,keys_filename="apikeys.toml"):
+        print ("set keys ",self.active_exchanges)
         apikeys = parse_toml(keys_filename)
             
         for k,v in apikeys.items():
             eid = exc.get_id(k)
-            if eid >= 0:
+            if eid >= 0 and eid in self.active_exchanges:
                 self.set_keys_exchange(eid, apikeys[k])
             else:
-                print ("exchange not supported")
+                print ("exchange not supported or not set")
 
     def set_keys_exchange(self, exchange, keys):
         pubkey = keys["public_key"]
         secret = keys["secret"]
-        print ("set.....",keys)
+        print ("set.....",exchange,keys)
         self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.abroker.set_api_keys(exchange, pubkey, secret)
 
@@ -146,6 +151,7 @@ class Arch:
 
     def global_balances(self):
         bl = list()
+        log.info("active exchanges ",self.active_exchanges)
         for e in self.active_exchanges:
             n = exc.NAMES[e]
             b = self.abroker.balance_all(exchange=e)
@@ -299,7 +305,19 @@ class Arch:
     def sync_orderbook_all(self, market):   
         self.db.orderbooks.drop()     
         for e in self.active_exchanges:            
-            self.sync_orderbook(market, e)   
+            self.sync_orderbook(market, e) 
+
+    def sync_balances(self):
+        balances = self.global_balances()
+        print ("insert ",balances)
+        self.db.balances.drop()
+        self.db.balances.insert(balances)
+        self.db.balances_history.insert(balances)
+
+    def latest_balances(self):
+        b = self.db.balances.find_one()
+        return b
+
 
     def get_global_orderbook(self, market):
         books = list()
@@ -359,7 +377,6 @@ class Arch:
                 self.db.markets_history.insert(x)
             except:
                 pass
-
 
 
     def sync_candle_daily(self, market, exchange):
