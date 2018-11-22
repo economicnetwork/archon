@@ -134,7 +134,6 @@ class Broker:
             try:
                 ob = client.get_orderbook(market)
                 book = models.conv_orderbook(ob, exchange)
-                print (book)
                 return book
             except:
                 log.error("error fetching orderbook",exchange)
@@ -555,6 +554,7 @@ class Broker:
 
         log.info("submit order " + str(exchange) + " " + str(order))
         market,ttype,order_price,qty = order
+        market = models.conv_markets_to(market, exchange)
 
         if exchange==exc.CRYPTOPIA:            
             if ttype == "BUY":
@@ -597,13 +597,15 @@ class Broker:
             client = clients[exchange]
             r = int(random.random()*10000)
             oid = str(12341235+r)
-            log.info("submit ", oid, " ", market)
+            #log.info("submit %s %s"%(str(oid),str(market)))
+            log.info("submit " + str(oid) + " " + str(market))
             if ttype=="BUY": 
                 ttype="buy"
             else:
                 ttype="sell"
             
             result = client.submit_order(oid, market, ttype, qty, order_price)
+            log.info("order result %s"%str(result))
 
     def submit_order_check(self, order):
         """ submit order but require user action """
