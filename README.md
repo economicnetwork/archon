@@ -1,23 +1,19 @@
 # Archon
 
-General trading and broker framework for Internet/Crypto exchanges
+Trading and broker framework for Internet/Crypto exchanges
 
 The framework interacts with the exchanges through the API keys for the purpose of 
 
-* tracking assets
 * order-execution
-* exchange functionality indepedent from web-view 
-
-It abstracts from exchanges in that datastructures are generic for all exchanges
+* tracking assets
+* exchange functionality independent from web-view 
 
 Ecosystem which can be built on top
 
+* Trading bots: arbitrage, market-making, directional
 * Multi-Exchange trading interface
 * Streaming service
-* Bot and strategy framework
-* ...
-
-Currently in alpha
+* and more
 
 ## Telegram group
 
@@ -37,17 +33,4 @@ strategy.py - basic strategy example
 
 ## install 
 
-needs python3 
-pip3 install -r requirements.txt
-
-add apikeys.toml, see apikeys_example.toml
-
-```
-[exchangename]
-public_key = ""
-secret = ""
-```
-
-add conf.toml with mailgun key and mongo details (see example_conf.toml)
-
-
+see [docs/install.md]
