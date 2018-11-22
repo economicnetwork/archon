@@ -33,4 +33,4 @@ strategy.py - basic strategy example
 
 ## install 
 
-see [docs/install.md]
+see [install doc](docs/install.md)
