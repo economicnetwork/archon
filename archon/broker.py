@@ -644,6 +644,9 @@ class Broker:
             result = clients[exc.KUCOIN].cancel_order(oid,f,symbol)      
             return result                  
                         
+        elif exchange==exc.HITBTC:
+            result = clients[exc.HITBTC].cancel_order(oid)
+                    
         log.debug("result " + str(result))
         return result
 

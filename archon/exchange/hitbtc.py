@@ -144,7 +144,6 @@ class RestClient(object):
         """Cancel order."""
         print ("cancel", client_order_id)
         r = self.session.delete("%s/order/%s" % (self.url, client_order_id)).json()
-        print (r)
         return r
 
     def withdraw(self, currency_code, amount, address, network_fee=None):
