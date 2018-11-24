@@ -12,7 +12,9 @@ from util import *
 
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
-abroker.set_active_exchanges(exc.supported_exchanges)
+a = arch.Arch()
+ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
+a.set_active_exchanges(ae)
 
 if __name__=='__main__': 
 
@@ -26,5 +28,5 @@ if __name__=='__main__':
     
     #########
     
-    oo = abroker.all_open_orders()    
+    oo = a.global_openorders()    
     print ("all orders ",oo)

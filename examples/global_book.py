@@ -8,17 +8,18 @@ import archon.markets as m
 abroker = broker.Broker()
 arch.setClientsFromFile(abroker)
 a = arch.Arch()
-ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA]
+ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
 a.set_active_exchanges(ae)
 market = models.market_from("LTC","BTC")
-#a.sync_orderbook_all(market)
 
 [allbids,allasks,ts]  = a.get_global_orderbook(market)
 
 print ("global orderbook %s"%market)
-for b in allbids[:15]:
+print ("bids")
+for b in allbids[:5]:
     print (b)
 
 print ('*********')
-for a in allasks[:15]:
+print ("asks")
+for a in allasks[:5]:
     print (a)    
