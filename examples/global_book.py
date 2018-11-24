@@ -11,14 +11,14 @@ a = arch.Arch()
 ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA]
 a.set_active_exchanges(ae)
 market = models.market_from("LTC","BTC")
-print ("sync ",market)
 #a.sync_orderbook_all(market)
-#[allbids,allasks,ts] = a.global_orderbook(market)
+
 [allbids,allasks,ts]  = a.get_global_orderbook(market)
 
-for b in allbids[:5]:
+print ("global orderbook %s"%market)
+for b in allbids[:15]:
     print (b)
 
 print ('*********')
-for a in allasks[:5]:
+for a in allasks[:15]:
     print (a)    

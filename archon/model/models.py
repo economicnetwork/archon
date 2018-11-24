@@ -219,7 +219,6 @@ def conv_usertx(tx, exchange):
 
     elif exchange==exc.BITTREX:
         t = tx['TimeStamp']
-        #print (tx)
         #{'Id': 57612064, 'TimeStamp': '2018-10-23T17:39:49.347', 
         # 'Quantity': 57.78390446, 'Price': 0.00746612, 'Total': 0.43142156, 'FillType': 'PARTIAL_FILL', 'OrderType': 'BUY'}]}
         dt = conv_timestamp(t,exchange)    
@@ -499,7 +498,7 @@ def conv_summary(m,exchange):
             d = {'exchange':n,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'change':change}
             return d
         except Exception as err:
-            print ("!",err)
+            log.error(err)
             return None
             
     elif exchange==exc.HITBTC:

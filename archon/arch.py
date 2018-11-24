@@ -30,7 +30,7 @@ def set_keys_exchange(abroker, e, keys):
 
 def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
     apikeys = parse_toml(keys_filename)
-    print (apikeys)
+    log.debug(apikeys)
         
     for k,v in apikeys.items():
         eid = exc.get_id(k)
@@ -324,26 +324,23 @@ class Arch:
         books = list()
         for e in self.active_exchanges:
             log.info("global orderbook %i %s"%(e,market))
-            smarket = models.conv_markets_to(market, e)  
+            #smarket = models.conv_markets_to(market, e)  
             try:
                 n = exc.NAMES[e]
-                [bids,asks] = self.abroker.get_orderbook(smarket,e)
+                [bids,asks] = self.abroker.get_orderbook(market,e)
                 dt = datetime.datetime.utcnow()
                 n = exc.NAMES[e]
                 for xb in bids: xb['exchange'] = n
                 for xa in asks: xa['exchange'] = n
 
                 x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
-                #print (x)                        
                 books.append(x)
-            except:
-                log.error("error global orderbook %i %s"%(e,market))
+            except Exception as err:
+                log.error("error global orderbook %i %s %s"%(e,market,err))
         [bids,asks,ts] = self.aggregate_book(books)
-        print ("!! ",bids)
         return [bids,asks,ts]
 
     def sync_tx(self, market, exchange):
-        #print ("sync",market," ",exchange)   
         try:            
             smarket = models.conv_markets_to(market, exchange)  
             txs = self.abroker.market_history(smarket,exchange)
@@ -393,7 +390,7 @@ class Arch:
 
     def sync_candle_daily_all(self):
         ms = self.fetch_global_markets()
-        print (len(ms))
+        log.info(len(ms))
 
         #cndl = self.abroker.get_candles_daily(market,exc.BINANCE)
 

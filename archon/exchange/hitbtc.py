@@ -160,7 +160,6 @@ class RestClient(object):
         """
         data = {'symbol': symbol}
         ret = self.session.get("%s/history/trades" % self.url, data=data)
-        print (ret)
         return ret.json()
         """
         trades = self.get_trades()
