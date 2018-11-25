@@ -10,16 +10,15 @@ import time
 import datetime
 from util import *
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
 a = arch.Arch()
 ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
 a.set_active_exchanges(ae)
+a.set_keys_exchange_file()
 
 if __name__=='__main__': 
 
     for exchange in exc.supported_exchanges:
-        oo = abroker.open_orders(exchange)
+        oo = a.abroker.open_orders(exchange)
         n = exc.NAMES[exchange]
         print ("** %s open orders **"%n)
         print (len(oo))

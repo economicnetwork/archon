@@ -27,7 +27,7 @@ def set_keys_exchange(abroker, e, keys):
     secret = keys["secret"]
     abroker.set_api_keys(e,pubkey,secret)
 
-
+"""
 def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
     apikeys = parse_toml(keys_filename)
     log.debug(apikeys)
@@ -45,7 +45,7 @@ def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
         abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
     except:
         print ("conf.toml not found. skipping config")
-
+"""
     
 class Arch:
     """ 
@@ -104,7 +104,7 @@ class Arch:
     def set_keys_exchange(self, exchange, keys):
         pubkey = keys["public_key"]
         secret = keys["secret"]
-        print ("set.....",exchange,keys)
+        log.debug ("set keys %i %s"%(exchange,keys))
         self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.abroker.set_api_keys(exchange, pubkey, secret)
 
@@ -112,8 +112,7 @@ class Arch:
         return list(self.db.apikeys.find())
     
     def sync_orders(self):
-        #TODO compare status of submitted_orders
-        self.openorders = self.abroker.all_open_orders(self.active_exchanges)
+        self.openorders = self.global_openorders()
 
     def get_by_id(self, oid):
         x = list(filter(lambda x: x['oid'] == oid, self.openorders))
@@ -133,15 +132,15 @@ class Arch:
                     x['exchange'] = n
                     oo.append(x)
             
-        log.info("all open orders " + str(oo))
+        log.debug("all open orders " + str(oo))
         return oo  
 
     def all_balance(self):        
         bl = list()
         for e in self.active_exchanges:
-            print ("get balance ",e)
+            log.debug("get balance ",e)
             z = self.abroker.balance_all(e)
-            print (z,e)
+            log.debug(z,e)
             n = exc.NAMES[e]
             for x in z:
                 x['exchange'] = n
