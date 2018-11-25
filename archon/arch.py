@@ -64,7 +64,11 @@ class Arch:
         self.active_exchanges = None
         self.selected_exchange = None
 
-        mongo_conf = parse_toml("conf.toml")["MONGO"]
+        all_conf = parse_toml("conf.toml")
+        #active_exchanges = all_conf["BROKER"]["active_exchanges"]
+        #self.set_active_exchanges_name(active_exchanges)
+
+        mongo_conf = all_conf["MONGO"]
         #mongoHost = mongo_conf['host']
         dbName = mongo_conf['db']        
         url = mongo_conf["url"]
@@ -83,12 +87,16 @@ class Arch:
     def get_db(self):
         return self.db
 
-    def set_active_exchange(self, exchange):
-        self.selected_exchange = exchange
-
     def set_active_exchanges(self, exchanges):
         log.info("set active exchanges %s"%exchanges)
-        self.active_exchanges = exchanges        
+        self.active_exchanges = exchanges  
+
+    def set_active_exchanges_name(self, exchanges_names):
+        ne = list()
+        for n in exchanges_names:
+            eid = exc.get_id(n)
+            ne.append(eid)
+        self.active_exchanges = ne
 
     def set_keys_exchange_file(self,keys_filename="apikeys.toml"):
         print ("set keys ",self.active_exchanges)
@@ -150,7 +158,7 @@ class Arch:
 
     def global_balances(self):
         bl = list()
-        log.info("active exchanges ",self.active_exchanges)
+        log.info("active exchanges %s"%(self.active_exchanges))
         for e in self.active_exchanges:
             n = exc.NAMES[e]
             b = self.abroker.balance_all(exchange=e)
@@ -189,6 +197,8 @@ class Arch:
             for x in tx:
                 txlist.append(x)
         return txlist
+
+        
         
 
     def submit_order(self, order, exchange=None):
@@ -263,6 +273,16 @@ class Arch:
         allbids.reverse()        
         allasks = sorted(allasks, key=lambda k: k['price'])
         return [allbids,allasks,ts]
+
+    def global_txhistory(self, market):
+        tx_all = list()
+        for e in self.active_exchanges:            
+            n = exc.NAMES[exchange]
+            txs = a.abroker.market_history(market,e)
+            for tx in txs:
+                tx["exchange"] = n
+                tx_all.append(tx)
+        return tx_all
 
     def filter_markets(self, m):
         f = lambda x: markets.is_btc(x['pair'])

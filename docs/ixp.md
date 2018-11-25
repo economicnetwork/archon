@@ -1,19 +1,17 @@
-# Internet trading protocol
+# Internet exchange protocol
 
 version 0.01
 
-Internet trading protocol (IXP) defines a unified data and transaction model for all exchanges. Currently all exchanges define their own custom format for balances, orders, transactions and assets. Archon translates any exchange specific data to unified data.
+Internet exchange protocol (IXP) defines a unified data and transaction model for all exchanges. Currently all exchanges define their own custom format for balances, orders, transactions and assets. Archon translates any exchange specific data to unified data.
 Similar to [FIX](https://en.wikipedia.org/wiki/Financial_Information_eXchange) the benefit of IXP are that exchanges speak the same format and can be used by trading systems, order management systems, portfolio tools, accounting systems, and so on.
 
 There is three types of data:
 
-* exchange specific data in the native format as defined by individual APIs
+* exchange specific data in the native format as defined by individual APIs, typically JSON over HTTP
 
 * unified data translated from exchanges
 
-* global data. data that is aggregated across all exchanges. entries signify which exchange
-a piece of data belongs to
-
+* global data. data that is aggregated across all exchanges. entries signify which exchange a piece of data belongs to
 
 
 ## Unified data and API for exchange
@@ -24,7 +22,7 @@ Market:
 
 Open Orders:
 
-tbd
+[{market: "LTC_BTC", quantity: 0.01, limitprice: 0.1}]
 
 Balances:
 
@@ -32,11 +30,24 @@ Balances:
 
 Transactions:
 
-tbd
+[{'timestamp': '2018-11-25T01:25:26', 'market': 'LTC_BTC', 'txtype': 'BUY', 'price': 0.00757, 'quantity': 0.3} ...]
+
 
 Orderbook:
 
 {"bids": [{'quantity': 0.01,'price': 0.1} ...], "asks": [{'quantity': 0.01,'price': 0.2} ...]}
+
+## Broker
+
+A broker understands similar actions as exchanges. Data for requests and actions
+
+Submit Order: 
+
+...
+
+Cancel Order:
+
+...
 
 ## Global data
 
@@ -57,3 +68,8 @@ global orderbook LTC_BTC
 "asks":[{'price': 0.00738697, 'quantity': 90.71, 'exchange': 'Kucoin'}
 {'price': 0.00739, 'quantity': 0.35457268, 'exchange': 'Bittrex'}
 {'price': 0.00739476, 'quantity': 13.97237, 'exchange': 'Kucoin'}]}
+
+Transactions
+
+[{'timestamp': '2018-11-25T01:25:26', 'exchange': 'Bittrex', 'market': 'LTC_BTC', 'txtype': 'BUY', 'price': 0.00757, 'quantity': 0.3} ...]
+
