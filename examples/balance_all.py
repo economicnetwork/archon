@@ -15,11 +15,10 @@ from jinja2 import Template
 import jinja2
 import pickle
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
 a = arch.Arch()
-ae = [exc.KUCOIN, exc.BITTREX, exc.CRYPTOPIA, exc.KRAKEN, exc.BINANCE, exc.HITBTC]
+ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
 a.set_active_exchanges(ae)
+a.set_keys_exchange_file()
 
 def sort_usd(d):
     d = sorted(d, key=lambda k: k['USDvalue'])
@@ -52,9 +51,7 @@ def per_exchange(bl, e):
 def per_currency(bl, c):
     l = list(filter(lambda x: x['symbol']==c,bl))
     per = round(sum([float(x['USDvalue']) for x in l]),2)
-    print (c,per)
     return per
-
 
 def balance_report():
     bl = a.global_balances_usd()
@@ -78,7 +75,7 @@ def balance_report():
     per = sort_usd(per)
 
     syms = list(set([x['symbol'] for x in bl]))
-    print (syms)
+    #print (syms)
     per_currency_list = list()
     for c in syms:
         #print (c)
@@ -88,7 +85,7 @@ def balance_report():
     per_currency_list = sort_usd(per_currency_list)
     print ("per currency ",per_currency_list)
 
-
+    print ("total all ",total_all)
     loader = jinja2.FileSystemLoader('./balances.html')
     env = jinja2.Environment(loader=loader)
     template = env.get_template('')

@@ -5,20 +5,21 @@
 import archon.broker as broker
 import archon.arch as arch
 import archon.exchange.exchanges as exc
-import archon.markets as m
-import archon.model as model
+import archon.model.models as m
 from archon.util import *
 
 import time
 import datetime
 import math
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
+a = arch.Arch()
+ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
+a.set_active_exchanges(ae)
+a.set_keys_exchange_file()
 
 def show(exchange, market):
     i = 0    
-    txs = abroker.market_history(market,e)
+    txs = a.abroker.market_history(market,e)
     name= exc.NAMES[exchange]
     for tx in txs[:10]:
         print (tx)
