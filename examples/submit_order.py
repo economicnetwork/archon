@@ -21,22 +21,30 @@ a.set_keys_exchange_file()
 def ordering(e):       
     market = m.get_market("LTC","BTC",e)
     b = a.abroker.balance_all(exchange=e)
-    print ("balance ",b)
-    print ("market " + market)    
-    s = a.abroker.get_market_summary(market, e)
-    print ("s ",s)
-    bid = s["bid"]    
-    ask = s["ask"]
-    trade_type = "BUY"
-    rho = 0.1
-    price = bid * (1-rho)
-    qty =  0.01
-    o = [market, trade_type, price, qty]
-    print ("order " + str(o))
-    #r = abroker.submit_order(o,e)
-    #print ("result " + str(r))
+    btc_balance = list(filter(lambda x: x['symbol'] == 'BTC', b))[0]['amount']
+    print (btc_balance)
+
+    #b = a.abroker.balance_currency("BTC",e)
+    if btc_balance > 0.001:
+        print ("balance ",b)
+        print ("market " + market)    
+        s = a.abroker.get_market_summary(market, e)
+        print ("s ",s)
+        bid = s["bid"]    
+        ask = s["ask"]
+        trade_type = "BUY"
+        rho = 0.1
+        price = round(bid * (1-rho),8)
+        qty =  0.1
+        market = m.market_from("LTC","BTC")    
+        o = [market, trade_type, price, qty]
+        print ("order " + str(o))
+        r = a.abroker.submit_order(o,e)
+        print ("order result " + str(r))
+    else:
+        print ("insufficient balance")
 
 if __name__=='__main__':
-    es = [exc.BITTREX,exc.CRYPTOPIA]
+    es = [exc.BITTREX, exc.HITBTC]
     for e in es:
         ordering(e)
