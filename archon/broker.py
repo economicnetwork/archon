@@ -367,7 +367,7 @@ class Broker:
             return b
 
     def balance_currency(self, currency, exchange=None):
-
+        """ Deprecated: use balance all """
         log.info("balance_currency " + currency + " " + str(exchange))
 
         if exchange==exc.CRYPTOPIA:
@@ -382,6 +382,7 @@ class Broker:
                 return result
             except:
                 return -1
+
         
     def get_total_balance(self, currency='USD',exchange=None):
         """Get total balance in your currency, USD by default"""
@@ -606,6 +607,7 @@ class Broker:
             
             result = client.submit_order(oid, market, ttype, qty, order_price)
             log.info("order result %s"%str(result))
+            return result
 
     def submit_order_check(self, order):
         """ submit order but require user action """
