@@ -441,7 +441,22 @@ def conv_orderbook(book, exchange):
             newa.append(d)
         book = [newb,newa]
         return book
-
+    elif exchange==exc.KRAKEN:
+        bids = book["bids"]
+        asks = book["asks"]
+        newb = list()
+        for b in bids:
+            p,v,ts = float(b[0]),float(b[1]),b[2]
+            d = {'price':p,'quantity':v}
+            newb.append(d)
+        newa = list()
+        for a in asks:
+            p,v,ts = float(a[0]),float(a[1]),a[2]
+            d = {'price':p,'quantity':v}
+            newa.append(d)
+        book = [newb,newa]
+        return book
+        
 
 
 def conv_summary(m,exchange):
@@ -711,7 +726,13 @@ def conv_markets_to(m, exchange):
         return nom + denom 
     elif exchange==exc.BINANCE:
         return nom + denom 
-     
+    elif exchange==exc.KRAKEN:
+        #TODO generalise for krakens broken symbol convention
+        if nom == 'BTC' and denom == 'USD':
+            return 'XXBTZUSD'
+        if nom == 'BTC' and denom == 'EUR':
+            return 'XBTEUR'
+
 
 def get_market(nom,denom,exchange):
     if exchange==exc.BITTREX:        

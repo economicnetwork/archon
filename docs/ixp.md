@@ -2,8 +2,10 @@
 
 version 0.01
 
-Internet exchange protocol (IXP) defines a unified data and transaction model for all exchanges. Currently all exchanges define their own custom format for balances, orders, transactions and assets. Archon translates any exchange specific data to unified data.
-Similar to [FIX](https://en.wikipedia.org/wiki/Financial_Information_eXchange) the benefit of IXP are that exchanges speak the same format and can be used by trading systems, order management systems, portfolio tools, accounting systems, and so on.
+Internet exchange protocol (IXP) defines a unified transaction model for exchanges. Currently exchanges define their own custom format for clients interacting with their service, i.e. balances, orders, transactions and assets are individual on an exchange level. IXP defines a global standard independent of any particular exchange. Similar to [FIX](https://en.wikipedia.org/wiki/Financial_Information_eXchange) the benefit of IXP is that exchanges can understand the same format and can be used by any trading systems, order management systems, portfolio tools, accounting systems, etc. which interacts with the exchange.
+
+Currently the archon framework translates any exchange specific data to unified data so that the backend 
+is a single interface to all exchanges and therefore liquidity in the global marketplace.
 
 There is three types of data:
 
@@ -14,7 +16,7 @@ There is three types of data:
 * global data. data that is aggregated across all exchanges. entries signify which exchange a piece of data belongs to
 
 
-## Unified data and API for exchange
+## Unified data for exchanges
 
 Market:
 
@@ -32,7 +34,6 @@ Transactions:
 
 [{'timestamp': '2018-11-25T01:25:26', 'market': 'LTC_BTC', 'txtype': 'BUY', 'price': 0.00757, 'quantity': 0.3} ...]
 
-
 Orderbook:
 
 {"bids": [{'quantity': 0.01,'price': 0.1} ...], "asks": [{'quantity': 0.01,'price': 0.2} ...]}
@@ -43,11 +44,11 @@ A broker understands similar actions as exchanges. Data for requests and actions
 
 Submit Order: 
 
-...
+* order ['LTC_BTC', 'SELL', 0.00522999, 2.0]
 
 Cancel Order:
 
-...
+* by order-id. the Order-management system has to store the order-id
 
 ## Global data
 

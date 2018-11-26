@@ -19,7 +19,8 @@ a.set_active_exchanges(ae)
 a.set_keys_exchange_file()
 
 def ordering(e):       
-    market = m.get_market("LTC","BTC",e)
+    #market = m.get_market("LTC","BTC",e)
+    market = m.market_from("LTC","BTC")
     b = a.abroker.balance_all(exchange=e)
     btc_balance = list(filter(lambda x: x['symbol'] == 'BTC', b))[0]['amount']
     print (btc_balance)
@@ -36,7 +37,7 @@ def ordering(e):
         rho = 0.1
         price = round(bid * (1-rho),8)
         qty =  0.1
-        market = m.market_from("LTC","BTC")    
+        
         o = [market, trade_type, price, qty]
         print ("order " + str(o))
         r = a.abroker.submit_order(o,e)

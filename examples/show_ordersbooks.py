@@ -12,32 +12,34 @@ import time
 import datetime
 import math
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
 a = arch.Arch()
-ae = [exc.HITBTC]
+ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC,exc.KRAKEN]
 a.set_active_exchanges(ae)
+a.set_keys_exchange_file()
 
 
-def show_book(exchange, market):
-    i = 0    
-    [bids,asks] = abroker.get_orderbook(market,exchange)
+def show_book_exc(exchange, market):
+    global a
+    i = 0
+    [bids,asks] = a.abroker.get_orderbook(market,exchange)
     name= exc.NAMES[exchange]
     print ("** bid **       %s     ** ask **"%(name))
     for b in bids[:10]:
-        a = asks[i]  
+        ask = asks[i]  
         bp = b['price']
-        ap = a['price']
-        av = a['quantity']
+        ap = ask['price']
+        av = ask['quantity']
         bv = b['quantity']
-        print ("%.8f  %.0f   %.8f  %.0f" % (bp,bv,ap,av))
+        print ("%.8f  %.2f   %.8f  %.2f" % (bp,bv,ap,av))
         i+=1  
 
-if __name__=='__main__':
-    nom = "LTC"
-    denom = "BTC"
+def show_book(nom,denom):
     #for e in [exc.CRYPTOPIA, exc.BITTREX, exc.KUCOIN]:
-    for e in [exc.HITBTC]:
+    for e in [exc.KRAKEN]:
         market = model.market_from(nom,denom)
-        show_book(e,market)
+        show_book_exc(e,market)
+
+if __name__=='__main__':
+    show_book("BTC","USD")
+    show_book("BTC","EUR")
         

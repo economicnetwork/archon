@@ -140,9 +140,16 @@ class Broker:
         elif exchange==exc.BINANCE:
             pass
 
+        elif exchange==exc.KRAKEN:
+            response = client.query_public('Depth', {'pair': market, 'count': '100'})
+            r = list(response['result'].values())[0]
+            book = models.conv_orderbook(r, exchange)
+            return book
+
     def get_market_summary(self, market, exchange):        
 
-        client = clients[exchange]        
+        client = clients[exchange] 
+        market = models.conv_markets_to(market, exchange)       
         if exchange==exc.CRYPTOPIA:
             r, err = client.get_market(market)
             r = models.conv_summary(r, exchange)
