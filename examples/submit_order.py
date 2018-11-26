@@ -46,5 +46,6 @@ def ordering(e):
 
 if __name__=='__main__':
     es = [exc.BITTREX, exc.HITBTC]
+    #es = [exc.HITBTC]
     for e in es:
         ordering(e)
