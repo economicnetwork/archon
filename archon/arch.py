@@ -64,15 +64,19 @@ class Arch:
         self.active_exchanges = None
         self.selected_exchange = None
 
-        all_conf = parse_toml("conf.toml")
-        #active_exchanges = all_conf["BROKER"]["active_exchanges"]
-        #self.set_active_exchanges_name(active_exchanges)
+        try:
+            all_conf = parse_toml("conf.toml")
+            #active_exchanges = all_conf["BROKER"]["active_exchanges"]
+            #self.set_active_exchanges_name(active_exchanges)
 
-        mongo_conf = all_conf["MONGO"]
-        #mongoHost = mongo_conf['host']
-        dbName = mongo_conf['db']        
-        url = mongo_conf["url"]
-        self.set_mongo(url, dbName)
+            mongo_conf = all_conf["MONGO"]
+            #mongoHost = mongo_conf['host']
+            dbName = mongo_conf['db']        
+            url = mongo_conf["url"]
+            self.set_mongo(url, dbName)
+        except:
+            log.info("no conf.toml file")
+
         self.starttime = datetime.datetime.utcnow()
         
     def set_mongo(self, url, dbName):
@@ -113,8 +117,11 @@ class Arch:
         pubkey = keys["public_key"]
         secret = keys["secret"]
         log.debug ("set keys %i %s"%(exchange,keys))
-        self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
+        #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.abroker.set_api_keys(exchange, pubkey, secret)
+
+    def get_active_exchanges(self):
+        return self.active_exchanges
 
     def get_apikeys_all(self):
         return list(self.db.apikeys.find())

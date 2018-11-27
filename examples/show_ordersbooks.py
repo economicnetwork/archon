@@ -35,11 +35,10 @@ def show_book_exc(exchange, market):
 
 def show_book(nom,denom):
     #for e in [exc.CRYPTOPIA, exc.BITTREX, exc.KUCOIN]:
-    for e in [exc.KRAKEN]:
+    for e in [exc.KUCOIN]:
         market = model.market_from(nom,denom)
         show_book_exc(e,market)
 
 if __name__=='__main__':
-    show_book("BTC","USD")
-    show_book("BTC","EUR")
-        
+    show_book("LTC","BTC")
+    
