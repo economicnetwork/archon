@@ -11,8 +11,6 @@ import datetime
 from util import *
 
 a = arch.Arch()
-ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
-a.set_active_exchanges(ae)
 a.set_keys_exchange_file()
 
 if __name__=='__main__': 
