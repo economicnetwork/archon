@@ -106,12 +106,25 @@ class Arch:
         print ("set keys ",self.active_exchanges)
         apikeys = parse_toml(keys_filename)
             
-        for k,v in apikeys.items():
-            eid = exc.get_id(k)
-            if eid >= 0 and eid in self.active_exchanges:
-                self.set_keys_exchange(eid, apikeys[k])
-            else:
-                print ("exchange not supported or not set")
+        if self.active_exchanges:
+            for k,v in apikeys.items():
+                eid = exc.get_id(k)
+                if eid >= 0 and eid in self.active_exchanges:
+                    self.set_keys_exchange(eid, apikeys[k])
+                else:
+                    print ("exchange not supported or not set")
+        else:
+            ae = list()
+            for k,v in apikeys.items():
+                eid = exc.get_id(k)
+                if eid >= 0:
+                    self.set_keys_exchange(eid, apikeys[k])
+                    ae.append(eid)
+                else:
+                    print ("exchange not supported or not set")
+            print (ae)
+            self.active_exchanges = ae
+
 
     def set_keys_exchange(self, exchange, keys):
         pubkey = keys["public_key"]
