@@ -11,9 +11,9 @@ import math
 
 from datetime import datetime
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
-client = abroker.get_client(exc.BINANCE)
+a = arch.Arch()
+a.set_keys_exchange_file()
+client = a.abroker.get_client(exc.BINANCE)
 
 market = models.market_from("RVN","BTC")
 

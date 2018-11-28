@@ -9,11 +9,10 @@ import requests
 import time
 import datetime
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
 a = arch.Arch()
+a.set_keys_exchange_file()
 
-client = abroker.get_client(exc.BINANCE)
+client = a.abroker.get_client(exc.BINANCE)
 
 ae = [exc.BINANCE]
 a.set_active_exchanges(ae)

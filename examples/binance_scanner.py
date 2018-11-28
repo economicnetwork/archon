@@ -8,11 +8,9 @@ import time
 import datetime
 import archon.candles as c
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
 a = arch.Arch()
-
-client = abroker.get_client(exc.BINANCE)
+a.set_keys_exchange_file()
+client = a.abroker.get_client(exc.BINANCE)
 
 ae = [exc.BINANCE]
 a.set_active_exchanges(ae)

@@ -9,9 +9,9 @@ import time
 import datetime
 import math
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
-client = abroker.get_client(exc.BINANCE)
+a = arch.Arch()
+a.set_keys_exchange_file()
+client = a.abroker.get_client(exc.BINANCE)
 
 market = models.get_market("RVN","BTC",exc.BINANCE)
 txdata = abroker.trade_history(market,exc.BINANCE)

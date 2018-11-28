@@ -630,15 +630,18 @@ def conv_balance(b,exchange):
     elif exchange==exc.HITBTC:
         newl = list()        
         for x in b:
-            s = x['currency']
-            av = float(x['available'])
-            r = float(x['reserved'])
-            if av+r > 0:
-                d = {}            
-                d['symbol'] = s
-                d['exchange'] = n          
-                d['amount'] = av+r
-                newl.append(d)
+            try:
+                s = x['currency']
+                av = float(x['available'])
+                r = float(x['reserved'])
+                if av+r > 0:
+                    d = {}            
+                    d['symbol'] = s
+                    d['exchange'] = n          
+                    d['amount'] = av+r
+                    newl.append(d)
+            except Exception as e:
+                log.error("issue converting balance %s"%(str(x)))
         return newl
 
 def conv_candle(history, exchange):
