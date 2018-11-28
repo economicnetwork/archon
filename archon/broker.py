@@ -21,7 +21,6 @@ import archon.exchange.binance as binance
 import krakenex
 
 import time
-import pika
 import sys
 import time
 import random
