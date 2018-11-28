@@ -20,7 +20,7 @@ a.set_keys_exchange_file()
 
 def ordering():       
     currency = input("what market against BTC? ")
-    e = input("what exchange (number)? ")
+    e = input("what exchange (number)? CRYPTOPIA = 0 BITTREX = 1 KUCOIN = 2 BINANCE = 3 KRAKEN = 4 HITBTC = 5")
     e = int(e)
     market = m.get_market(currency,"BTC",e)
     buysell = input("buy or sell? ")
