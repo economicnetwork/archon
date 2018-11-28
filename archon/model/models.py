@@ -372,24 +372,21 @@ def conv_openorder(order, exchange):
         return d
 
     elif exchange==exc.HITBTC:
-        #{'id': '62009222739', 'clientOrderId': '12350366', 'symbol': 'ETHBTC', 'side': 'buy', 
-        # 'status': 'canceled', 'type': 'limit', 'timeInForce': 'GTC',
-        #  'quantity': '0.322', 'price': '0.031058', 'cumQuantity': '0.000', 
-        # 'createdAt': '2018-10-09T07:43:47.133Z', 'updatedAt': '2018-10-09T07:49:33.502Z'}
-        n = exc.NAMES[exchange]
-        oid = order['clientOrderId']
-        #oid = order['userOid']        
-        market = order['symbol']
-        if order['side']=='buy':
-            ty = 'bid' 
-        else: 
-            ty = 'ask'
-        price = order['price']        
-        quantity = order['quantity']
-        #dt = conv_timestamp(ts, exchange)
-        #[1538390455000, 'SELL', 2.94e-06, 60.0, 0.0001764, '5bb1f9b6a07e5d75b084ae19']
-        d = {'exchange':n,'oid':oid,'market':market,'quantity':quantity,'price':price,'otype':ty}
-        return d
+        try:
+            n = exc.NAMES[exchange]
+            oid = order['clientOrderId']   
+            market = order['symbol']
+            if order['side']=='buy':
+                ty = 'bid' 
+            else: 
+                ty = 'ask'
+            price = order['price']        
+            quantity = order['quantity']
+            d = {'exchange':n,'oid':oid,'market':market,'quantity':quantity,'price':price,'otype':ty}
+            return d
+        except Exception e:
+            log.error(e)
+            return None
 
 def conv_orderbook(book, exchange):
     if exchange==exc.CRYPTOPIA:
