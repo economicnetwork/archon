@@ -384,7 +384,7 @@ def conv_openorder(order, exchange):
             quantity = order['quantity']
             d = {'exchange':n,'oid':oid,'market':market,'quantity':quantity,'price':price,'otype':ty}
             return d
-        except Exception e:
+        except Exception as e:
             log.error(e)
             return None
 
