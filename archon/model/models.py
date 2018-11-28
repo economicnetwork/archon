@@ -6,6 +6,11 @@ import archon.tx as atx
 import archon.feeds.cryptocompare as cryptocompare
 import datetime
 import pytz
+from archon.util import *
+
+logpath = './log'
+log = setup_logger(logpath, 'archon_logger', 'archon')
+
 
 #logpath = './log'
 #log = setup_logger(logpath, 'model_logger', 'model')
