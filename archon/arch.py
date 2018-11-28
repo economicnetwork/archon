@@ -5,10 +5,10 @@ import archon.exchange.exchanges as exc
 import archon.markets as markets
 import time
 from archon.model import models
-from archon.util import *
 from pymongo import MongoClient
 import datetime
 from archon.feeds import cryptocompare
+from archon.util import *
 
 logpath = './log'
 log = setup_logger(logpath, 'archon_logger', 'archon')
@@ -152,13 +152,14 @@ class Arch:
     def global_openorders(self):
         oo = list()
         for e in self.active_exchanges:
-            z = self.abroker.open_orders(e)
             n = exc.NAMES[e]
-            print (n)
-            if len(z) > 0:
-                for x in z:
-                    x['exchange'] = n
-                    oo.append(x)
+            print (e,n)
+            z = self.abroker.open_orders(e)
+            if z:                                
+                if len(z) > 0:
+                    for x in z:
+                        x['exchange'] = n
+                        oo.append(x)
             
         log.debug("all open orders " + str(oo))
         return oo  

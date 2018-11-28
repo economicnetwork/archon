@@ -14,14 +14,15 @@ a = arch.Arch()
 a.set_keys_exchange_file()
 
 if __name__=='__main__': 
-
-    for exchange in exc.supported_exchanges:
+    
+    for exchange in a.active_exchanges:
         oo = a.abroker.open_orders(exchange)
         n = exc.NAMES[exchange]
         print ("** %s open orders **"%n)
-        print (len(oo))
-        for o in oo:
-            print (str(o))
+        if oo:
+            print (len(oo))
+            for o in oo:
+                print (str(o))
     
     #########
     
