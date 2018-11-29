@@ -4,8 +4,8 @@ Trading and broker framework for Internet/Crypto exchanges
 
 The framework interacts with the exchanges through the API keys for the purpose of 
 
-* order-execution
-* tracking assets
+* all typical exchange functions such as: submitting orders, tracking balances and market prices
+* tracking assets, Profit-and-loss statements, strategy analysis
 * exchange functionality independent from web-view 
 
 Ecosystem which can be built on top
@@ -14,10 +14,6 @@ Ecosystem which can be built on top
 * Multi-Exchange trading interface
 * Streaming service
 * and more
-
-## Telegram group
-
-https://t.me/joinchat/Dzif7RALfRB98BocX72Z3Q
 
 ## examples
 
@@ -36,3 +32,7 @@ strategy.py - basic strategy example
 see [install doc](docs/install.md)
 
 API keys - recommended is to limit the keys to disallow withdraws
+
+## Telegram group
+
+https://t.me/joinchat/Dzif7RALfRB98BocX72Z3Q
