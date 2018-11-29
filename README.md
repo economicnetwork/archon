@@ -34,3 +34,5 @@ strategy.py - basic strategy example
 ## install 
 
 see [install doc](docs/install.md)
+
+API keys - recommended is to limit the keys to disallow withdraws
