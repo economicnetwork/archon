@@ -14,9 +14,9 @@ from datetime import datetime
 a = arch.Arch()
 a.set_keys_exchange_file()
 client = a.abroker.get_client(exc.BINANCE)
-
 market = models.get_market("RVN","BTC",exc.BINANCE)
-
 x = client.get_orderbook_symbol(market)
-
-print (x)
+time.sleep(0.5)
+m = models.market_from("RVN","BTC")
+[bids,asks] = a.abroker.get_orderbook(m,exc.BINANCE)
+print (bids[0],asks[0])

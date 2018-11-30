@@ -458,7 +458,21 @@ def conv_orderbook(book, exchange):
             newa.append(d)
         book = [newb,newa]
         return book
-        
+    elif exchange==exc.BINANCE:
+        bids = (book["bids"])
+        asks = (book["asks"])
+        newb = list()
+        for b in bids:
+            p,v,_ = b
+            d = {'price':p,'quantity':v}
+            newb.append(d)
+        newa = list()
+        for a in asks:
+            p,v,_ = a
+            d = {'price':p,'quantity':v}
+            newa.append(d)
+        book = [newb,newa]
+        return book        
 
 
 def conv_summary(m,exchange):
