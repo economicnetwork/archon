@@ -143,6 +143,7 @@ class Broker:
             return book
 
         elif exchange==exc.BINANCE:
+            log.info("get orderbook %s"%(market))
             try:
                 ob = client.get_orderbook_symbol(market)
                 book = models.conv_orderbook(ob, exchange)
