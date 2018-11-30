@@ -102,7 +102,6 @@ class Broker:
             return tx
 
     def get_orderbook(self, market, exchange=None):
-
         client = clients[exchange]
         market = models.conv_markets_to(market, exchange)
         log.info("get orderbook %s %i" %(str(market),exchange))
@@ -137,7 +136,7 @@ class Broker:
             except:
                 log.error("error fetching orderbook",exchange)
         elif exchange==exc.BINANCE:
-            pass
+            client.get_order_book
 
         elif exchange==exc.KRAKEN:
             response = client.query_public('Depth', {'pair': market, 'count': '100'})

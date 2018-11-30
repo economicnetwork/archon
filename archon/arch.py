@@ -363,10 +363,11 @@ class Arch:
     def get_global_orderbook(self, market):
         books = list()
         for e in self.active_exchanges:
-            log.info("global orderbook %i %s"%(e,market))
+            n = exc.NAMES[e]
+            log.info("global orderbook %s %s"%(n,market))
             #smarket = models.conv_markets_to(market, e)  
             try:
-                n = exc.NAMES[e]
+                
                 [bids,asks] = self.abroker.get_orderbook(market,e)
                 dt = datetime.datetime.utcnow()
                 n = exc.NAMES[e]
