@@ -103,7 +103,7 @@ class Arch:
         self.active_exchanges = ne
 
     def set_keys_exchange_file(self,keys_filename="apikeys.toml"):
-        print ("set keys ",self.active_exchanges)
+        log.info("set keys %s"%self.active_exchanges)
         apikeys = parse_toml(keys_filename)
             
         if self.active_exchanges:
@@ -112,7 +112,7 @@ class Arch:
                 if eid >= 0 and eid in self.active_exchanges:
                     self.set_keys_exchange(eid, apikeys[k])
                 else:
-                    print ("exchange not supported or not set")
+                    log.error("exchange not supported or not set")
         else:
             ae = list()
             for k,v in apikeys.items():
@@ -121,8 +121,8 @@ class Arch:
                     self.set_keys_exchange(eid, apikeys[k])
                     ae.append(eid)
                 else:
-                    print ("exchange not supported or not set")
-            print (ae)
+                    log.error ("exchange not supported or not set")
+            log.info("active exchanges %s"%ae)
             self.active_exchanges = ae
 
 
@@ -363,10 +363,11 @@ class Arch:
     def get_global_orderbook(self, market):
         books = list()
         for e in self.active_exchanges:
-            log.info("global orderbook %i %s"%(e,market))
+            n = exc.NAMES[e]
+            log.info("global orderbook %s %s"%(n,market))
             #smarket = models.conv_markets_to(market, e)  
             try:
-                n = exc.NAMES[e]
+                
                 [bids,asks] = self.abroker.get_orderbook(market,e)
                 dt = datetime.datetime.utcnow()
                 n = exc.NAMES[e]

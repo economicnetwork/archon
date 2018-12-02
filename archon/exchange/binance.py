@@ -383,13 +383,12 @@ class Client(object):
         return self._get('ticker/allPrices')
 
     def get_orderbook_tickers(self):
-        """Best price/qty on the order book for all symbols.
-
-        """
+        """Best price/qty on the order book for all symbols."""
         return self._get('ticker/allBookTickers')
 
     def get_order_book(self, **params):
         """Get the Order Book for the market"""
+        #symbol=market
         return self._get('depth', data=params)
 
     def get_recent_trades(self, **params):
@@ -653,9 +652,12 @@ class Client(object):
         return self._get('ticker/price', data=params, version=self.PRIVATE_API_VERSION)
 
     def get_orderbook_ticker(self, **params):
-        """Latest price for a symbol or symbols.
-        """
+        """Latest price for a symbol or symbols."""
         return self._get('ticker/bookTicker', data=params, version=self.PRIVATE_API_VERSION)
+
+    def get_orderbook_symbol(self, market):
+        x = self.get_order_book(symbol=market)
+        return (x)
 
     # Account Endpoints
 

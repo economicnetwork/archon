@@ -15,6 +15,8 @@ There is three types of data:
 
 * global data. data that is aggregated across all exchanges. entries signify which exchange a piece of data belongs to
 
+![arch](https://raw.githubusercontent.com/economicnetwork/archon/master/docs/arch.png)
+
 
 ## Unified data for exchanges
 
