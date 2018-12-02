@@ -22,13 +22,10 @@ print (len(ms))
 ms2 = list(filter(lambda x: x['denom'] == 'BTC', ms))
 print (len(ms2))
 
-for x in ms2:
-    print (x)
+ms = sorted(ms, key=lambda k: k['volume']) 
 
-print ("markets per exchange")
-exs = list(set([x['exchange'] for x in ms]))
-for e in exs:
-    z = list(filter(lambda t: t['exchange']==e, ms))
-    print (e,len(z))
-
+print ("simple screen sorted by volume\npair last")
+for m in ms[:100]:
+        if m['denom']!="BTC": continue
+        print (m['pair'],m['last'])
 

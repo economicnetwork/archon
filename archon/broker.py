@@ -105,7 +105,7 @@ class Broker:
 
         client = clients[exchange]
         market = models.conv_markets_to(market, exchange)
-        log.info("get orderbook %s %i" %(str(market),exchange))
+        log.debug("get orderbook %s %i" %(str(market),exchange))
 
         if exchange==exc.CRYPTOPIA:
             book, err = client.get_orders(market)
