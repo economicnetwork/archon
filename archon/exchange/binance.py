@@ -668,8 +668,7 @@ class Client(object):
 
     # Account Endpoints
 
-    def submit_order(self, market, quantity, price):
-
+    def submit_order_buy(self, market, quantity, price):
         #side, type, quantity, price, 
         # timestamp
         #type': self.ORDER_TYPE_LIMIT,
@@ -682,6 +681,16 @@ class Client(object):
             #archon.exchange.binance.BinanceAPIException: APIError(code=-1013): Filter failure: MIN_NOTIONAL
             log.error(err)
             return None
+
+    def submit_order_sell(self, market, quantity, price):
+        try:
+            d = {'symbol': market, 'side': self.SIDE_SELL, 'price': price, 'type': self.ORDER_TYPE_LIMIT, 'price': price, 'quantity': quantity, 'timeInForce':self.TIME_IN_FORCE_GTC}
+            r = self._post('order', True, data=d)
+            return r
+        except Exception as err:
+            #archon.exchange.binance.BinanceAPIException: APIError(code=-1013): Filter failure: MIN_NOTIONAL
+            log.error(err)
+            return None            
         
 
     def create_order(self, **params):

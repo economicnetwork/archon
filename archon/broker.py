@@ -629,8 +629,13 @@ class Broker:
             return result
 
         elif exchange==exc.BINANCE:
-            r = client.submit_order(market, qty, order_price)
+            log.info("submit %s"%order)
+            if ttype=="BUY":
+                r = client.submit_order_buy(market, qty, order_price)
+            else:
+                r = client.submit_order_sell(market, qty, order_price)
             print (r)
+            return r
 
 
     def submit_order_check(self, order):
