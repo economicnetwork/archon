@@ -1,13 +1,6 @@
-import sys
 import archon.exchange.exchanges as exc
-import archon.broker as broker
 import archon.arch as arch
-import archon.markets as m
 import archon.feeds.cryptocompare as cryptocompare
-import json
-import requests
-import time
-import datetime
 
 a = arch.Arch()
 a.set_keys_exchange_file()

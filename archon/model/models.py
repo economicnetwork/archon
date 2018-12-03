@@ -560,11 +560,7 @@ def conv_summary(m,exchange):
             nom,denom = x,y
             bid = float(m['bidPrice'])
             ask = float(m['askPrice'])
-            high = float(m['highPrice'])
-            low = float(m['lowPrice'])
-            volume = float(m['quoteVolume'])
-            last = float(m['lastPrice'])
-            d = {'exchange':exchange,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'exchange':n}
+            d = {'exchange':exchange,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'exchange':n}
             return d
         except:
             return None

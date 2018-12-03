@@ -171,6 +171,10 @@ class Broker:
             r = client.get_ticker(market)
             r = models.conv_summary(r, exchange)
             return r
+        elif exchange==exc.BINANCE:
+            r = client.get_orderbook_ticker_symbol(market)
+            r = models.conv_summary(r, exchange)
+            return r
 
 
     def get_market_summaries(self, exchange=None):
@@ -568,6 +572,7 @@ class Broker:
         log.info("submit order " + str(exchange) + " " + str(order))
         market,ttype,order_price,qty = order
         market = models.conv_markets_to(market, exchange)
+        client = clients[exchange]
 
         if exchange==exc.CRYPTOPIA:            
             if ttype == "BUY":
@@ -607,7 +612,7 @@ class Broker:
                 return r
 
         elif exchange==exc.HITBTC:
-            client = clients[exchange]
+            
             r = int(random.random()*10000)
             oid = str(12341235+r)
             #log.info("submit %s %s"%(str(oid),str(market)))
@@ -620,6 +625,11 @@ class Broker:
             result = client.submit_order(oid, market, ttype, qty, order_price)
             log.info("order result %s"%str(result))
             return result
+
+        elif exchange==exc.BINANCE:
+            r = client.submit_order(market, qty, order_price)
+            print (r)
+
 
     def submit_order_check(self, order):
         """ submit order but require user action """

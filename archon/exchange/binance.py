@@ -5,6 +5,9 @@ import hmac
 import requests
 import time
 from operator import itemgetter
+from archon.util import *
+logpath = './log'
+log = setup_logger(logpath, 'archon_logger', 'archon')
 
 
 class BinanceAPIException(Exception):
@@ -659,11 +662,30 @@ class Client(object):
         x = self.get_order_book(symbol=market)
         return (x)
 
+    def get_orderbook_ticker_symbol(self, market):
+        x = self.get_orderbook_ticker(symbol=market)
+        return (x)
+
     # Account Endpoints
 
+    def submit_order(self, market, quantity, price):
+
+        #side, type, quantity, price, 
+        # timestamp
+        #type': self.ORDER_TYPE_LIMIT,
+        #newClientOrderId
+        try:
+            d = {'symbol': market, 'side': self.SIDE_BUY, 'price': price, 'type': self.ORDER_TYPE_LIMIT, 'price': price, 'quantity': quantity, 'timeInForce':self.TIME_IN_FORCE_GTC}
+            r = self._post('order', True, data=d)
+            return r
+        except Exception as err:
+            #archon.exchange.binance.BinanceAPIException: APIError(code=-1013): Filter failure: MIN_NOTIONAL
+            log.error(err)
+            return None
+        
+
     def create_order(self, **params):
-        """Send in a new order
-        """
+        """Send in a new order"""
         return self._post('order', True, data=params)
 
     def order_limit(self, timeInForce=TIME_IN_FORCE_GTC, **params):
@@ -727,14 +749,11 @@ class Client(object):
 
     def create_test_order(self, **params):
         """Test new order creation and signature/recvWindow long. Creates and validates a new order but does not send it into the matching engine.
-
-
         """
         return self._post('order/test', True, data=params)
 
     def get_order(self, **params):
         """Check an order's status. Either orderId or origClientOrderId must be sent.
-
         """
         return self._get('order', True, data=params)
 
