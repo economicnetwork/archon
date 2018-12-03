@@ -7,7 +7,7 @@ import archon.exchange.exchanges as exc
 from util import *
 
 a = arch.Arch()
-ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
+ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC,exc.BINANCE]
 a.set_active_exchanges(ae)
 a.set_keys_exchange_file()
 

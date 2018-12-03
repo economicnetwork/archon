@@ -769,7 +769,8 @@ class Client(object):
 
     def cancel_order(self, **params):
         """Cancel an active order. Either orderId or origClientOrderId must be sent"""
-        return self._delete('order', True, data=params)
+        r = self._delete('order', True, data=params)
+        return r
 
     # User Stream Endpoints
     def get_account(self, **params):

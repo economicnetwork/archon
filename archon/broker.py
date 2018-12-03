@@ -558,6 +558,8 @@ class Broker:
 
         elif exchange==exc.BINANCE:
             oo = clients[exc.BINANCE].get_open_orders()            
+            f = lambda x: models.conv_openorder(x,exchange)
+            oo = list(map(f,oo))
 
         n = exc.NAMES[exchange]
         #log.info("open orders " + str(n) + " " + str(oo))
@@ -693,6 +695,9 @@ class Broker:
         
         elif exchange==exc.HITBTC:
             result = clients[exchange].cancel_order(oid)
+
+        elif exchange == exc.BINANCE:
+            result = clients[exchange].cancel_order(symbol=market,orderId=oid)
 
         else:
             log.error("no exchange provided")

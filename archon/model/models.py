@@ -388,6 +388,19 @@ def conv_openorder(order, exchange):
             log.error(e)
             return None
 
+    elif exchange==exc.BINANCE: 
+        n = exc.NAMES[exchange]
+        oid = order['orderId']
+        market = order['symbol']
+        if order['side']=='BUY':
+            ty = 'bid' 
+        else: 
+            ty = 'ask'
+        price = order['price']
+        quantity = order['origQty']
+        d = {'exchange':n,'oid':oid,'market':market,'quantity':quantity,'price':price,'otype':ty}
+        return d            
+
 def conv_orderbook(book, exchange):
     if exchange==exc.CRYPTOPIA:
         bids = (book["Buy"])

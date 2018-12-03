@@ -13,21 +13,19 @@ import datetime
 from util import *
 
 a = arch.Arch()
-ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
+ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC,exc.BINANCE]
 a.set_active_exchanges(ae)
 a.set_keys_exchange_file()
 
 def cancel_exc(e):
     """ list open order and ask to cancel """
-    oo = abroker.open_orders_all(e)
+    oo = a.abroker.open_orders(e)
     n = exc.NAMES[e]
     print ("%s open orders %s" % (n,str(oo)))
     
-    k = m.otype_key(e)
-    k_buy = m.otype_key_buy(e)
-    k_sell = m.otype_key_sell(e)
-    open_bids = list(filter(lambda d: d[k]==k_buy, oo))
-    open_asks = list(filter(lambda d: d[k]==k_sell, oo))
+    k = "otype"    
+    open_bids = list(filter(lambda d: d[k]=="bid", oo))
+    open_asks = list(filter(lambda d: d[k]=="ask", oo))
 
     ok = m.o_key_price(e)
     open_bids = sorted(open_bids, key=lambda k: ok,reverse=True) 
@@ -52,9 +50,9 @@ def cancel_exc(e):
         result = ask_user("cancel " + str(o) + " ? ")
         if result:
             print ("cancelling " + str(o))
-            k = abroker.o_key_id(e)
+            k = a.abroker.o_key_id(e)
             oid = o[k]
-            result = abroker.cancel(oid, e)
+            result = a.abroker.cancel(oid, e)
             print ("result " + str(result))
         else:
             print ("no")
@@ -62,8 +60,9 @@ def cancel_exc(e):
 
 def cancel_indiviual():
     e1 = exc.CRYPTOPIA 
-    e2 = exc.BITTREX
-    for e in [e1,e2]:
+    #e2 = exc.BITTREX
+    e1 = exc.BINANCE
+    for e in [e1]:
         cancel_exc(e)
 
 def cancel_all():
@@ -71,4 +70,5 @@ def cancel_all():
 
 
 if __name__=='__main__': 
-    cancel_all()
+    #cancel_all()
+    cancel_indiviual()

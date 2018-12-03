@@ -140,7 +140,9 @@ class Arch:
         return list(self.db.apikeys.find())
     
     def sync_orders(self):
-        self.openorders = self.global_openorders()
+        oo = self.global_openorders()
+        log.info("sync orders %s"%oo)
+        self.openorders = oo
 
     def get_by_id(self, oid):
         x = list(filter(lambda x: x['oid'] == oid, self.openorders))
