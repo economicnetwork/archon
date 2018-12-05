@@ -80,7 +80,6 @@ class Broker:
             except:
                 status[e] = "disconnected"
 
-
     def market_history(self, market, exchange=None):
 
         client = clients[exchange]
@@ -100,6 +99,7 @@ class Broker:
             f = lambda x: models.conv_tx(x, exchange, market)
             tx = list(map(f,tx))  
             return tx
+        #TODO
 
     def get_orderbook(self, market, exchange=None):
         client = clients[exchange]
@@ -346,7 +346,7 @@ class Broker:
     # --- trading info ---
 
     def balance_all(self, exchange=None):
-        log.info("balance")
+        log.debug("get balance %i"%exchange)
 
         client = clients[exchange]
 

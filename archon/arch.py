@@ -83,16 +83,16 @@ class Arch:
         #self.mongoHost = mongoHost
         #self.mongoPort = mongoPort
         self.mongo_url = url
-        log.info("using mongo " + str(url))
+        log.debug("using mongo " + str(url))
         self.mongoclient = MongoClient(self.mongo_url)
-        log.info("db %s"%dbName)
+        log.debug("db %s"%dbName)
         self.db = self.mongoclient[dbName]
 
     def get_db(self):
         return self.db
 
     def set_active_exchanges(self, exchanges):
-        log.info("set active exchanges %s"%exchanges)
+        log.debug("set active exchanges %s"%exchanges)
         self.active_exchanges = exchanges  
 
     def set_active_exchanges_name(self, exchanges_names):
@@ -148,8 +148,7 @@ class Arch:
         x = list(filter(lambda x: x['oid'] == oid, self.openorders))
         return x[0]
 
-
-    # --- facade data ---    
+    # --- broker data ---    
 
     def global_openorders(self):
         oo = list()
@@ -166,6 +165,7 @@ class Arch:
         log.debug("all open orders " + str(oo))
         return oo  
 
+    """
     def all_balance(self):        
         bl = list()
         for e in self.active_exchanges:
@@ -176,12 +176,14 @@ class Arch:
             for x in z:
                 x['exchange'] = n
                 bl.append(x)
-        log.info("balance all %s"%(str(bl)))
+        log.debug("balance all %s"%(str(bl)))
         return bl
+    """
 
     def global_balances(self):
+        """ a list of balances by currency and exchange """
         bl = list()
-        log.info("active exchanges %s"%(self.active_exchanges))
+        log.debug("active exchanges %s"%(self.active_exchanges))
         for e in self.active_exchanges:
             n = exc.NAMES[e]
             b = self.abroker.balance_all(exchange=e)
@@ -194,22 +196,13 @@ class Arch:
         return bl
 
     def global_balances_usd(self):
-        bl = list()
-        for e in self.active_exchanges:
-            n = exc.NAMES[e]
-            b = self.abroker.balance_all(exchange=e)
-            if b == None: print ("could not fetch balances from %s"%n)
-            for x in b:
-                x['exchange'] = n
-                s = x['symbol']
-                t = float(x['amount'])
-                if t > 0:
-                    usd_price = cryptocompare.get_usd(s)    
-                    x['USDprice'] = usd_price        
-                    x['USDvalue'] = round(t*usd_price,2)
-                    
-                    if x['USDvalue'] > 1:
-                        bl.append(x)
+        bl = self.global_balances()
+        for x in bl:
+            s = x['symbol']
+            usd_price = cryptocompare.get_usd(s)    
+            x['USDprice'] = usd_price        
+            x['USDvalue'] = round(t*usd_price,2)                
+            #if x['USDvalue'] > 1:                
         return bl
 
     def global_tradehistory(self):
@@ -221,9 +214,7 @@ class Arch:
                 txlist.append(x)
         return txlist
 
-        
-        
-
+    #TODO             
     def submit_order(self, order, exchange=None):
         if exchange is None: exchange=self.selected_exchange
         #TODO check balance before submit
@@ -271,7 +262,6 @@ class Arch:
         allbids.reverse()
         allasks = sorted(allasks, key=lambda k: k['price'])
         return [allbids,allasks,ts]
-
 
     def global_orderbook(self, market):
         #self.db.orderbooks.drop()
@@ -361,7 +351,6 @@ class Arch:
         b = self.db.balances.find_one()
         return b
 
-
     def get_global_orderbook(self, market):
         books = list()
         for e in self.active_exchanges:
@@ -419,7 +408,6 @@ class Arch:
             except:
                 pass
 
-
     def sync_candle_daily(self, market, exchange):
         log.debug("get candles %s %s "%(market, str(exchange)))
         candles = self.abroker.get_candles_daily(market, exchange)
@@ -451,7 +439,6 @@ class Arch:
 
 
 
-
     def transaction_queue(self,exchange):
         now = datetime.datetime.utcnow()
         #delta = now - self.starttime
@@ -462,39 +449,3 @@ class Arch:
             if dt > self.starttime:
                 print ("new tx")
             
-"""
-def tx_history_converted(nom, denom, exchange):
-    if exchange == exc.CRYPTOPIA:   
-        market = markets.get_market(nom,denom,exchange) 
-        txs = abroker.market_history(market,exchange)
-        txs.reverse()
-        new_txs_list = list() 
-        print (len(txs))   
-        for txitem in txs[:]:
-            #print ("convert "+ str(txitem))
-            txd = model.convert_tx(txitem, exc.CRYPTOPIA, market)
-            new_txs_list.append(txd)
-        return new_txs_list
-    elif exchange == exc.BITTREX:  
-        market = markets.get_market(nom,denom,exc.BITTREX)
-        txs = abroker.market_history(market,exc.BITTREX)
-        txs.reverse()
-        #log.info("txs " + str(txs[:3]))    
-        new_txs_list = list()            
-        for txitem in txs[:]:
-            txd = model.convert_tx(txitem, exc.BITTREX, market)
-            new_txs_list.append(txd)
-        return new_txs_list
-
-    elif exchange == exc.KUCOIN:  
-        market = markets.get_market(nom,denom,exc.KUCOIN)
-        txs = abroker.market_history(market,exc.KUCOIN)
-        new_txs_list = list()
-        for txitem in txs:
-            txd = model.convert_tx(txitem, exchange, market)
-            new_txs_list.append(txd)
-        return new_txs_list
-"""            
-        
-
-
