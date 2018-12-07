@@ -24,4 +24,12 @@ for e in exs:
     z = list(filter(lambda t: t['exchange']==e, ms))
     print (e,len(z))
 
+"""
+markets per exchange
+Bittrex 292
+Kucoin 402
+Cryptopia 1562
+Binance 414
+Hitbtc 911
+"""
 

@@ -318,6 +318,8 @@ class Arch:
         result = self.db.candles.find_one({'market': market})        
         return result
 
+    # sync functions
+
     def sync_orderbook(self, market, exchange):
         smarket = models.conv_markets_to(market, exchange)  
         #print ("sync",market," ",exchange)   

@@ -26,6 +26,8 @@ import time
 import random
 import json
 
+from orders import *
+
 
 clients = {}
 
@@ -398,7 +400,6 @@ class Broker:
                 return result
             except:
                 return -1
-
         
     def get_total_balance(self, currency='USD',exchange=None):
         """Get total balance in your currency, USD by default"""
@@ -566,7 +567,7 @@ class Broker:
         return oo    
 
     # --- actions ---
-        
+    
     def submit_order(self, order, exchange=None):
         """ submit order which is array [type,order,qty] """
         # ("order " + str(order))         
@@ -576,66 +577,49 @@ class Broker:
         market = models.conv_markets_to(market, exchange)
         client = clients[exchange]
 
-        if exchange==exc.CRYPTOPIA:            
-            if ttype == "BUY":
-                result, err = clients[exc.CRYPTOPIA].submit_trade(market, "BUY", order_price, qty)
-                if err:
-                    log.error("! error with order " + str(order) + " " + str(err))
-                else:
-                    log.info("result " + str(result))
-                    return result
-            elif ttype == "SELL":
-                result, err = clients[exc.CRYPTOPIA].submit_trade(market, "SELL", order_price, qty)
-                if err:
-                    log.error("error order " + str(order))
-                else:
-                    log.info("result " + str(result))
-                    log.info("result " + str(result))
+        if exchange==exc.CRYPTOPIA:                        
+            order_result, err = clients[exc.CRYPTOPIA].submit_trade(market, ttype, order_price, qty)
+            if err:
+                log.error("! error with order " + str(order) + " " + str(err))                
 
         elif exchange==exc.BITTREX:
-            if ttype == "BUY":
-                result = clients[exc.BITTREX].buy_limit(market, qty, order_price)
-                log.info("order result %s" %str(result))
-                return result
-            elif ttype == "SELL":
-                r = clients[exc.BITTREX].sell_limit(market, qty, order_price)
-                log.info("order result %s" %str(r))
-                return r
+            if ttype == ORDER_SIDE_BUY:
+                order_result = clients[exc.BITTREX].buy_limit(market, qty, order_price)                
+            elif ttype == ORDER_SIDE_SELL:
+                order_result = clients[exc.BITTREX].sell_limit(market, qty, order_price)
+                
 
         elif exchange==exc.KUCOIN:
             c = clients[exc.KUCOIN]
-            if ttype == "BUY":
-                r = c.create_buy_order(market, order_price, qty)
-                log.info("order result %s" %str(r))
-                return r
-            elif ttype == "SELL":
-                r = c.create_sell_order(market, order_price, qty)
-                log.info("order result %s" %str(r))
-                return r
+            if ttype == ORDER_SIDE_BUY:
+                order_result = c.create_buy_order(market, order_price, qty)                
+            elif ttype == ORDER_SIDE_SELL:
+                order_result = c.create_sell_order(market, order_price, qty)
+                
 
         elif exchange==exc.HITBTC:
             
-            r = int(random.random()*10000)
-            oid = str(12341235+r)
+            ra = int(random.random()*10000)
+            oid = str(12341235+ra)
             #log.info("submit %s %s"%(str(oid),str(market)))
             log.info("submit " + str(oid) + " " + str(market))
-            if ttype=="BUY": 
+            if ttype==ORDER_SIDE_BUY: 
                 ttype="buy"
             else:
                 ttype="sell"
             
-            result = client.submit_order(oid, market, ttype, qty, order_price)
-            log.info("order result %s"%str(result))
-            return result
+            order_result = client.submit_order(oid, market, ttype, qty, order_price)
+            
 
         elif exchange==exc.BINANCE:
             log.info("submit %s"%order)
-            if ttype=="BUY":
-                r = client.submit_order_buy(market, qty, order_price)
+            if ttype==ORDER_SIDE_BUY:
+                order_result = client.submit_order_buy(market, qty, order_price)
             else:
-                r = client.submit_order_sell(market, qty, order_price)
-            print (r)
-            return r
+                order_result = client.submit_order_sell(market, qty, order_price)
+
+        log.info("order result: %s"%str(order_result))
+        return order_result
 
 
     def submit_order_check(self, order):
