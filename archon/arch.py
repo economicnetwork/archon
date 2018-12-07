@@ -210,8 +210,11 @@ class Arch:
         for e in self.active_exchanges:
             n = exc.NAMES[e]
             tx = self.abroker.get_tradehistory_all(exchange=e)
-            for x in tx:
-                txlist.append(x)
+            #print (tx)
+            if tx != None:
+                for x in tx:
+                    x["exchange"] = n
+                    txlist.append(x)
         return txlist
 
     #TODO             
@@ -290,7 +293,7 @@ class Arch:
     def global_txhistory(self, market):
         tx_all = list()
         for e in self.active_exchanges:            
-            n = exc.NAMES[exchange]
+            n = exc.NAMES[e]
             txs = a.abroker.market_history(market,e)
             for tx in txs:
                 tx["exchange"] = n

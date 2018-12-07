@@ -168,6 +168,52 @@ def conv_timestamp_tx(ts, exchange):
         return tsf
 
 
+def conv_timestamp_tx_dt(ts, exchange):   
+    target_format = '%Y-%m-%dT%H:%M:%S' 
+    if exchange==exc.CRYPTOPIA:
+        #tsf = datetime.datetime.utcfromtimestamp(int(ts)/1000)
+        tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
+        utc=pytz.UTC
+        utc_dt = tsf.astimezone(pytz.utc)
+        return utc_dt
+        
+        #return utc_dt
+    elif exchange==exc.BITTREX:
+        ts = ts.split('.')[0]
+        tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
+        utc=pytz.UTC
+        utc_dt = tsf.astimezone(pytz.utc)
+        utc_dt = utc_dt + datetime.timedelta(hours=4)
+        return utc_dt
+
+    elif exchange==exc.KUCOIN:
+        tsf = datetime.datetime.utcfromtimestamp(ts)
+        #tsf = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
+        utc=pytz.UTC
+        utc_dt = tsf.astimezone(pytz.utc)
+        utc_dt = utc_dt + datetime.timedelta(hours=2)
+        return utc_dt
+        #tsf = utc_dt.strftime('%H:%M:%S')
+        #return tsf
+
+    elif exchange==exc.HITBTC:
+        #2018-10-18T00:00:00.000Z
+        ts = ts[:-5]
+        x = datetime.datetime.strptime(ts,'%Y-%m-%dT%H:%M:%S')
+        utc_dt = x.astimezone(pytz.utc)
+        utc_dt = utc_dt + datetime.timedelta(hours=2)
+        return utc_dt
+
+    elif exchange==exc.BINANCE:
+        #ts = int(t1/1000)
+        #ts = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        
+        tsf = datetime.datetime.utcfromtimestamp(int(ts/1000))
+        utc=pytz.UTC
+        utc_dt = tsf.astimezone(pytz.utc)
+        utc_dt = utc_dt + datetime.timedelta(hours=2)
+        return utc_dt
+
 
 
 def conv_timestamp(ts, exchange):    
@@ -716,7 +762,9 @@ def conv_candle(history, exchange):
         newcandle = list()
         for x in history:
             ts,o,h,l,c,v = x[:6]
-            dt = conv_timestamp_tx(ts, exchange)     
+            dt = conv_timestamp_tx_dt(ts, exchange)  
+            #conv_timestamp_tx_dt   
+            #print (dt,type(dt))
             newcandle.append([dt,o,h,l,c,v])
         return newcandle
 
