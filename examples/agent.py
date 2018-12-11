@@ -31,14 +31,13 @@ def agent_config():
     parsed_toml = toml.loads(toml_string)
     return parsed_toml
 
-
 logpath = './log'
 log = setup_logger(logpath, 'info_logger', 'mm')
 
 
 class Agent(threading.Thread):
 
-    def __init__(self, exchange, market):        
+    def __init__(self, exchange):        
         threading.Thread.__init__(self)   
         self.exchange=exchange     
         #config = agent_config()["AGENT"]
@@ -47,16 +46,17 @@ class Agent(threading.Thread):
         self.threadID = "thread-" + self.agent_id
         self.abroker = broker.Broker()
         self.arch = arch.Arch()
-        arch.setClientsFromFile(self.abroker)        
-        nom,denom = market.split('_')
+        #arch.setClientsFromFile(self.abroker)        
+        #nom,denom = market.split('_')
         
-        self.market = models.get_market(nom,denom,self.exchange)
+        #self.market = models.get_market(nom,denom,self.exchange)
         self.rho = 0.03        
         self.openorders = list()
         self.round_precision = 8
         #pip paramter for ordering
         self.pip = 0.0000001
 
+    """
     def cancel_all(self):
         oo = self.abroker.open_orders_symbol(self.market,self.exchange)
         for o in oo:
@@ -76,6 +76,7 @@ class Agent(threading.Thread):
                 oid = o[k]
                 result = self.abroker.cancel(o)
                 print ("result" + str(result))
+    """
 
     def submit_buy(self,price, qty):
         o = [self.market, "BUY", price, qty]
