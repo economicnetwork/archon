@@ -44,9 +44,14 @@ class Broker:
 
     def __init__(self):
         #log = logging.getLogger("arch."+__name__)
-        #log.info("init broker")
+        #logger.info("init broker")
         logger.start("log/broker.log", rotation="500 MB")
         logger.debug("init broker")
+        #action_level = logger.level("ACTION", no=8, color="<yellow>")
+        #logger.log("ACTION", "??????action")
+
+        self.submitted_orders = 0
+        self.canceled_orders = 0
 
 
     def set_api_keys(self, exchange, key, secret):
@@ -594,24 +599,34 @@ class Broker:
         market = models.conv_markets_to(market, exchange)
         client = clients[exchange]
 
+        order_success = False
+
         if exchange==exc.CRYPTOPIA:                        
             order_result, err = clients[exc.CRYPTOPIA].submit_trade(market, ttype, order_price, qty)
             if err:
                 logger.error("! error with order " + str(order) + " " + str(err))                
+            else:
+                order_success = True
 
         elif exchange==exc.BITTREX:
             if ttype == ORDER_SIDE_BUY:
                 order_result = clients[exc.BITTREX].buy_limit(market, qty, order_price)                
+                #TODO check status
+                order_success = True
             elif ttype == ORDER_SIDE_SELL:
                 order_result = clients[exc.BITTREX].sell_limit(market, qty, order_price)
+                #TODO check status
+                order_success = True
                 
 
         elif exchange==exc.KUCOIN:
             c = clients[exc.KUCOIN]
             if ttype == ORDER_SIDE_BUY:
-                order_result = c.create_buy_order(market, order_price, qty)                
+                order_result = c.create_buy_order(market, order_price, qty)  
+                order_success = True              
             elif ttype == ORDER_SIDE_SELL:
                 order_result = c.create_sell_order(market, order_price, qty)
+                order_success = True
                 
 
         elif exchange==exc.HITBTC:
@@ -626,15 +641,23 @@ class Broker:
                 ttype="sell"
             
             order_result = client.submit_order(oid, market, ttype, qty, order_price)
+            order_success = True
             
 
         elif exchange==exc.BINANCE:
             logger.info("submit %s"%order)
             if ttype==ORDER_SIDE_BUY:
                 order_result = client.submit_order_buy(market, qty, order_price)
+                logger.info("order result: %s"%str(order_result))
+                order_success = True
             else:
                 order_result = client.submit_order_sell(market, qty, order_price)
+                
+                order_success = True
 
+        if order_success:
+            self.submitted_orders +=1
+            #TODO log submitted order separately
         logger.info("order result: %s"%str(order_result))
         return order_result
 
@@ -656,15 +679,15 @@ class Broker:
         oid = order['oid']
         market = order['market']
         otype = order['otype']       
-        #log.info("cancel " + str(order)) 
-        log.info("cancel " + str(oid) + " " + str(e) + " " + str(otype) + " " + str(market))
+        #logger.info("cancel " + str(order)) 
+        logger.info("cancel " + str(oid) + " " + str(e) + " " + str(otype) + " " + str(market))
         
         if exchange==exc.CRYPTOPIA:            
             result,err = clients[exc.CRYPTOPIA].cancel_trade_id(oid)
             
         elif exchange==exc.BITTREX:
             result = clients[exc.BITTREX].cancel(oid)
-            log.info("bitrex " + str(result))
+            logger.info("bitrex " + str(result))
 
         elif exchange==exc.KUCOIN:
             symbol = models.conv_markets_to(market, exchange)
@@ -672,43 +695,50 @@ class Broker:
                 f = "BUY"
             else:
                 f = "SELL"   
-            log.info("cancel ",symbol,oid,f)
+            logger.info("cancel ",symbol,oid,f)
             result = clients[exc.KUCOIN].cancel_order(oid,f,symbol)      
+            self.canceled_orders +=1
             return result                  
                         
         elif exchange==exc.HITBTC:
             result = clients[exc.HITBTC].cancel_order(oid)
+            self.canceled_orders +=1
                     
-        log.debug("result " + str(result))
+        logger.debug("result " + str(result))
         return result
 
     def cancel_id(self, oid, otype=None, market=None, exchange=None):
         """ cancel by id """
             
-        log.info("cancel! " + str(oid) + " " + str(exchange) + " " + str(otype))
+        logger.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype))
         result = None
         if exchange==exc.CRYPTOPIA:            
             result,err = clients[exc.CRYPTOPIA].cancel_trade_id(oid)
+            self.canceled_orders +=1
             
         elif exchange==exc.BITTREX:
             result = clients[exc.BITTREX].cancel(oid)
+            self.canceled_orders +=1
             
         elif exchange==exc.KUCOIN:
             order_type = otype
             market = models.conv_markets_from(market, exchange)
-            log.info("cancel! " + str(oid) + " " + str(exchange) + " " + str(otype) + " " + str(market))            
+            logger.info("cancel! " + str(oid) + " " + str(exchange) + " " + str(otype) + " " + str(market))            
             result = clients[exc.KUCOIN].cancel_order(oid,order_type,market)
+            self.canceled_orders +=1
         
         elif exchange==exc.HITBTC:
             result = clients[exchange].cancel_order(oid)
+            self.canceled_orders +=1
 
         elif exchange == exc.BINANCE:
             result = clients[exchange].cancel_order(symbol=market,orderId=oid)
+            self.canceled_orders +=1
 
         else:
-            log.error("no exchange provided")
+            logger.error("no exchange provided")
 
-        log.info("result " + str(result))
+        logger.info("result " + str(result))
         return result
 
     def get_deposits(self, exchange=None):

@@ -438,6 +438,16 @@ class Arch:
         n,d = market.split('_')
         self.db.candles.insert({"exchange":n,"market":market,"nom":n,"denom":d,"candles":candles,"interval": "1d"})
 
+    def sync_candle_minute(self, market, exchange):
+        logger.debug("get candles %s %s "%(market, str(exchange)))
+        candles = self.abroker.get_candles_minute(market, exchange)
+        n = exc.NAMES[exchange]
+        n,d = market.split('_')
+        dt = datetime.datetime.utcnow()        
+        dts = dt.strftime('%H:%M:%S')        
+        self.db.candles.insert({"exchange":n,"market":market,"nom":n,"denom":d,"candles":candles,"interval": "1m", "time_insert":dts})
+        
+
     def sync_candles_all(self, market):
         for e in self.active_exchanges:            
             self.sync_candle_daily(market, e)   
