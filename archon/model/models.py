@@ -8,12 +8,8 @@ import datetime
 import pytz
 from archon.util import *
 
-logpath = './log'
-log = setup_logger(logpath, 'archon_logger', 'archon')
+from loguru import logger
 
-
-#logpath = './log'
-#log = setup_logger(logpath, 'model_logger', 'model')
 
 COL_OPEN = 1
 COL_HIGH = 2

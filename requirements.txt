@@ -8,3 +8,4 @@ python-binance
 krakenex
 bitmex
 bitmex-ws
+loguru

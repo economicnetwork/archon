@@ -6,13 +6,15 @@ import requests
 import time
 from operator import itemgetter
 from archon.util import *
-logpath = './log'
-log = setup_logger(logpath, 'archon_logger', 'archon')
+from loguru import logger
 
 
 class BinanceAPIException(Exception):
 
     def __init__(self, response):
+        logger.start("log/binance.log", rotation="500 MB")
+        logger.debug("init binance")
+
         self.code = 0
         try:
             json_res = response.json()

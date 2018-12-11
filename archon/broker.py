@@ -28,7 +28,6 @@ import json
 
 from archon.orders import *
 
-log = logging.getLogger(__name__)
 
 clients = {}
 
@@ -38,7 +37,6 @@ clients = {}
 rex_API_v2= "rex_API_v2"
 
 from loguru import logger
-
 
 
  
