@@ -636,6 +636,11 @@ class Client(object):
         #x = self.get_klines(symbol="DCRBTC",startTime=startTime,endTime=endTime,limit=5000,interval=resolution)
         #return x
 
+    def get_candles_minute(self, market):
+        resolution = "1m"
+        x = self.get_klines(symbol=market,limit=100,interval=resolution)
+        return x
+
     def get_candles_hourly(self, market):
         resolution = "1h"
         x = self.get_klines(symbol=market,limit=100,interval=resolution)

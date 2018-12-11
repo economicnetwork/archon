@@ -10,8 +10,9 @@ import datetime
 from archon.feeds import cryptocompare
 from archon.util import *
 
-logpath = './log'
-log = setup_logger(logpath, 'archon_logger', 'archon')
+import logging
+from loguru import logger
+
 
 def toml_file(fs):
     with open(fs, "r") as f:
@@ -30,7 +31,7 @@ def set_keys_exchange(abroker, e, keys):
 """
 def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
     apikeys = parse_toml(keys_filename)
-    log.debug(apikeys)
+    logger.debug(apikeys)
         
     for k,v in apikeys.items():
         eid = exc.get_id(k)
@@ -54,6 +55,12 @@ class Arch:
     """
 
     def __init__(self):
+        logpath = './log'
+        log = setup_logger(logpath, 'archon_logger', 'archon')
+
+        logger.start("log/arch.log", rotation="500 MB")
+        logger.debug("init arch")
+
         filename = "apikeys.toml"
         self.abroker = broker.Broker()
         #setClientsFromFile(self.abroker, filename)
@@ -75,24 +82,28 @@ class Arch:
             url = mongo_conf["url"]
             self.set_mongo(url, dbName)
         except:
-            log.info("no conf.toml file")
+            logger.info("no conf.toml file")
 
         self.starttime = datetime.datetime.utcnow()
+
+        logging.getLogger("urllib3").setLevel(logging.WARNING)
+        logging.getLogger("requests").setLevel(logging.WARNING)
+
         
     def set_mongo(self, url, dbName):
         #self.mongoHost = mongoHost
         #self.mongoPort = mongoPort
         self.mongo_url = url
-        log.debug("using mongo " + str(url))
+        logger.debug("using mongo " + str(url))
         self.mongoclient = MongoClient(self.mongo_url)
-        log.debug("db %s"%dbName)
+        logger.debug("db %s"%dbName)
         self.db = self.mongoclient[dbName]
 
     def get_db(self):
         return self.db
 
     def set_active_exchanges(self, exchanges):
-        log.debug("set active exchanges %s"%exchanges)
+        logger.debug("set active exchanges %s"%exchanges)
         self.active_exchanges = exchanges  
 
     def set_active_exchanges_name(self, exchanges_names):
@@ -103,7 +114,7 @@ class Arch:
         self.active_exchanges = ne
 
     def set_keys_exchange_file(self,keys_filename="apikeys.toml"):
-        log.info("set keys %s"%self.active_exchanges)
+        logger.info("set keys %s"%self.active_exchanges)
         apikeys = parse_toml(keys_filename)
             
         if self.active_exchanges:
@@ -112,7 +123,7 @@ class Arch:
                 if eid >= 0 and eid in self.active_exchanges:
                     self.set_keys_exchange(eid, apikeys[k])
                 else:
-                    log.error("exchange not supported or not set")
+                    logger.error("exchange not supported or not set")
         else:
             ae = list()
             for k,v in apikeys.items():
@@ -121,15 +132,15 @@ class Arch:
                     self.set_keys_exchange(eid, apikeys[k])
                     ae.append(eid)
                 else:
-                    log.error ("exchange not supported or not set")
-            log.info("active exchanges %s"%ae)
+                    logger.error ("exchange not supported or not set")
+            logger.info("active exchanges %s"%ae)
             self.active_exchanges = ae
 
 
     def set_keys_exchange(self, exchange, keys):
         pubkey = keys["public_key"]
         secret = keys["secret"]
-        log.debug ("set keys %i %s"%(exchange,keys))
+        logger.debug ("set keys %i %s"%(exchange,keys['public_key']))
         #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.abroker.set_api_keys(exchange, pubkey, secret)
 
@@ -141,7 +152,7 @@ class Arch:
     
     def sync_orders(self):
         oo = self.global_openorders()
-        log.info("sync orders %s"%oo)
+        logger.info("sync orders %s"%oo)
         self.openorders = oo
 
     def get_by_id(self, oid):
@@ -162,28 +173,28 @@ class Arch:
                         x['exchange'] = n
                         oo.append(x)
             
-        log.debug("all open orders " + str(oo))
+        logger.debug("all open orders " + str(oo))
         return oo  
 
     """
     def all_balance(self):        
         bl = list()
         for e in self.active_exchanges:
-            log.debug("get balance ",e)
+            logger.debug("get balance ",e)
             z = self.abroker.balance_all(e)
-            log.debug(z,e)
+            logger.debug(z,e)
             n = exc.NAMES[e]
             for x in z:
                 x['exchange'] = n
                 bl.append(x)
-        log.debug("balance all %s"%(str(bl)))
+        logger.debug("balance all %s"%(str(bl)))
         return bl
     """
 
     def global_balances(self):
         """ a list of balances by currency and exchange """
         bl = list()
-        log.debug("active exchanges %s"%(self.active_exchanges))
+        logger.debug("active exchanges %s"%(self.active_exchanges))
         for e in self.active_exchanges:
             n = exc.NAMES[e]
             b = self.abroker.balance_all(exchange=e)
@@ -230,22 +241,29 @@ class Arch:
         self.abroker.cancel_id(oid, otype, market, exchange)
 
     def cancel_all(self, exchange=None):
-        #log.info("cancel all")
+        #logger.info("cancel all")
         if exchange is None: exchange=self.selected_exchange
         self.sync_orders()
         for o in self.openorders:
-            log.info("cancel " + str(o))
+            logger.info("cancel " + str(o))
             self.cancel_order(o['oid'])
         
-    def fetch_global_markets(self):
+    def fetch_global_markets(self,denom=None):
         allmarkets = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
-            log.info("fetch %s"%n)
+            logger.info("fetch %s"%n)
             m = self.abroker.get_market_summaries(e)
             for x in m:
                 x['exchange'] = n
-            allmarkets += m
+            
+            if denom:
+                filtered = list()
+                f = lambda x: x['denom']=='BTC'
+                m = list(filter(f, m))            
+                allmarkets += m
+            else:
+                allmarkets += m
         return allmarkets
 
     def aggregate_book(self, books):
@@ -265,7 +283,7 @@ class Arch:
 
     def global_orderbook(self, market):
         #self.db.orderbooks.drop()
-        log.info("global orderbook for %s"%market)
+        logger.info("global orderbook for %s"%market)
         allbids = list()
         allasks = list()
         ts = None
@@ -314,7 +332,7 @@ class Arch:
         return m
 
     def get_candle(self, market):
-        log.debug("get candle " + market)
+        logger.debug("get candle " + market)
         result = self.db.candles.find_one({'market': market})        
         return result
 
@@ -334,7 +352,7 @@ class Arch:
             self.db.orderbooks.insert(x)
             self.db.orderbooks_history.insert(x)
         except:
-            log.info("sync book failed. symbol not supported")
+            logger.info("sync book failed. symbol not supported")
 
     def sync_orderbook_all(self, market):   
         self.db.orderbooks.drop()     
@@ -357,7 +375,7 @@ class Arch:
         books = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
-            log.info("global orderbook %s %s"%(n,market))
+            logger.info("global orderbook %s %s"%(n,market))
             #smarket = models.conv_markets_to(market, e)  
             try:
                 
@@ -370,7 +388,7 @@ class Arch:
                 x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
                 books.append(x)
             except Exception as err:
-                log.error("error global orderbook %i %s %s"%(e,market,err))
+                logger.error("error global orderbook %i %s %s"%(e,market,err))
         [bids,asks,ts] = self.aggregate_book(books)
         return [bids,asks,ts]
 
@@ -411,7 +429,7 @@ class Arch:
                 pass
 
     def sync_candle_daily(self, market, exchange):
-        log.debug("get candles %s %s "%(market, str(exchange)))
+        logger.debug("get candles %s %s "%(market, str(exchange)))
         candles = self.abroker.get_candles_daily(market, exchange)
         n = exc.NAMES[exchange]
         n,d = market.split('_')
@@ -423,13 +441,13 @@ class Arch:
 
     def sync_candle_daily_all(self):
         ms = self.fetch_global_markets()
-        log.info(len(ms))
+        logger.info(len(ms))
 
         #cndl = self.abroker.get_candles_daily(market,exc.BINANCE)
 
         for x in ms[:]:
             market = x['pair']
-            log.info("sync %s"%market)
+            logger.info("sync %s"%market)
             try:
                 self.sync_candle_daily(market,exc.BINANCE)
             except:

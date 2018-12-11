@@ -26,20 +26,30 @@ import time
 import random
 import json
 
-from orders import *
+from archon.orders import *
 
+log = logging.getLogger(__name__)
 
 clients = {}
 
-logpath = './log'
-log = setup_logger(logpath, 'broker_logger', 'broker')
+#logpath = './log'
+#log = setup_logger(logpath, 'broker_logger', 'broker')
 
 rex_API_v2= "rex_API_v2"
+
+from loguru import logger
+
+
+
  
 class Broker:
 
     def __init__(self):
-        log.info("init broker")
+        #log = logging.getLogger("arch."+__name__)
+        #log.info("init broker")
+        logger.start("log/broker.log", rotation="500 MB")
+        logger.debug("init broker")
+
 
     def set_api_keys(self, exchange, key, secret):
         """ set clients, assumes conf file present """
@@ -327,6 +337,8 @@ class Broker:
     def get_candles_minute(self, market, exchange):
         client = clients[exchange]
         market = models.conv_markets_to(market, exchange)
+        log.debug("get_candles_minute %s %s"%(market, exchange))
+        log.info("get_candles_minute %s %s"%(market, exchange))
 
         if exchange == exc.CRYPTOPIA:
             pass            
@@ -340,6 +352,11 @@ class Broker:
         elif exchange==exc.KUCOIN:
             klines = client.get_historical_klines_tv(market, client.RESOLUTION_1MINUTE, '1 day ago UTC')
             return models.conv_candle(klines,exchange)
+
+        elif exchange==exc.BINANCE:
+            klines = client.get_candles_minute(market)  
+            candles = models.conv_candle(klines,exchange)  
+            return candles
 
     def get_latest_candle(self, market, exchange):
         pass
