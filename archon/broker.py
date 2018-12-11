@@ -53,7 +53,7 @@ class Broker:
 
     def set_api_keys(self, exchange, key, secret):
         """ set clients, assumes conf file present """
-        log.debug("set api " + str(exchange))
+        logger.debug("set api " + str(exchange))
         if exchange==exc.CRYPTOPIA:
             clients[exchange] = CryptopiaAPI(key, secret)
         elif exchange==exc.BITTREX:
@@ -116,12 +116,12 @@ class Broker:
     def get_orderbook(self, market, exchange=None):
         client = clients[exchange]
         market = models.conv_markets_to(market, exchange)
-        log.debug("get orderbook %s %i" %(str(market),exchange))
+        logger.debug("get orderbook %s %i" %(str(market),exchange))
 
         if exchange==exc.CRYPTOPIA:
             book, err = client.get_orders(market)
             if err:
-                log.error ("error " + str(err))
+                logger.error ("error " + str(err))
             else:
                 book = models.conv_orderbook(book, exchange)
                 return book
@@ -131,7 +131,7 @@ class Broker:
                 book = models.conv_orderbook(book, exchange)
                 return book
             except:
-                log.error("error fetching orderbook",exchange)
+                logger.error("error fetching orderbook",exchange)
         elif exchange==exc.KUCOIN:
             try:
                 ob = client.get_order_book(market,limit=20)
@@ -146,7 +146,7 @@ class Broker:
                 book = models.conv_orderbook(ob, exchange)
                 return book
             except:
-                log.error("error fetching orderbook",exchange)
+                logger.error("error fetching orderbook",exchange)
 
         elif exchange==exc.KRAKEN:
             response = client.query_public('Depth', {'pair': market, 'count': '100'})
@@ -155,7 +155,7 @@ class Broker:
             return book
 
         elif exchange==exc.BINANCE:
-            log.info("get orderbook %s"%(market))
+            logger.info("get orderbook %s"%(market))
             try:
                 ob = client.get_orderbook_symbol(market)
                 book = models.conv_orderbook(ob, exchange)
@@ -337,8 +337,7 @@ class Broker:
     def get_candles_minute(self, market, exchange):
         client = clients[exchange]
         market = models.conv_markets_to(market, exchange)
-        log.debug("get_candles_minute %s %s"%(market, exchange))
-        log.info("get_candles_minute %s %s"%(market, exchange))
+        logger.debug("get_candles_minute %s %s"%(market, exchange))
 
         if exchange == exc.CRYPTOPIA:
             pass            
@@ -365,7 +364,7 @@ class Broker:
     # --- trading info ---
 
     def balance_all(self, exchange=None):
-        log.debug("get balance %i"%exchange)
+        logger.debug("get balance %i"%exchange)
 
         client = clients[exchange]
 
@@ -403,7 +402,7 @@ class Broker:
 
     def balance_currency(self, currency, exchange=None):
         """ Deprecated: use balance all """
-        log.info("balance_currency " + currency + " " + str(exchange))
+        logger.info("balance_currency " + currency + " " + str(exchange))
 
         if exchange==exc.CRYPTOPIA:
             currency, err = clients[exc.CRYPTOPIA].get_balance(currency)        
@@ -543,12 +542,12 @@ class Broker:
             else:
                 oo = []
         n = exc.NAMES[exchange]
-        #log.info("open orders: " + str(n) + " " + str(oo))
+        #logger.info("open orders: " + str(n) + " " + str(oo))
         return oo
 
     def open_orders(self, exchange=None):
 
-        #log.info("get open orders " + str(exchange))
+        #logger.info("get open orders " + str(exchange))
 
         oo = None
         if exchange==exc.CRYPTOPIA:
@@ -583,7 +582,7 @@ class Broker:
             oo = list(map(f,oo))
 
         n = exc.NAMES[exchange]
-        #log.info("open orders " + str(n) + " " + str(oo))
+        #logger.info("open orders " + str(n) + " " + str(oo))
         return oo    
 
     # --- actions ---
@@ -592,7 +591,7 @@ class Broker:
         """ submit order which is array [type,order,qty] """
         # ("order " + str(order))         
 
-        log.info("submit order " + str(exchange) + " " + str(order))
+        logger.info("submit order " + str(exchange) + " " + str(order))
         market,ttype,order_price,qty = order
         market = models.conv_markets_to(market, exchange)
         client = clients[exchange]
@@ -600,7 +599,7 @@ class Broker:
         if exchange==exc.CRYPTOPIA:                        
             order_result, err = clients[exc.CRYPTOPIA].submit_trade(market, ttype, order_price, qty)
             if err:
-                log.error("! error with order " + str(order) + " " + str(err))                
+                logger.error("! error with order " + str(order) + " " + str(err))                
 
         elif exchange==exc.BITTREX:
             if ttype == ORDER_SIDE_BUY:
@@ -621,8 +620,8 @@ class Broker:
             
             ra = int(random.random()*10000)
             oid = str(12341235+ra)
-            #log.info("submit %s %s"%(str(oid),str(market)))
-            log.info("submit " + str(oid) + " " + str(market))
+            #logger.info("submit %s %s"%(str(oid),str(market)))
+            logger.info("submit " + str(oid) + " " + str(market))
             if ttype==ORDER_SIDE_BUY: 
                 ttype="buy"
             else:
@@ -632,13 +631,13 @@ class Broker:
             
 
         elif exchange==exc.BINANCE:
-            log.info("submit %s"%order)
+            logger.info("submit %s"%order)
             if ttype==ORDER_SIDE_BUY:
                 order_result = client.submit_order_buy(market, qty, order_price)
             else:
                 order_result = client.submit_order_sell(market, qty, order_price)
 
-        log.info("order result: %s"%str(order_result))
+        logger.info("order result: %s"%str(order_result))
         return order_result
 
 
