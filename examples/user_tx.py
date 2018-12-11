@@ -11,18 +11,21 @@ from util import *
 
 import math
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
+a = arch.Arch()
+a.set_keys_exchange_file()
 
 def user_tx():
     #db.user_txs.find()   
     a = arch.Arch()
-    ae = [exc.KUCOIN, exc.BITTREX, exc.CRYPTOPIA, exc.BINANCE]
-    #ae = [exc.BITTREX] #, exc.BINANCE]
+    #ae = [exc.BITTREX, exc.CRYPTOPIA, exc.BINANCE] #, exc.KUCOIN,  exc.HITBTC]
+    ae = [exc.BITTREX, exc.BINANCE] #, exc.KUCOIN,  exc.HITBTC]
     a.set_active_exchanges(ae)
 
     txs = a.global_tradehistory()
     print (len(txs))
+    for tx in txs[:]:
+        print (tx)
+    """
     for tx in txs[:]:        
         #print (tx)
         ts = tx['timestamp'][:19]
@@ -36,6 +39,7 @@ def user_tx():
             a = tx['quantity']
             ty = tx['txtype']
             #print (m,r,a,ty)
+    """
      
 if __name__=='__main__':
     user_tx()

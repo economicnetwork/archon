@@ -510,9 +510,12 @@ class Broker:
             return txs
 
         elif exchange==exc.HITBTC:
-            pass
+            #TODO
+            r = client.get_transactions()
+            print (r)
 
         elif exchange==exc.BINANCE:
+            #TODO
             pass
             #get_my_trades
 
