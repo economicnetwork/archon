@@ -55,10 +55,12 @@ class Arch:
     """
 
     def __init__(self):
-        logpath = './log'
-        log = setup_logger(logpath, 'archon_logger', 'archon')
+        #logpath = './log'
+        #log = setup_logger(logpath, 'archon_logger', 'archon')
 
         logger.start("log/arch.log", rotation="500 MB")
+        #logger.start("log/arch.log", colorize=True, format="<green>{time}</green> <level>{message}</level>")
+
         logger.debug("init arch")
 
         filename = "apikeys.toml"
@@ -82,7 +84,7 @@ class Arch:
             url = mongo_conf["url"]
             self.set_mongo(url, dbName)
         except:
-            logger.info("no conf.toml file")
+            logger.error("no conf.toml file")
 
         self.starttime = datetime.datetime.utcnow()
 
@@ -115,27 +117,29 @@ class Arch:
 
     def set_keys_exchange_file(self,keys_filename="apikeys.toml"):
         logger.info("set keys %s"%self.active_exchanges)
-        apikeys = parse_toml(keys_filename)
+        try:
+            apikeys = parse_toml(keys_filename)
+            if self.active_exchanges:
+                for k,v in apikeys.items():
+                    eid = exc.get_id(k)
+                    if eid >= 0 and eid in self.active_exchanges:
+                        self.set_keys_exchange(eid, apikeys[k])
+                    else:
+                        logger.error("exchange not supported or not set")
+            else:
+                ae = list()
+                for k,v in apikeys.items():
+                    eid = exc.get_id(k)
+                    if eid >= 0:
+                        self.set_keys_exchange(eid, apikeys[k])
+                        ae.append(eid)
+                    else:
+                        logger.error ("exchange not supported or not set")
+                logger.info("active exchanges %s"%ae)
+                self.active_exchanges = ae
+        except Exception as err: 
+            logger.error("error prasing apikeys file %s"%(err))
             
-        if self.active_exchanges:
-            for k,v in apikeys.items():
-                eid = exc.get_id(k)
-                if eid >= 0 and eid in self.active_exchanges:
-                    self.set_keys_exchange(eid, apikeys[k])
-                else:
-                    logger.error("exchange not supported or not set")
-        else:
-            ae = list()
-            for k,v in apikeys.items():
-                eid = exc.get_id(k)
-                if eid >= 0:
-                    self.set_keys_exchange(eid, apikeys[k])
-                    ae.append(eid)
-                else:
-                    logger.error ("exchange not supported or not set")
-            logger.info("active exchanges %s"%ae)
-            self.active_exchanges = ae
-
 
     def set_keys_exchange(self, exchange, keys):
         pubkey = keys["public_key"]
