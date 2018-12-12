@@ -28,25 +28,6 @@ def set_keys_exchange(abroker, e, keys):
     secret = keys["secret"]
     abroker.set_api_keys(e,pubkey,secret)
 
-"""
-def setClientsFromFile(abroker,keys_filename="apikeys.toml"):
-    apikeys = parse_toml(keys_filename)
-    logger.debug(apikeys)
-        
-    for k,v in apikeys.items():
-        eid = exc.get_id(k)
-        if eid >= 0:
-            set_keys_exchange(abroker, eid, apikeys[k])
-        else:
-            print ("exchange not supported")
-
-    try:
-        gconf = parse_toml("conf.toml")
-        mailconf = gconf["MAILGUN"]
-        abroker.set_mail_config(gconf["apikey"], gconf["domain"],gconf["email_from"],gconf["email_to"])
-    except:
-        print ("conf.toml not found. skipping config")
-"""
     
 class Arch:
     """ 
@@ -451,6 +432,14 @@ class Arch:
         dts = dt.strftime('%H:%M:%S')        
         self.db.candles.insert({"exchange":n,"market":market,"nom":n,"denom":d,"candles":candles,"interval": "1m", "time_insert":dts})
         
+    def sync_candle_minute15(self, market, exchange):
+        logger.debug("get candles %s %s "%(market, str(exchange)))
+        candles = self.abroker.get_candles_minute(market, exchange)
+        n = exc.NAMES[exchange]
+        n,d = market.split('_')
+        dt = datetime.datetime.utcnow()        
+        dts = dt.strftime('%H:%M:%S')        
+        self.db.candles.insert({"exchange":n,"market":market,"nom":n,"denom":d,"candles":candles,"interval": "1m", "time_insert":dts})
 
     def sync_candles_all(self, market):
         for e in self.active_exchanges:            

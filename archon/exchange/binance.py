@@ -643,7 +643,7 @@ class Client(object):
         x = self.get_klines(symbol=market,limit=100,interval=resolution)
         return x
 
-    def get_candles_quarterlyhour(self, market):
+    def get_candles_minute15(self, market):
         resolution = self.KLINE_INTERVAL_15MINUTE
         x = self.get_klines(symbol=market,limit=100,interval=resolution)
         return x        
@@ -698,7 +698,7 @@ class Client(object):
             return r
         except Exception as err:
             #archon.exchange.binance.BinanceAPIException: APIError(code=-1013): Filter failure: MIN_NOTIONAL
-            log.error(err)
+            logger.error(err)
             return None
 
     def submit_order_sell(self, market, quantity, price):
@@ -708,7 +708,7 @@ class Client(object):
             return r
         except Exception as err:
             #archon.exchange.binance.BinanceAPIException: APIError(code=-1013): Filter failure: MIN_NOTIONAL
-            log.error(err)
+            logger.error(err)
             return None            
         
 
