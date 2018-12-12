@@ -639,19 +639,31 @@ class Client(object):
         #return x
 
     def get_candles_minute(self, market):
-        resolution = "1m"
+        resolution = self.KLINE_INTERVAL_1MINUTE
         x = self.get_klines(symbol=market,limit=100,interval=resolution)
         return x
 
+    def get_candles_quarterlyhour(self, market):
+        resolution = self.KLINE_INTERVAL_15MINUTE
+        x = self.get_klines(symbol=market,limit=100,interval=resolution)
+        return x        
+
     def get_candles_hourly(self, market):
-        resolution = "1h"
+        resolution = self.KLINE_INTERVAL_1HOUR
         x = self.get_klines(symbol=market,limit=100,interval=resolution)
         return x
 
     def get_candles_daily(self, market):
-        resolution = "1d"
+        resolution = self.KLINE_INTERVAL_1DAY
         x = self.get_klines(symbol=market,limit=100,interval=resolution)
         return x
+
+    def get_candles_timeframe(self, market, timeframe):
+        resolution = timeframe
+        x = self.get_klines(symbol=market,limit=100,interval=resolution)
+        return x
+
+        
 
     def get_ticker(self, **params):
         """24 hour price change statistics."""

@@ -360,6 +360,29 @@ class Broker:
             candles = models.conv_candle(klines,exchange)  
             return candles
 
+    """
+    def get_candles_timeframe(self, market, exchange, timeframe):
+        client = clients[exchange]
+        market = models.conv_markets_to(market, exchange)
+        logger.debug("get_candles_minute %s %s"%(market, exchange))
+
+        if exchange == exc.CRYPTOPIA:
+            pass            
+
+        elif exchange==exc.BITTREX:            
+            pass
+
+        elif exchange==exc.KUCOIN:
+            pass
+
+        elif exchange==exc.BINANCE:
+            #TODO
+            tf = client.KLINE_INTERVAL_15MINUTE
+            klines = client.get_candles_timeframe(market,tf)  
+            candles = models.conv_candle(klines,exchange)  
+            return candles            
+    """
+    
     def get_latest_candle(self, market, exchange):
         pass
         #get_latest_candle                    

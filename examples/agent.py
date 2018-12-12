@@ -47,7 +47,7 @@ class Agent(threading.Thread):
         self.abroker = broker.Broker()
         self.arch = arch.Arch()
         #arch.setClientsFromFile(self.abroker)        
-        #nom,denom = market.split('_')
+        nom,denom = market.split('_')
         
         #self.market = models.get_market(nom,denom,self.exchange)
         self.rho = 0.03        
