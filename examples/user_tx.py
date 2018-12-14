@@ -18,11 +18,11 @@ def user_tx():
     #db.user_txs.find()   
     a = arch.Arch()
     #ae = [exc.BITTREX, exc.CRYPTOPIA, exc.BINANCE] #, exc.KUCOIN,  exc.HITBTC]
-    ae = [exc.BITTREX, exc.BINANCE] #, exc.KUCOIN,  exc.HITBTC]
+    ae = [exc.BINANCE] #, exc.KUCOIN,  exc.HITBTC]
     a.set_active_exchanges(ae)
 
     txs = a.global_tradehistory()
-    print (len(txs))
+    print ("len ",len(txs))
     for tx in txs[:]:
         print (tx)
     """
