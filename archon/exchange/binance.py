@@ -806,9 +806,7 @@ class Client(object):
         return self._get('account', True, data=params)
 
     def get_asset_balance(self, asset, **params):
-        """Get current asset balance.
-
-        """
+        """Get current asset balance"""
         res = self.get_account(**params)
         # find asset balance in list of balances
         if "balances" in res:
@@ -819,7 +817,9 @@ class Client(object):
 
     def get_my_trades(self, **params):
         """Get trades for a specific symbol."""
-        return self._get('myTrades', True, data=params)
+        r = self._get('myTrades', True, data=params)
+        logger.info("trades ",r)
+        return r
 
     def get_system_status(self):
         """Get system status detail."""

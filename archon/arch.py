@@ -150,7 +150,7 @@ class Arch:
         oo = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
-            print (e,n)
+            logger.info(e,n)
             z = self.abroker.open_orders(e)
             if z:                                
                 if len(z) > 0:
@@ -205,6 +205,7 @@ class Arch:
         txlist = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
+            logger.info("get %s"%n)
             tx = self.abroker.get_tradehistory_all(exchange=e)
             #print (tx)
             if tx != None:

@@ -507,6 +507,7 @@ class Broker:
 
         elif exchange==exc.BINANCE:
             tx = client.get_my_trades(symbol=market)
+            logger.info("trade history %s"%(str(tx)))
             f = lambda x: models.conv_usertx(x,exchange)
             r = list(map(f,tx))
             return r
@@ -536,12 +537,25 @@ class Broker:
         elif exchange==exc.HITBTC:
             #TODO
             r = client.get_transactions()
-            print (r)
+            logger.debug(r)
+            return r
 
         elif exchange==exc.BINANCE:
-            #TODO
-            pass
-            #get_my_trades
+            #TODO use balances
+            m = models.get_market("LTC","BTC",exc.BINANCE)
+            ms = [m]
+            alltx = list()
+            for m in ms:                
+                tx = client.get_my_trades(symbol=m)
+                #NEED to brute force symbol because binance is stupid
+                #https://www.reddit.com/r/CryptoMarkets/comments/7qjvxr/binance_api_method_to_retrieve_users_order_trade/
+                logger.info("trade history %s"%(str(tx)))
+                f = lambda x: models.conv_usertx(x,exchange)
+                r = list(map(f,tx))
+                logger.info("trade history %s"%(str(r)))
+                alltx +=r 
+            return alltx
+            
 
     def open_orders_symbol(self, symbol, exchange=None):
 
