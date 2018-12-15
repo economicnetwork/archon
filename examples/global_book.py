@@ -6,7 +6,8 @@ import archon.arch as arch
 import archon.markets as m
 
 a = arch.Arch()
-ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
+#ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
+ae = [exc.BINANCE]
 a.set_active_exchanges(ae)
 a.set_keys_exchange_file()
 
@@ -22,4 +23,9 @@ for b in allbids[:5]:
 print ('*********')
 print ("asks")
 for a in allasks[:5]:
-    print (a)    
+    print (a)   
+
+topbid = float(allbids[0]['price'])
+topask = float(allasks[0]['price'])
+spread = (topask-topbid)/topbid
+print ("spread ",spread)

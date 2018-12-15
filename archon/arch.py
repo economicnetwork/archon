@@ -204,14 +204,29 @@ class Arch:
     def global_tradehistory(self):
         txlist = list()
         for e in self.active_exchanges:
-            n = exc.NAMES[e]
-            logger.info("get %s"%n)
-            tx = self.abroker.get_tradehistory_all(exchange=e)
-            #print (tx)
-            if tx != None:
-                for x in tx:
-                    x["exchange"] = n
-                    txlist.append(x)
+            if e == exc.BINANCE:
+                #TODO use balances instead
+                #markets = self.fetch_global_markets(denom='BTC')
+                b = self.abroker.balance_all(exc.BINANCE)
+                alltx = list()
+                for m in b:
+                    s = m['symbol']
+                    if s == 'BTC': continue
+                    if s == 'USDT': continue
+                    ms = models.get_market(m['symbol'],"BTC",exc.BINANCE)
+                    #print ("?? ",ms)
+                    tx = self.abroker.trade_history(market=ms,exchange=e)
+                    alltx += tx
+                txlist += alltx                    
+            else:
+                n = exc.NAMES[e]
+                logger.info("get %s"%n)
+                tx = self.abroker.get_tradehistory_all(exchange=e)
+                #print (tx)
+                if tx != None:
+                    for x in tx:
+                        x["exchange"] = n
+                        txlist.append(x)
         return txlist
 
     #TODO             
@@ -238,6 +253,7 @@ class Arch:
             self.cancel_order(o['oid'])
         
     def fetch_global_markets(self,denom=None):
+        blocked = ['HSR','VEN']
         allmarkets = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
@@ -249,6 +265,9 @@ class Arch:
             if denom:
                 filtered = list()
                 f = lambda x: x['denom']=='BTC'
+                m = list(filter(f, m))            
+
+                f = lambda x: x['nom'] not in blocked
                 m = list(filter(f, m))            
                 allmarkets += m
             else:
@@ -435,7 +454,7 @@ class Arch:
         
     def sync_candle_minute15(self, market, exchange):
         logger.debug("get candles %s %s "%(market, str(exchange)))
-        candles = self.abroker.get_candles_minute(market, exchange)
+        candles = self.abroker.get_candles_minute15(market, exchange)
         n = exc.NAMES[exchange]
         n,d = market.split('_')
         dt = datetime.datetime.utcnow()        
