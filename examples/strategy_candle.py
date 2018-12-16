@@ -1,5 +1,6 @@
 """
 example candle based strategy
+customized to binance currently
 """
 
 import sys
@@ -27,10 +28,12 @@ class Candletrategy(Agent):
 
     def __init__(self, arch):
         super().__init__(arch, exc.BINANCE)
+
         
     def show_balance(self,ETH_BTC,EOS_BTC):
-        b = self.arch.abroker.balance_all(exc.BINANCE)
+        b = self.balances()
         btc_b = list(filter(lambda x: x["symbol"] == "BTC", b))[0]["amount"]
+        logger.info("BTC %.5f"%btc_b)
         
     def showcandles(self, candles):    
         for z in candles[-10:]:

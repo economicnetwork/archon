@@ -64,6 +64,10 @@ class Agent(threading.Thread):
         self.pip = 0.0000001
         logger.info("agent inited")
 
+    def balances(self):
+        b = self.arch.abroker.balance_all(exc.BINANCE)
+        return b
+
     def cancel_all(self):
         logger.info("cancel all")
         oo = self.openorders
