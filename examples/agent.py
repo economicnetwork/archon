@@ -21,6 +21,7 @@ import archon.model.models as models
 from util import *
 import random
 import math
+from loguru import logger
 
 def toml_file(fs):
     with open(fs, "r") as f:
@@ -31,72 +32,85 @@ def agent_config():
     parsed_toml = toml.loads(toml_string)
     return parsed_toml
 
+
 logpath = './log'
 log = setup_logger(logpath, 'info_logger', 'mm')
 
 
 class Agent(threading.Thread):
 
-    def __init__(self, exchange):        
-        threading.Thread.__init__(self)   
-        self.exchange=exchange     
+    def __init__(self, arch, exchange):
+        threading.Thread.__init__(self)        
         #config = agent_config()["AGENT"]
         #m = config["market"]    
-        self.agent_id = "strategy" #config["agentid"]
+        market = "LTC_BTC"
+        self.agent_id = "agent" #config["agentid"]
         self.threadID = "thread-" + self.agent_id
-        self.abroker = broker.Broker()
-        self.arch = arch.Arch()
-        #arch.setClientsFromFile(self.abroker)        
+        self.abroker = arch.abroker
+        self.arch = arch
         nom,denom = market.split('_')
-        
-        #self.market = models.get_market(nom,denom,self.exchange)
-        self.rho = 0.03        
+        #TODO config
+        self.e = exchange
+        #self.market = models.get_market(nom,denom,self.e)
+        self.market = market
+        self.rho = 0.1
+
         self.openorders = list()
+
         self.round_precision = 8
         #pip paramter for ordering
         self.pip = 0.0000001
+        logger.info("agent inited")
 
-    """
     def cancel_all(self):
-        oo = self.abroker.open_orders_symbol(self.market,self.exchange)
+        logger.info("cancel all")
+        oo = self.openorders
+        logger.info(oo)
         for o in oo:
             print ("cancelling ",o)
-            result = self.abroker.cancel(o)
-            print ("result" + str(result))
+            result = self.abroker.cancel(o) #, exchange=self.e)
+            print ("cancel result: " + str(result))
+            time.sleep(0.5)
 
 
     def cancel_bids(self):
-        oo = self.abroker.open_orders_symbol(self.market,self.exchange)
-        n = exc.NAMES[self.exchange]
+        oo = self.abroker.open_orders_symbol(self.market,self.e)
+        n = exc.NAMES[self.e]
         i = 0
         for o in oo:
             if o['otype']=='bid':
                 print ("cancelling ",o)
                 k = "oid"
                 oid = o[k]
-                result = self.abroker.cancel(o)
+                result = self.abroker.cancel(o, exchange=self.e)
                 print ("result" + str(result))
-    """
 
     def submit_buy(self,price, qty):
         o = [self.market, "BUY", price, qty]
         print ("submit ",o)
-        r = self.abroker.submit_order(o, self.exchange)
+        r = self.abroker.submit_order(o, self.e)
         print (r)
 
     def submit_sell(self,price, qty):
         o = [self.market, "SELL", price, qty]
         print ("submit ",o)
-        r = self.abroker.submit_order(o, self.exchange)
+        r = self.abroker.submit_order(o, self.e)
         print (r)        
 
-    def orderbook(self):
-        [obids,oasks] = self.abroker.get_orderbook(self.market,self.exchange)
+    def orderbook(self,market=None):        
+        if market==None: market=self.market
+        logger.debug("get orderbook %s"%market)
+        [obids,oasks] = self.abroker.get_orderbook(market,self.e)
         return [obids,oasks]
-    
+
+    def global_orderbook(self,market=None):
+        if market==None: market=self.market
+        [obids,oasks,ts] = self.arch.get_global_orderbook(market)
+        return [obids,oasks,ts]
+
     def show_ob(self):
         """ show orderbook """
-        oo = self.abroker.open_orders_symbol(self.market,self.exchange)
+        oo = self.abroker.open_orders_symbol(self.market,self.e)
         open_bids = list(filter(lambda x: x['otype']=='bid',oo))
         open_asks = list(filter(lambda x: x['otype']=='ask',oo))
         mybidprice = -1
@@ -115,24 +129,29 @@ class Agent(threading.Thread):
         for a in oasks[-3:]:
             p,q = a['price'],a['quantity']
             if p == myaskprice:
-                print (p,q,"*")
+                logger.debug(p,q,"*")
             else:
-                print (p,q)
-        print ('-----')        
+                logger.debug(p,q)
+        logger.debug('-----')        
         for b in obids[:5]:
             p,q = b['price'],b['quantity']
             if p == mybidprice:
-                print (p,q,"*")
+                logger.debug(p,q,"*")
             else:
-                print (p,q)
+                logger.debug(p,q)
 
     def sync_openorders(self):
         try:
-            self.openorders = self.abroker.open_orders_symbol(self.market,self.exchange)
-            self.open_bids = list(filter(lambda x: x['otype']=='bid',self.openorders))
-            self.open_asks = list(filter(lambda x: x['otype']=='ask',self.openorders))
-        except:
-            pass
+            log.info("sync orders " + str(self.e))
+            #oo = self.abroker.open_orders_symbol(self.market,self.e)
+            oo = self.abroker.open_orders(exc.BINANCE)
+            log.info("oo " + str(oo))
+            if oo != None:
+                self.openorders = oo
+                self.open_bids = list(filter(lambda x: x['otype']=='bid',self.openorders))
+                self.open_asks = list(filter(lambda x: x['otype']=='ask',self.openorders))
+        except Exception as e:
+            logger.error(e)
 
     def run(self):
         raise NotImplementedError("error message")
