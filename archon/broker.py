@@ -690,15 +690,14 @@ class Broker:
                 logger.info("order result: %s"%str(order_result))
                 order_success = True
             else:
-                order_result = client.submit_order_sell(market, qty, order_price)
-                
+                order_result = client.submit_order_sell(market, qty, order_price)                
                 order_success = True
 
         if order_success:
             self.submitted_orders +=1
             #TODO log submitted order separately
         logger.info("order result: %s"%str(order_result))
-        return order_result
+        return [order_result,order_success]
 
 
     def submit_order_check(self, order):

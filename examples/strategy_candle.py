@@ -8,6 +8,8 @@ import archon.exchange.exchanges as exc
 import archon.broker as broker
 import archon.arch as arch
 import archon.model.models as models
+from archon.agent import *
+
 from util import *
 
 import json
@@ -15,14 +17,11 @@ import requests
 import pickle
 import time
 
-from agent import Agent
 
 import traceback
 from loguru import logger
 import pdb
 
-SIGNAL_LONG = 1
-SIGNAL_NOACTION = 0
 
 class Candletrategy(Agent):
 

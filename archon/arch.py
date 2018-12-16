@@ -235,7 +235,9 @@ class Arch:
         #TODO check balance before submit
         market,ttype,order_price,qty = order
         self.submitted_orders.append(order)
-        self.abroker.submit_order(order, exchange)
+        [order_result,order_success] = self.abroker.submit_order(order, exchange)
+        logger.info("order result %s"%order_result)
+
 
     def cancel_order(self, oid):                
         order = self.get_by_id(oid)
@@ -253,7 +255,7 @@ class Arch:
             self.cancel_order(o['oid'])
         
     def fetch_global_markets(self,denom=None):
-        blocked = ['HSR','VEN']
+        binance_blocked = ['HSR','VEN']
         allmarkets = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
@@ -267,7 +269,7 @@ class Arch:
                 f = lambda x: x['denom']=='BTC'
                 m = list(filter(f, m))            
 
-                f = lambda x: x['nom'] not in blocked
+                f = lambda x: x['nom'] not in binance_blocked
                 m = list(filter(f, m))            
                 allmarkets += m
             else:

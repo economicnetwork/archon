@@ -1,7 +1,5 @@
 """
-basic strategy
-will submit a bid and ask only once
-
+basic agent
 """
 
 import sys
@@ -22,6 +20,10 @@ from util import *
 import random
 import math
 from loguru import logger
+
+SIGNAL_LONG = 1
+SIGNAL_NOACTION = 0
+
 
 def toml_file(fs):
     with open(fs, "r") as f:
