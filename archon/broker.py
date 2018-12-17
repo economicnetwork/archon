@@ -38,6 +38,11 @@ rex_API_v2= "rex_API_v2"
 
 from loguru import logger
 
+ORDERSTATUS = "ORDERSTATUS"
+ORDERSTATUS_SUBMITTED = 0
+ORDERSTATUS_FILLED = 1
+ORDERSTATUS_CANCELLED = 2
+ORDERSTATUS_REJECTED = 3
 
  
 class Broker:
@@ -52,6 +57,9 @@ class Broker:
 
         self.submitted_orders = 0
         self.canceled_orders = 0
+
+        #broker tracks list of orders and their status
+        self.orders = list()
 
 
     def set_api_keys(self, exchange, key, secret):
@@ -588,6 +596,7 @@ class Broker:
         return oo
 
     def open_orders(self, exchange=None):
+        """ fetch open orders from exchanges """
 
         #logger.info("get open orders " + str(exchange))
 
@@ -639,6 +648,8 @@ class Broker:
         client = clients[exchange]
 
         order_success = False
+        order[ORDERSTATUS] = ORDERSTATUS_SUBMITTED
+        self.orders.append(order)
 
         if exchange==exc.CRYPTOPIA:                        
             order_result, err = clients[exc.CRYPTOPIA].submit_trade(market, ttype, order_price, qty)
@@ -688,10 +699,28 @@ class Broker:
             if ttype==ORDER_SIDE_BUY:
                 order_result = client.submit_order_buy(market, qty, order_price)
                 logger.info("order result: %s"%str(order_result))
-                order_success = True
+                order_success = False
+                #{'symbol': 'MDABTC', 'orderId': 34475311, 'clientOrderId': 'zecKIFc7bLHY6W1oAqwAXi',
+                #  'transactTime': 1545021630023, 
+                # 'price': '0.00024200', 'origQty': '209.00000000', 
+                # 'executedQty': '209.00000000', 'cummulativeQuoteQty': '0.05016209', 
+                # 'status': 'FILLED', 'timeInForce': 'GTC', 
+                # 'type': 'LIMIT', 'side': 'BUY', 'fills':
+                if order_result['status'] =='FILLED':
+                    order_success = True
+                    order[ORDERSTATUS] = ORDERSTATUS_FILLED
+
+                #TODO rejected
             else:
                 order_result = client.submit_order_sell(market, qty, order_price)                
-                order_success = True
+                logger.info("order result: %s"%str(order_result))
+                order_success = False
+                if order_result['status'] =='FILLED':
+                    order_success = True
+                    order[ORDERSTATUS] = ORDERSTATUS_FILLED
+
+                #TODO rejected
+                
 
         if order_success:
             self.submitted_orders +=1

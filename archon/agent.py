@@ -93,15 +93,15 @@ class Agent(threading.Thread):
 
     def submit_buy(self,price, qty):
         o = [self.market, "BUY", price, qty]
-        print ("submit ",o)
-        r = self.abroker.submit_order(o, self.e)
-        print (r)
+        logger.info("submit ",o)
+        [order_result,order_success] = self.abroker.submit_order(o, self.e)
+        logger.info(order_result,order_success)
 
     def submit_sell(self,price, qty):
         o = [self.market, "SELL", price, qty]
-        print ("submit ",o)
-        r = self.abroker.submit_order(o, self.e)
-        print (r)        
+        logger.info("submit ",o)
+        [order_result,order_success] = self.abroker.submit_order(o, self.e)
+        logger.info(order_result,order_success)   
 
     def orderbook(self,market=None):        
         if market==None: market=self.market
