@@ -10,7 +10,7 @@ import threading
 
 import archon
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.exchange.exchanges as exc
 import archon.markets as markets
 import time
@@ -95,7 +95,7 @@ class MyStrategy(Agent):
                 self.submit_bid()
                 #self.submit_ask()
 
-            #self.arch.transaction_queue(self.e)
+            #self.broker.transaction_queue(self.e)
             time.sleep(10)
 
         #cancel_bids()        

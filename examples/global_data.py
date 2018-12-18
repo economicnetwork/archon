@@ -1,10 +1,10 @@
 
 import archon.exchange.exchanges as exc
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 
 afacade = facade.Facade()
-a = arch.Arch()
+a = broker.Broker()
 ae = [exc.HITBTC]
 a.set_active_exchanges(ae)
 a.set_keys_exchange_file()

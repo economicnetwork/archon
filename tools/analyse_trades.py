@@ -37,5 +37,5 @@ if __name__=='__main__':
     logpath = './log'
     log = setup_logger(logpath, 'info_logger', 'arch')
     afacade = facade.Facade()
-    arch.setClientsFromFile(afacade)
+    broker.setClientsFromFile(afacade)
     analyse(afacade)

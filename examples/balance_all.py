@@ -6,7 +6,7 @@ import sys
 
 import archon.exchange.exchanges as exc
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.plugins.mail as mail
 
 import json
@@ -15,7 +15,7 @@ from jinja2 import Template
 import jinja2
 import pickle
 
-a = arch.Arch()
+a = broker.Broker()
 ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
 a.set_active_exchanges(ae)
 a.set_keys_exchange_file()

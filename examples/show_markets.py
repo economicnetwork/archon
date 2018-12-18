@@ -1,8 +1,8 @@
 import archon.exchange.exchanges as exc
-import archon.arch as arch
+import archon.broker as broker
 import archon.feeds.cryptocompare as cryptocompare
 
-a = arch.Arch()
+a = broker.Broker()
 a.set_keys_exchange_file()
 
 

@@ -6,7 +6,7 @@ import sys
 
 import archon.exchange.exchanges as exc
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.model.models as models
 from util import *
 
@@ -26,7 +26,7 @@ class BasicStrategy(Agent):
         super().__init__(arch)
         
     def show_balance(self):
-        b = self.arch.afacade.balance_all(exc.BINANCE)
+        b = self.broker.afacade.balance_all(exc.BINANCE)
         btc_b = list(filter(lambda x: x["symbol"] == "BTC", b))[0]["amount"]
         
     def candle_signal(self, candles, market):
@@ -50,16 +50,16 @@ class BasicStrategy(Agent):
             try:
                 s = m['nom']
                 market = models.market_from(s,"BTC")
-                self.arch.sync_candle_minute(market,exc.BINANCE)
+                self.broker.sync_candle_minute(market,exc.BINANCE)
                 
-                x = self.arch.db.candles.find_one()
+                x = self.broker.db.candles.find_one()
                 logger.info(x["time_insert"])
                 time.sleep(0.05)
             except Exception as err:
                 logger.error("pair error %s"%err) 
 
     def show_candles(self):
-        allx = self.arch.db.candles.find()
+        allx = self.broker.db.candles.find()
         for x in allx:
             c = x['candles']
             self.candle_signal(c,x["market"])
@@ -68,7 +68,7 @@ class BasicStrategy(Agent):
         logger.info("starting basic strategy")
         series = list()
 
-        markets = self.arch.fetch_global_markets(denom='BTC')
+        markets = self.broker.fetch_global_markets(denom='BTC')
         #self.show_balance()
 
         while True:
@@ -78,7 +78,7 @@ class BasicStrategy(Agent):
                 oo = self.openorders                
                 logger.info("open orders %s"%str(oo))
 
-                self.arch.db.candles.drop()
+                self.broker.db.candles.drop()
                 self.sync_all_candles(markets)
 
                 if len(oo) > 0:
@@ -98,7 +98,7 @@ class BasicStrategy(Agent):
 
 
 if __name__=='__main__':
-    a = arch.Arch()
+    a = broker.Broker()
     a.set_keys_exchange_file()
     ae = [exc.BINANCE]
     a.set_active_exchanges(ae)

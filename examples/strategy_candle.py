@@ -7,7 +7,7 @@ import sys
 
 import archon.exchange.exchanges as exc
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.model.models as models
 from archon.agent import *
 
@@ -78,7 +78,7 @@ class Candletrategy(Agent):
         price_target = f'{price_target:.6f}'
         o = [market, "BUY", price_target, qty_target]
         logger.info ("order %s" % str(o))
-        r = self.arch.afacade.submit_order(o,exc.BINANCE)
+        r = self.broker.afacade.submit_order(o,exc.BINANCE)
         logger.info("submit result "%r)
         
     def sync_all_candles(self, markets):
@@ -88,9 +88,9 @@ class Candletrategy(Agent):
                 s = m['nom']
                 market = models.market_from(s,"BTC")
                 #candles = self.afacade.get_candles_minute(market,exc.BINANCE)
-                self.arch.sync_candle_minute15(market,exc.BINANCE)
+                self.broker.sync_candle_minute15(market,exc.BINANCE)
                 
-                x = self.arch.db.candles.find_one()
+                x = self.broker.db.candles.find_one()
                 logger.debug(x["time_insert"])
                 #self.candle_signal(candles, market)
                 #self.checkpair(market)
@@ -99,7 +99,7 @@ class Candletrategy(Agent):
                 logger.error("pair error %s"%err) 
 
     def check_signal(self):
-        allx = self.arch.db.candles.find()
+        allx = self.broker.db.candles.find()
         for x in allx:
             c = x['candles']
             m = x["market"]
@@ -115,7 +115,7 @@ class Candletrategy(Agent):
         logger.info("starting example strategy")
         series = list()
 
-        markets = self.arch.fetch_global_markets(denom='BTC')
+        markets = self.broker.fetch_global_markets(denom='BTC')
         logger.info("market founds %i"%(len(markets)))
         for m in markets: logger.debug("market found %s"%str(m))
 
@@ -124,7 +124,7 @@ class Candletrategy(Agent):
             minute = 60.0
             timesleep = 15 * minute        
 
-            b = self.arch.afacade.balance_all(exc.BINANCE)
+            b = self.broker.afacade.balance_all(exc.BINANCE)
             logger.info(b)
             
             try:
@@ -132,7 +132,7 @@ class Candletrategy(Agent):
                 oo = self.openorders                
                 logger.info("open orders %s"%str(oo))
 
-                self.arch.db.candles.drop()
+                self.broker.db.candles.drop()
                 self.sync_all_candles(markets)
 
                 if len(oo) > 0:
@@ -153,7 +153,7 @@ class Candletrategy(Agent):
 
 if __name__=='__main__':
     #only binance currently
-    a = arch.Arch()
+    a = broker.Broker()
     a.set_keys_exchange_file()
     ae = [exc.BINANCE]
     a.set_active_exchanges(ae)

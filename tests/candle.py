@@ -3,14 +3,14 @@ sys.path.append('/Users/ben/archon')
 
 import archon.exchange.exchanges as exc
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.model.models as models
 
 import pandas
 
 
 afacade = facade.Facade()
-arch.setClientsFromFile(afacade)
+broker.setClientsFromFile(afacade)
 client = afacade.get_client(exc.KUCOIN)
 
 es = [exc.KUCOIN,exc.CRYPTOPIA]

@@ -1,7 +1,7 @@
 import sys
 import archon.exchange.exchanges as exc
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.markets as m
 import archon.feeds.cryptocompare as cryptocompare
 import json
@@ -11,8 +11,8 @@ import datetime
 import pymongo
 
 afacade = facade.Facade()
-arch.setClientsFromFile(afacade)
-a = arch.Arch()
+broker.setClientsFromFile(afacade)
+a = broker.Broker()
 #a.sync_markets_all()
 
 db = a.get_db()

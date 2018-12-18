@@ -15,7 +15,7 @@ export PYTHONPATH=/Users/x/archon
 """
 
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.exchange.exchanges as exc
 import archon.exchange.binance as b
 import archon.model.models as models
@@ -28,7 +28,7 @@ import math
 from datetime import datetime
 
 afacade = facade.Facade()
-arch.setClientsFromFile(afacade)
+broker.setClientsFromFile(afacade)
 client = afacade.get_client(exc.BINANCE)
 
 market = models.market_from("LTC","BTC")

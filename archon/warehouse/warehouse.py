@@ -9,7 +9,7 @@ balances
 """
 
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.model.models as model
 import archon.mongodb as mongodb
 import archon.exchange.exchanges as exc
@@ -27,7 +27,7 @@ logpath = './log'
 log = setup_logger(logpath, 'info_logger', 'warehouse')
 
 #afacade = facade.Facade()
-#arch.setClientsFromFile(afacade)
+#broker.setClientsFromFile(afacade)
 
 
 def total_value(balances):

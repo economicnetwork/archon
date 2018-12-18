@@ -8,7 +8,7 @@ import threading
 
 import archon
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.exchange.exchanges as exc
 import archon.markets as markets
 import time
@@ -50,8 +50,8 @@ class Agent(threading.Thread):
         market = "LTC_BTC"
         self.agent_id = "agent" #config["agentid"]
         self.threadID = "thread-" + self.agent_id
-        self.afacade = arch.afacade
-        self.arch = arch
+        self.afacade = facade.Facade()
+        self.broker = arch
         nom,denom = market.split('_')
         #TODO config
         self.e = exchange
@@ -74,7 +74,7 @@ class Agent(threading.Thread):
             logger.info("postion %s"%p)
 
     def balances(self):
-        b = self.arch.afacade.balance_all(exc.BINANCE)
+        b = self.broker.afacade.balance_all(exc.BINANCE)
         return b
 
     def cancel_all(self):
@@ -128,7 +128,7 @@ class Agent(threading.Thread):
 
     def global_orderbook(self,market=None):
         if market==None: market=self.market
-        [obids,oasks,ts] = self.arch.get_global_orderbook(market)
+        [obids,oasks,ts] = self.broker.get_global_orderbook(market)
         return [obids,oasks,ts]
 
     def show_ob(self):

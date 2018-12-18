@@ -1,14 +1,14 @@
 import sys
 import archon.exchange.exchanges as exc
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import json
 import requests
 import time
 import datetime
 import archon.candles as c
 
-a = arch.Arch()
+a = broker.Broker()
 a.set_keys_exchange_file()
 client = a.afacade.get_client(exc.BINANCE)
 

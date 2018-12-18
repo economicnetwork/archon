@@ -1,6 +1,6 @@
 import sys
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.exchange.exchanges as exc
 import time
 import datetime
@@ -11,12 +11,12 @@ from util import *
 
 import math
 
-a = arch.Arch()
+a = broker.Broker()
 a.set_keys_exchange_file()
 
 def user_tx():
     #db.user_txs.find()   
-    a = arch.Arch()
+    a = broker.Broker()
     #ae = [exc.BITTREX, exc.CRYPTOPIA, exc.BINANCE] #, exc.KUCOIN,  exc.HITBTC]
     ae = [exc.BINANCE] #, exc.KUCOIN,  exc.HITBTC]
     a.set_active_exchanges(ae)

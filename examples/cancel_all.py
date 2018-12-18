@@ -2,11 +2,11 @@
 cancel all
 """
 
-import archon.arch as arch
+import archon.broker as broker
 import archon.exchange.exchanges as exc
 from util import *
 
-a = arch.Arch()
+a = broker.Broker()
 ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC,exc.BINANCE]
 a.set_active_exchanges(ae)
 a.set_keys_exchange_file()

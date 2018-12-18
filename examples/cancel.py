@@ -5,14 +5,14 @@ cancel tool. ask user for each open order if to cancel
 import sys
 import archon
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.model.models as m
 import archon.exchange.exchanges as exc
 import time
 import datetime
 from util import *
 
-a = arch.Arch()
+a = broker.Broker()
 ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC,exc.BINANCE]
 a.set_active_exchanges(ae)
 a.set_keys_exchange_file()

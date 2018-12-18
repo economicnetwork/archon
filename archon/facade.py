@@ -45,7 +45,7 @@ ORDERSTATUS_REJECTED = 3
 class Facade:
 
     def __init__(self):
-        #log = logging.getLogger("arch."+__name__)
+        #log = logging.getLogger("broker."+__name__)
         logger.start("log/facade.log", rotation="500 MB")
         logger.debug("init facade")
         #action_level = logger.level("ACTION", no=8, color="<yellow>")

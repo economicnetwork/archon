@@ -1,5 +1,5 @@
 import time
-import archon.arch as arch
+import archon.broker as broker
 import archon.facade as facade
 from archon.util import *
 import archon.mail as mail
@@ -39,7 +39,7 @@ def run_balance_report():
     log.info("run report")
     #logpath = '/tmp/log'
     afacade = facade.Facade()
-    arch.setClientsFromFile(afacade)
+    broker.setClientsFromFile(afacade)
     balance_report(afacade)        
 
 def schedule_tasks():

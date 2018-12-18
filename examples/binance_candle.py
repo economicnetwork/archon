@@ -1,5 +1,5 @@
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.exchange.exchanges as exc
 import archon.exchange.binance as b
 import archon.model.models as models
@@ -11,7 +11,7 @@ import math
 
 from datetime import datetime
 
-a = arch.Arch()
+a = broker.Broker()
 a.set_keys_exchange_file()
 client = a.afacade.get_client(exc.BINANCE)
 

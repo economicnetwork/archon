@@ -2,12 +2,12 @@
 import archon.exchange.exchanges as exc
 import archon.model.models as models
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.markets as m
 
 afacade = facade.Facade()
-arch.setClientsFromFile(afacade)
-a = arch.Arch()
+broker.setClientsFromFile(afacade)
+a = broker.Broker()
 ae = [exc.KUCOIN,exc.BITTREX]
 a.set_active_exchanges(ae)
 market = models.market_from("LTC","BTC")

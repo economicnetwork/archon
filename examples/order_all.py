@@ -1,6 +1,6 @@
 import sys
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.markets as markets
 import archon.model.models as m
 import archon.exchange.exchanges as exc
@@ -18,10 +18,10 @@ import math
 
 import archon.exchange.exchanges as exc
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 
 afacade = facade.Facade()
-arch.setClientsFromFile(afacade)
+broker.setClientsFromFile(afacade)
 
 bl = list()
 for e in [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.BINANCE]:

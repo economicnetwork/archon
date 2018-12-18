@@ -3,7 +3,7 @@
 """
 
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.exchange.exchanges as exc
 import archon.model.models as models
 from archon.util import *
@@ -13,7 +13,7 @@ import datetime
 import math
 
 afacade = facade.Facade()
-arch.setClientsFromFile(afacade)
+broker.setClientsFromFile(afacade)
 
 def show(exchange, market):
     i = 0    

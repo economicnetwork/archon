@@ -3,7 +3,7 @@
 """
 
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.exchange.exchanges as exc
 import archon.model.models as models
 from archon.util import *
@@ -15,9 +15,9 @@ import math
 
 
 afacade = facade.Facade()
-arch.setClientsFromFile(afacade)
+broker.setClientsFromFile(afacade)
 
-a = arch.Arch()
+a = broker.Broker()
 ae = [exc.KUCOIN, exc.BITTREX, exc.CRYPTOPIA]
 a.set_active_exchanges(ae)
 

@@ -1,5 +1,5 @@
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.exchange.exchanges as exc
 import archon.markets as m
 import archon.model.models as models
@@ -10,7 +10,7 @@ import datetime
 import math
 
 afacade = facade.Facade()
-arch.setClientsFromFile(afacade)
+broker.setClientsFromFile(afacade)
 client = afacade.get_client(exc.BINANCE)
 
 market = models.get_market("LTC","BTC",exc.BITTREX)

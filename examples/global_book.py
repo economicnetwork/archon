@@ -2,10 +2,10 @@
 import archon.exchange.exchanges as exc
 import archon.model.models as models
 import archon.facade as facade
-import archon.arch as arch
+import archon.broker as broker
 import archon.markets as m
 
-a = arch.Arch()
+a = broker.Broker()
 #ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC]
 ae = [exc.BINANCE]
 a.set_active_exchanges(ae)
