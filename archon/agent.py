@@ -7,7 +7,7 @@ import os
 import threading
 
 import archon
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.exchange.exchanges as exc
 import archon.markets as markets
@@ -23,6 +23,8 @@ from loguru import logger
 
 SIGNAL_LONG = 1
 SIGNAL_NOACTION = 0
+POSITION_LONG = "LONG"
+POSITON_FLAT = "FLAT"
 
 
 def toml_file(fs):
@@ -48,7 +50,7 @@ class Agent(threading.Thread):
         market = "LTC_BTC"
         self.agent_id = "agent" #config["agentid"]
         self.threadID = "thread-" + self.agent_id
-        self.abroker = arch.abroker
+        self.afacade = arch.afacade
         self.arch = arch
         nom,denom = market.split('_')
         #TODO config
@@ -57,15 +59,22 @@ class Agent(threading.Thread):
         self.market = market
         self.rho = 0.1
 
+        #TODO broker already keeps track
         self.openorders = list()
+
+        self.positions = list()
 
         self.round_precision = 8
         #pip paramter for ordering
         self.pip = 0.0000001
         logger.info("agent inited")
 
+    def show_positions(self):
+        for p in self.positions:
+            logger.info("postion %s"%p)
+
     def balances(self):
-        b = self.arch.abroker.balance_all(exc.BINANCE)
+        b = self.arch.afacade.balance_all(exc.BINANCE)
         return b
 
     def cancel_all(self):
@@ -74,13 +83,13 @@ class Agent(threading.Thread):
         logger.info(oo)
         for o in oo:
             print ("cancelling ",o)
-            result = self.abroker.cancel(o) #, exchange=self.e)
+            result = self.afacade.cancel(o) #, exchange=self.e)
             print ("cancel result: " + str(result))
             time.sleep(0.5)
 
 
     def cancel_bids(self):
-        oo = self.abroker.open_orders_symbol(self.market,self.e)
+        oo = self.afacade.open_orders_symbol(self.market,self.e)
         n = exc.NAMES[self.e]
         i = 0
         for o in oo:
@@ -88,25 +97,33 @@ class Agent(threading.Thread):
                 print ("cancelling ",o)
                 k = "oid"
                 oid = o[k]
-                result = self.abroker.cancel(o, exchange=self.e)
+                result = self.afacade.cancel(o, exchange=self.e)
                 print ("result" + str(result))
 
     def submit_buy(self,price, qty):
         o = [self.market, "BUY", price, qty]
         logger.info("submit ",o)
-        [order_result,order_success] = self.abroker.submit_order(o, self.e)
+        [order_result,order_success] = self.afacade.submit_order(o, self.e)
         logger.info(order_result,order_success)
+        if order_result:
+            #TODO calculate average entry price   
+            entry_time = datetime.now()
+            position = [POSITION_LONG, market, price, entry_time]
+            self.positions.append(position)
 
     def submit_sell(self,price, qty):
         o = [self.market, "SELL", price, qty]
         logger.info("submit ",o)
-        [order_result,order_success] = self.abroker.submit_order(o, self.e)
+        [order_result,order_success] = self.afacade.submit_order(o, self.e)
         logger.info(order_result,order_success)   
+        #if order_result:
+        #    #position = [POSITION_FL, market, price]
+        #    #TODO check whether we have partially sold or flat
 
     def orderbook(self,market=None):        
         if market==None: market=self.market
         logger.debug("get orderbook %s"%market)
-        [obids,oasks] = self.abroker.get_orderbook(market,self.e)
+        [obids,oasks] = self.afacade.get_orderbook(market,self.e)
         return [obids,oasks]
 
     def global_orderbook(self,market=None):
@@ -116,7 +133,7 @@ class Agent(threading.Thread):
 
     def show_ob(self):
         """ show orderbook """
-        oo = self.abroker.open_orders_symbol(self.market,self.e)
+        oo = self.afacade.open_orders_symbol(self.market,self.e)
         open_bids = list(filter(lambda x: x['otype']=='bid',oo))
         open_asks = list(filter(lambda x: x['otype']=='ask',oo))
         mybidprice = -1
@@ -149,8 +166,8 @@ class Agent(threading.Thread):
     def sync_openorders(self):
         try:
             log.info("sync orders " + str(self.e))
-            #oo = self.abroker.open_orders_symbol(self.market,self.e)
-            oo = self.abroker.open_orders(exc.BINANCE)
+            #oo = self.afacade.open_orders_symbol(self.market,self.e)
+            oo = self.afacade.open_orders(exc.BINANCE)
             log.info("oo " + str(oo))
             if oo != None:
                 self.openorders = oo

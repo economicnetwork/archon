@@ -14,7 +14,7 @@ algorithm details:
 export PYTHONPATH=/Users/x/archon
 """
 
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.exchange.exchanges as exc
 import archon.exchange.binance as b
@@ -27,13 +27,13 @@ import math
 
 from datetime import datetime
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
-client = abroker.get_client(exc.BINANCE)
+afacade = facade.Facade()
+arch.setClientsFromFile(afacade)
+client = afacade.get_client(exc.BINANCE)
 
 market = models.market_from("LTC","BTC")
 
-x = abroker.get_candles_hourly(market,exc.BINANCE)
+x = afacade.get_candles_hourly(market,exc.BINANCE)
 
 for z in x[-10:]:
     ts = z[0]

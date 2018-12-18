@@ -1,4 +1,4 @@
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.exchange.exchanges as exc
 import archon.markets as m
@@ -9,12 +9,12 @@ import time
 import datetime
 import math
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
-client = abroker.get_client(exc.BINANCE)
+afacade = facade.Facade()
+arch.setClientsFromFile(afacade)
+client = afacade.get_client(exc.BINANCE)
 
 market = models.get_market("LTC","BTC",exc.BITTREX)
-txdata = abroker.trade_history(market,exc.BITTREX)
+txdata = afacade.trade_history(market,exc.BITTREX)
 
 def total(data):
     x = [x['quantity'] for x in data]

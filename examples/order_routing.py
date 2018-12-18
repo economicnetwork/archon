@@ -1,5 +1,5 @@
 import sys
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.model.models as m
 import archon.exchange.exchanges as exc
@@ -20,7 +20,7 @@ a.set_keys_exchange_file()
 
 def ordering():       
     market = m.get_market("LTC","BTC",e)
-    b = a.abroker.balance_all(exchange=e)
+    b = a.afacade.balance_all(exchange=e)
     
     #buy order
     #send 50% of qty to 1 exchange and 50% to another

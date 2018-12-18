@@ -5,7 +5,7 @@ send balance report to email
 import sys
 
 import archon.exchange.exchanges as exc
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.plugins.mail as mail
 
@@ -91,7 +91,7 @@ def balance_report():
     template = env.get_template('')
     html = template.render(balances=bl,per=per,total=total_all,per_currency=per_currency_list)
     write_to_file(html)
-    #mail.send_mail_html(abroker, "Balance Report", html)
+    #mail.send_mail_html(afacade, "Balance Report", html)
 
 if __name__=='__main__':
     balance_report()

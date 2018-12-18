@@ -2,23 +2,23 @@ import sys
 sys.path.append('/Users/ben/archon')
 
 import archon.exchange.exchanges as exc
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.model.models as models
 
 import pandas
 
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
-client = abroker.get_client(exc.KUCOIN)
+afacade = facade.Facade()
+arch.setClientsFromFile(afacade)
+client = afacade.get_client(exc.KUCOIN)
 
 es = [exc.KUCOIN,exc.CRYPTOPIA]
 
 
 def history(e):
     market = "LTC_BTC"
-    klines = abroker.get_candles_daily(market, e)    
+    klines = afacade.get_candles_daily(market, e)    
     for x in klines:
         #ts,o,h,l,c = x
         #print (ts)

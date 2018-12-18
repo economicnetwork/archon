@@ -1,5 +1,5 @@
 import sys
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.model.models as m
 import archon.exchange.exchanges as exc
@@ -27,10 +27,10 @@ def ordering():
     qty = input("quantity? ")
     qty = float(qty)
 
-    b = a.abroker.balance_all(exchange=e)
+    b = a.afacade.balance_all(exchange=e)
     btc_balance = list(filter(lambda x: x['symbol'] == 'BTC', b))[0]['amount']
     print (btc_balance)
-    s = a.abroker.get_market_summary(market, e)
+    s = a.afacade.get_market_summary(market, e)
     bid = s["bid"]    
     ask = s["ask"]
     
@@ -44,7 +44,7 @@ def ordering():
                 market = m.market_from(currency,"BTC",)
                 o = [market, trade_type, price, qty]
                 print ("order " + str(o))
-                r = a.abroker.submit_order(o,e)
+                r = a.afacade.submit_order(o,e)
                 print ("order result " + str(r))
         else:
             print ("insufficient balance")
@@ -58,7 +58,7 @@ def ordering():
         market = m.market_from(currency,"BTC")
         o = [market, trade_type, price, qty]
         print ("order " + str(o))
-        r = a.abroker.submit_order(o,e)
+        r = a.afacade.submit_order(o,e)
         print ("order result " + str(r))
 
 if __name__=='__main__':

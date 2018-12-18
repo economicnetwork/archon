@@ -6,7 +6,7 @@ customized to binance currently
 import sys
 
 import archon.exchange.exchanges as exc
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.model.models as models
 from archon.agent import *
@@ -28,7 +28,6 @@ class Candletrategy(Agent):
 
     def __init__(self, arch):
         super().__init__(arch, exc.BINANCE)
-
         
     def show_balance(self,ETH_BTC,EOS_BTC):
         b = self.balances()
@@ -79,7 +78,7 @@ class Candletrategy(Agent):
         price_target = f'{price_target:.6f}'
         o = [market, "BUY", price_target, qty_target]
         logger.info ("order %s" % str(o))
-        r = self.arch.abroker.submit_order(o,exc.BINANCE)
+        r = self.arch.afacade.submit_order(o,exc.BINANCE)
         logger.info("submit result "%r)
         
     def sync_all_candles(self, markets):
@@ -88,7 +87,7 @@ class Candletrategy(Agent):
             try:
                 s = m['nom']
                 market = models.market_from(s,"BTC")
-                #candles = self.abroker.get_candles_minute(market,exc.BINANCE)
+                #candles = self.afacade.get_candles_minute(market,exc.BINANCE)
                 self.arch.sync_candle_minute15(market,exc.BINANCE)
                 
                 x = self.arch.db.candles.find_one()
@@ -125,7 +124,7 @@ class Candletrategy(Agent):
             minute = 60.0
             timesleep = 15 * minute        
 
-            b = self.arch.abroker.balance_all(exc.BINANCE)
+            b = self.arch.afacade.balance_all(exc.BINANCE)
             logger.info(b)
             
             try:

@@ -1,6 +1,6 @@
 import sys
 import archon.exchange.exchanges as exc
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.plugins.mail as mail
 
@@ -10,10 +10,10 @@ from jinja2 import Template
 import jinja2
 import pickle
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
+afacade = facade.Facade()
+arch.setClientsFromFile(afacade)
 
-client = abroker.get_client(exc.HITBTC)
+client = afacade.get_client(exc.HITBTC)
 #print (client)
 #print (client.get_currenices())
 """
@@ -31,7 +31,7 @@ for x in tb:
     if av+r > 0:
         print (x)
 
-b = abroker.balance_all(exc.HITBTC)
+b = afacade.balance_all(exc.HITBTC)
 print (b)
 """
 t = client.get_tickers()

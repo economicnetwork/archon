@@ -7,7 +7,7 @@ import os
 import threading
 
 import archon
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.exchange.exchanges as exc
 import archon.markets as markets
@@ -23,9 +23,9 @@ log = setup_logger(logpath, 'info_logger', 'mm')
 
 class Eventloop(threading.Thread):
 
-    def __init__(self, abroker):
+    def __init__(self, afacade):
         threading.Thread.__init__(self)        
-        self.abroker = abroker
+        self.afacade = afacade
         self.last_published_minute = -1
         self.market = "DCR_BTC"
         #self.exchange = exc.BITTREX
@@ -33,14 +33,14 @@ class Eventloop(threading.Thread):
 
     def emit_candle(self, now):
         print ("new minute")
-        candles = self.abroker.get_candles_minute(self.market, self.exchange)
+        candles = self.afacade.get_candles_minute(self.market, self.exchange)
         print ("pub ",candles[-1])
         self.last_published_minute = now.minute
 
     def run(self):
         #setup
         log.debug("start loop")
-        candles = self.abroker.get_candles_minute(self.market, self.exchange)
+        candles = self.afacade.get_candles_minute(self.market, self.exchange)
         print ("last candle ",candles[-1])
         while True:
             #log.info('loop')

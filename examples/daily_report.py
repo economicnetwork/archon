@@ -1,6 +1,6 @@
 import time
 import archon.arch as arch
-import archon.broker as broker
+import archon.facade as facade
 from archon.util import *
 import archon.mail as mail
 
@@ -16,10 +16,10 @@ log = setup_logger(logpath, 'info_logger', 'arch')
 def order_report():
     """
     market = "LTC_BTC"
-    oo = abroker.open_orders(market)
+    oo = afacade.open_orders(market)
     log.info("open orders " + str(oo))
 
-    txs = abroker.market_history(market)
+    txs = afacade.market_history(market)
     log.info("txs " + str(txs[:3]))
     
     for tx in txs[:50]:
@@ -27,10 +27,10 @@ def order_report():
         tsf = datetime.datetime.fromtimestamp(ts).strftime('%D %H:%M:%S')
         print (tx['Type'],tsf)
 
-    [bids, asks] = abroker.get_orderbook(market)
+    [bids, asks] = afacade.get_orderbook(market)
     log.info("bids " + str(bids[:3]))
 
-    usertx = abroker.trade_history(market)
+    usertx = afacade.trade_history(market)
     print (usertx[:3])
     """
 
@@ -38,9 +38,9 @@ def order_report():
 def run_balance_report():
     log.info("run report")
     #logpath = '/tmp/log'
-    abroker = broker.Broker()
-    arch.setClientsFromFile(abroker)
-    balance_report(abroker)        
+    afacade = facade.Facade()
+    arch.setClientsFromFile(afacade)
+    balance_report(afacade)        
 
 def schedule_tasks():
     get_module_logger(__name__).info("schedule report")    

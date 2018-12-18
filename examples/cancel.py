@@ -4,7 +4,7 @@ cancel tool. ask user for each open order if to cancel
 
 import sys
 import archon
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.model.models as m
 import archon.exchange.exchanges as exc
@@ -19,7 +19,7 @@ a.set_keys_exchange_file()
 
 def cancel_exc(e):
     """ list open order and ask to cancel """
-    oo = a.abroker.open_orders(e)
+    oo = a.afacade.open_orders(e)
     n = exc.NAMES[e]
     print ("%s open orders %s" % (n,str(oo)))
     
@@ -39,7 +39,7 @@ def cancel_exc(e):
             print ("cancelling")
             k = m.o_key_id(e)
             oid = o[k]
-            result = abroker.cancel(oid, e)
+            result = afacade.cancel(oid, e)
             print ("result" + str(result))
         else:
             print ("no")
@@ -50,9 +50,9 @@ def cancel_exc(e):
         result = ask_user("cancel " + str(o) + " ? ")
         if result:
             print ("cancelling " + str(o))
-            k = a.abroker.o_key_id(e)
+            k = a.afacade.o_key_id(e)
             oid = o[k]
-            result = a.abroker.cancel(oid, e)
+            result = a.afacade.cancel(oid, e)
             print ("result " + str(result))
         else:
             print ("no")

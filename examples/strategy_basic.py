@@ -5,7 +5,7 @@ basic candle based strategy
 import sys
 
 import archon.exchange.exchanges as exc
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.model.models as models
 from util import *
@@ -26,7 +26,7 @@ class BasicStrategy(Agent):
         super().__init__(arch)
         
     def show_balance(self):
-        b = self.arch.abroker.balance_all(exc.BINANCE)
+        b = self.arch.afacade.balance_all(exc.BINANCE)
         btc_b = list(filter(lambda x: x["symbol"] == "BTC", b))[0]["amount"]
         
     def candle_signal(self, candles, market):

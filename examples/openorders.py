@@ -3,7 +3,7 @@ cancel tool. ask user for each open order if to cancel
 """
 
 import sys, os
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.exchange.exchanges as exc
 import time
@@ -16,7 +16,7 @@ a.set_keys_exchange_file()
 if __name__=='__main__': 
     
     for exchange in a.active_exchanges:
-        oo = a.abroker.open_orders(exchange)
+        oo = a.afacade.open_orders(exchange)
         n = exc.NAMES[exchange]
         print ("** %s open orders **"%n)
         if oo:

@@ -1,8 +1,7 @@
 
 import toml
-import archon.broker as broker
+import archon.facade as facade
 import archon.exchange.exchanges as exc
-import archon.markets as markets
 import time
 from archon.model import models
 from pymongo import MongoClient
@@ -23,10 +22,10 @@ def parse_toml(filename):
     parsed_toml = toml.loads(toml_string)
     return parsed_toml
 
-def set_keys_exchange(abroker, e, keys):
+def set_keys_exchange(afacade, e, keys):
     pubkey = keys["public_key"]
     secret = keys["secret"]
-    abroker.set_api_keys(e,pubkey,secret)
+    afacade.set_api_keys(e,pubkey,secret)
 
     
 class Arch:
@@ -45,8 +44,7 @@ class Arch:
         logger.debug("init arch")
 
         filename = "apikeys.toml"
-        self.abroker = broker.Broker()
-        #setClientsFromFile(self.abroker, filename)
+        self.afacade = facade.Facade()
         #in memory data
         self.balances = None
         self.openorders = list()
@@ -127,7 +125,7 @@ class Arch:
         secret = keys["secret"]
         logger.debug ("set keys %i %s"%(exchange,keys['public_key']))
         #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
-        self.abroker.set_api_keys(exchange, pubkey, secret)
+        self.afacade.set_api_keys(exchange, pubkey, secret)
 
     def get_active_exchanges(self):
         return self.active_exchanges
@@ -150,8 +148,8 @@ class Arch:
         oo = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
-            logger.info(e,n)
-            z = self.abroker.open_orders(e)
+            logger.info("%i %s"%(e,n))
+            z = self.afacade.open_orders(e)
             if z:                                
                 if len(z) > 0:
                     for x in z:
@@ -166,7 +164,7 @@ class Arch:
         bl = list()
         for e in self.active_exchanges:
             logger.debug("get balance ",e)
-            z = self.abroker.balance_all(e)
+            z = self.afacade.balance_all(e)
             logger.debug(z,e)
             n = exc.NAMES[e]
             for x in z:
@@ -182,7 +180,7 @@ class Arch:
         logger.debug("active exchanges %s"%(self.active_exchanges))
         for e in self.active_exchanges:
             n = exc.NAMES[e]
-            b = self.abroker.balance_all(exchange=e)
+            b = self.afacade.balance_all(exchange=e)
             if b == None: print ("could not fetch balances from %s"%n)
             for x in b:
                 x['exchange'] = n
@@ -207,7 +205,7 @@ class Arch:
             if e == exc.BINANCE:
                 #TODO use balances instead
                 #markets = self.fetch_global_markets(denom='BTC')
-                b = self.abroker.balance_all(exc.BINANCE)
+                b = self.afacade.balance_all(exc.BINANCE)
                 alltx = list()
                 for m in b:
                     s = m['symbol']
@@ -215,13 +213,13 @@ class Arch:
                     if s == 'USDT': continue
                     ms = models.get_market(m['symbol'],"BTC",exc.BINANCE)
                     #print ("?? ",ms)
-                    tx = self.abroker.trade_history(market=ms,exchange=e)
+                    tx = self.afacade.trade_history(market=ms,exchange=e)
                     alltx += tx
                 txlist += alltx                    
             else:
                 n = exc.NAMES[e]
                 logger.info("get %s"%n)
-                tx = self.abroker.get_tradehistory_all(exchange=e)
+                tx = self.afacade.get_tradehistory_all(exchange=e)
                 #print (tx)
                 if tx != None:
                     for x in tx:
@@ -235,7 +233,7 @@ class Arch:
         #TODO check balance before submit
         market,ttype,order_price,qty = order
         self.submitted_orders.append(order)
-        [order_result,order_success] = self.abroker.submit_order(order, exchange)
+        [order_result,order_success] = self.afacade.submit_order(order, exchange)
         logger.info("order result %s"%order_result)
 
 
@@ -244,7 +242,7 @@ class Arch:
         #oid, otype=None,exchange=None,symbol=None):
         oid, otype,exchange, market = order['oid'],order['otype'],order['exchange'],order['market']
         exchange = exc.get_id(exchange)
-        self.abroker.cancel_id(oid, otype, market, exchange)
+        self.afacade.cancel_id(oid, otype, market, exchange)
 
     def cancel_all(self, exchange=None):
         #logger.info("cancel all")
@@ -260,7 +258,7 @@ class Arch:
         for e in self.active_exchanges:
             n = exc.NAMES[e]
             logger.info("fetch %s"%n)
-            m = self.abroker.get_market_summaries(e)
+            m = self.afacade.get_market_summaries(e)
             for x in m:
                 x['exchange'] = n
             
@@ -319,7 +317,7 @@ class Arch:
         tx_all = list()
         for e in self.active_exchanges:            
             n = exc.NAMES[e]
-            txs = a.abroker.market_history(market,e)
+            txs = a.afacade.market_history(market,e)
             for tx in txs:
                 tx["exchange"] = n
                 tx_all.append(tx)
@@ -354,7 +352,7 @@ class Arch:
         #TODO check if symbol is supported by exchange   
         try:
             n = exc.NAMES[exchange]
-            [bids,asks] = self.abroker.get_orderbook(smarket,exchange)
+            [bids,asks] = self.afacade.get_orderbook(smarket,exchange)
             dt = datetime.datetime.utcnow()
             x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
             
@@ -389,7 +387,7 @@ class Arch:
             #smarket = models.conv_markets_to(market, e)  
             try:
                 
-                [bids,asks] = self.abroker.get_orderbook(market,e)
+                [bids,asks] = self.afacade.get_orderbook(market,e)
                 dt = datetime.datetime.utcnow()
                 n = exc.NAMES[e]
                 for xb in bids: xb['exchange'] = n
@@ -405,7 +403,7 @@ class Arch:
     def sync_tx(self, market, exchange):
         try:            
             smarket = models.conv_markets_to(market, exchange)  
-            txs = self.abroker.market_history(smarket,exchange)
+            txs = self.afacade.market_history(smarket,exchange)
             n = exc.NAMES[exchange]
             smarket = models.conv_markets_to(market, exchange)
             dt = datetime.datetime.utcnow()
@@ -440,14 +438,14 @@ class Arch:
 
     def sync_candle_daily(self, market, exchange):
         logger.debug("get candles %s %s "%(market, str(exchange)))
-        candles = self.abroker.get_candles_daily(market, exchange)
+        candles = self.afacade.get_candles_daily(market, exchange)
         n = exc.NAMES[exchange]
         n,d = market.split('_')
         self.db.candles.insert({"exchange":n,"market":market,"nom":n,"denom":d,"candles":candles,"interval": "1d"})
 
     def sync_candle_minute(self, market, exchange):
         logger.debug("get candles %s %s "%(market, str(exchange)))
-        candles = self.abroker.get_candles_minute(market, exchange)
+        candles = self.afacade.get_candles_minute(market, exchange)
         n = exc.NAMES[exchange]
         n,d = market.split('_')
         dt = datetime.datetime.utcnow()        
@@ -456,7 +454,7 @@ class Arch:
         
     def sync_candle_minute15(self, market, exchange):
         logger.debug("get candles %s %s "%(market, str(exchange)))
-        candles = self.abroker.get_candles_minute15(market, exchange)
+        candles = self.afacade.get_candles_minute15(market, exchange)
         n = exc.NAMES[exchange]
         n,d = market.split('_')
         dt = datetime.datetime.utcnow()        
@@ -471,7 +469,7 @@ class Arch:
         ms = self.fetch_global_markets()
         logger.info(len(ms))
 
-        #cndl = self.abroker.get_candles_daily(market,exc.BINANCE)
+        #cndl = self.afacade.get_candles_daily(market,exc.BINANCE)
 
         for x in ms[:]:
             market = x['pair']
@@ -490,7 +488,7 @@ class Arch:
     def transaction_queue(self,exchange):
         now = datetime.datetime.utcnow()
         #delta = now - self.starttime
-        txs = self.abroker.get_tradehistory_all(exchange)
+        txs = self.afacade.get_tradehistory_all(exchange)
         for tx in txs[:]:
             ts = tx['timestamp'][:19]
             dt = datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')        

@@ -1,5 +1,5 @@
 import sys
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.markets as markets
 import archon.model.models as m
@@ -17,15 +17,15 @@ import math
 
 
 import archon.exchange.exchanges as exc
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
+afacade = facade.Facade()
+arch.setClientsFromFile(afacade)
 
 bl = list()
 for e in [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.BINANCE]:
-    b = abroker.balance_all(exchange=e)
+    b = afacade.balance_all(exchange=e)
     for x in b:
         n = exc.NAMES[e]
         x['exchange'] = n
@@ -39,7 +39,7 @@ for e in [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.BINANCE]:
 def ordering(e):       
     market = markets.get_market("ETH","BTC",e)
     print ("market " + market)    
-    s = abroker.get_market_summary_str(market, e)
+    s = afacade.get_market_summary_str(market, e)
     kb = m.bid_key(e)
     ka = m.ask_key(e)
     bid = s[kb]    
@@ -51,7 +51,7 @@ def ordering(e):
     qty =  1.23
     o = [market, trade_type, price, qty]
     print ("order " + str(o))
-    #r = abroker.submit_order(o,e)
+    #r = afacade.submit_order(o,e)
     print ("result " + str(r))
 
 """

@@ -7,7 +7,6 @@ ty = tx['OrderType']
 """
 
 import archon.exchange.exchanges as exc
-import archon.markets as markets
 import pytz, datetime
 
 date_broker_format = "%Y-%m-%d %H:%M:%S"

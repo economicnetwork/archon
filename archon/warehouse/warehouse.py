@@ -8,7 +8,7 @@ orderbook
 balances
 """
 
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.model.models as model
 import archon.mongodb as mongodb
@@ -26,8 +26,8 @@ import math
 logpath = './log'
 log = setup_logger(logpath, 'info_logger', 'warehouse')
 
-#abroker = broker.Broker()
-#arch.setClientsFromFile(abroker)
+#afacade = facade.Facade()
+#arch.setClientsFromFile(afacade)
 
 
 def total_value(balances):

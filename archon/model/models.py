@@ -1,7 +1,6 @@
 """ unified model """
 
 import archon.exchange.exchanges as exc
-import archon.markets as markets
 import archon.tx as atx
 import archon.feeds.cryptocompare as cryptocompare
 import datetime

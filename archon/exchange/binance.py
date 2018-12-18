@@ -709,7 +709,7 @@ class Client(object):
         except Exception as err:
             #archon.exchange.binance.BinanceAPIException: APIError(code=-1013): Filter failure: MIN_NOTIONAL
             logger.error(err)
-            return None            
+            return err            
         
 
     def create_order(self, **params):

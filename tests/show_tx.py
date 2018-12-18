@@ -2,7 +2,7 @@
 
 """
 
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.exchange.exchanges as exc
 import archon.model.models as models
@@ -12,12 +12,12 @@ import time
 import datetime
 import math
 
-abroker = broker.Broker()
-arch.setClientsFromFile(abroker)
+afacade = facade.Facade()
+arch.setClientsFromFile(afacade)
 
 def show(exchange, market):
     i = 0    
-    txs = abroker.market_history(market,e)
+    txs = afacade.market_history(market,e)
     name = exc.NAMES[exchange]
     for tx in txs[:10]:
         print (tx)

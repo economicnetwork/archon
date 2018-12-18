@@ -1,4 +1,4 @@
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.exchange.exchanges as exc
 import archon.markets as m
@@ -11,10 +11,10 @@ import math
 
 a = arch.Arch()
 a.set_keys_exchange_file()
-client = a.abroker.get_client(exc.BINANCE)
+client = a.afacade.get_client(exc.BINANCE)
 
 market = models.get_market("RVN","BTC",exc.BINANCE)
-txdata = abroker.trade_history(market,exc.BINANCE)
+txdata = afacade.trade_history(market,exc.BINANCE)
 
 def total(data):
     x = [x['quantity'] for x in data]

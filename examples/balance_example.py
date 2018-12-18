@@ -1,6 +1,6 @@
 
 import archon.exchange.exchanges as exc
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 
 a = arch.Arch()
@@ -12,7 +12,7 @@ a.set_keys_exchange_file()
 def individual_balance():
     bl = list()
     for e in ae:
-        b = a.abroker.balance_all(exchange=e)
+        b = a.afacade.balance_all(exchange=e)
         for x in b:
             n = exc.NAMES[e]
             x['exchange'] = n

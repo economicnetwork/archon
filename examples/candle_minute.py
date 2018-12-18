@@ -3,7 +3,7 @@ example how to get candles from N exchanges
 """
 import sys
 import archon.exchange.exchanges as exc
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.model.models as models
 
@@ -15,7 +15,7 @@ def history(e):
     market = "DCR_BTC"
     n = exc.NAMES[e]
     print (n)    
-    candles = a.abroker.get_candles_minute(market, e)    
+    candles = a.afacade.get_candles_minute(market, e)    
     for x in candles[:]:
         print (x)
         

@@ -5,9 +5,9 @@ import datetime
 
 from util import *
 
-def analyse(abroker):
+def analyse(afacade):
     market = "AC3_BTC"
-    usertx = abroker.trade_history(market)
+    usertx = afacade.trade_history(market)
     from functools import reduce
     buys = list(filter((lambda x: x['Type'] == 'Buy'),usertx))
     sells = list(filter((lambda x: x['Type'] == 'Sell'),usertx))
@@ -36,6 +36,6 @@ if __name__=='__main__':
     #logpath = '/tmp/log'
     logpath = './log'
     log = setup_logger(logpath, 'info_logger', 'arch')
-    abroker = broker.Broker()
-    arch.setClientsFromFile(abroker)
-    analyse(abroker)
+    afacade = facade.Facade()
+    arch.setClientsFromFile(afacade)
+    analyse(afacade)

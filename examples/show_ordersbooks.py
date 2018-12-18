@@ -2,7 +2,7 @@
 
 """
 
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.exchange.exchanges as exc
 import archon.model.models as model
@@ -21,7 +21,7 @@ a.set_keys_exchange_file()
 def show_book_exc(exchange, market):
     global a
     i = 0
-    [bids,asks] = a.abroker.get_orderbook(market,exchange)
+    [bids,asks] = a.afacade.get_orderbook(market,exchange)
     name= exc.NAMES[exchange]
     print ("** bid **       %s     ** ask **"%(name))
     for b in bids[:10]:

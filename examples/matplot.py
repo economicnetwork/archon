@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import archon.broker as broker
+import archon.facade as facade
 import archon.arch as arch
 import archon.exchange.exchanges as exc
 import archon.model.models as models
@@ -10,11 +10,11 @@ import numpy as np
 
 a = arch.Arch()
 a.set_keys_exchange_file()
-client = a.abroker.get_client(exc.BINANCE)
+client = a.afacade.get_client(exc.BINANCE)
 
 market = models.market_from("LTC","BTC")
 
-x = a.abroker.get_candles_hourly(market,exc.BINANCE)
+x = a.afacade.get_candles_hourly(market,exc.BINANCE)
 
 candles = list()
 xs = list()

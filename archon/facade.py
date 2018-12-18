@@ -1,8 +1,8 @@
 """
-broker
+facade
 
 unified interface to exchanges
-broker takes care of the translating logic in models
+facade takes care of the translating logic in models
 functions take exchange as the parameters and are forwarded to the exchange
 """
 
@@ -31,34 +31,30 @@ from archon.orders import *
 
 clients = {}
 
-#logpath = './log'
-#log = setup_logger(logpath, 'broker_logger', 'broker')
-
 rex_API_v2= "rex_API_v2"
 
 from loguru import logger
 
+#ORDERSTATUS_COL = 5
 ORDERSTATUS = "ORDERSTATUS"
 ORDERSTATUS_SUBMITTED = 0
 ORDERSTATUS_FILLED = 1
 ORDERSTATUS_CANCELLED = 2
 ORDERSTATUS_REJECTED = 3
 
- 
-class Broker:
+class Facade:
 
     def __init__(self):
         #log = logging.getLogger("arch."+__name__)
-        #logger.info("init broker")
-        logger.start("log/broker.log", rotation="500 MB")
-        logger.debug("init broker")
+        logger.start("log/facade.log", rotation="500 MB")
+        logger.debug("init facade")
         #action_level = logger.level("ACTION", no=8, color="<yellow>")
         #logger.log("ACTION", "??????action")
 
         self.submitted_orders = 0
         self.canceled_orders = 0
 
-        #broker tracks list of orders and their status
+        #facade tracks list of orders and their status
         self.orders = list()
 
 
@@ -643,13 +639,15 @@ class Broker:
         # ("order " + str(order))         
 
         logger.info("submit order " + str(exchange) + " " + str(order))
-        market,ttype,order_price,qty = order
+        market,ttype,order_price,qty = order        
         market = models.conv_markets_to(market, exchange)
         client = clients[exchange]
 
+        orderD = {"market":market,"type":ttype,"price":order_price,"quantity":qty,"status": ORDERSTATUS_SUBMITTED}
+
         order_success = False
-        order[ORDERSTATUS] = ORDERSTATUS_SUBMITTED
-        self.orders.append(order)
+        #order[ORDERSTATUS] = ORDERSTATUS_SUBMITTED
+        self.orders.append(orderD)
 
         if exchange==exc.CRYPTOPIA:                        
             order_result, err = clients[exc.CRYPTOPIA].submit_trade(market, ttype, order_price, qty)
@@ -697,29 +695,32 @@ class Broker:
         elif exchange==exc.BINANCE:
             logger.info("submit %s"%order)
             if ttype==ORDER_SIDE_BUY:
-                order_result = client.submit_order_buy(market, qty, order_price)
-                logger.info("order result: %s"%str(order_result))
-                order_success = False
-                #{'symbol': 'MDABTC', 'orderId': 34475311, 'clientOrderId': 'zecKIFc7bLHY6W1oAqwAXi',
-                #  'transactTime': 1545021630023, 
-                # 'price': '0.00024200', 'origQty': '209.00000000', 
-                # 'executedQty': '209.00000000', 'cummulativeQuoteQty': '0.05016209', 
-                # 'status': 'FILLED', 'timeInForce': 'GTC', 
-                # 'type': 'LIMIT', 'side': 'BUY', 'fills':
-                if order_result['status'] =='FILLED':
-                    order_success = True
-                    order[ORDERSTATUS] = ORDERSTATUS_FILLED
+                try:
+                    order_result = client.submit_order_buy(market, qty, order_price)
+                    logger.info("order result: %s"%str(order_result))
+                    order_success = False
+                    #{'symbol': 'MDABTC', 'orderId': 34475311, 'clientOrderId': 'zecKIFc7bLHY6W1oAqwAXi',
+                    #  'transactTime': 1545021630023, 
+                    # 'price': '0.00024200', 'origQty': '209.00000000', 
+                    # 'executedQty': '209.00000000', 'cummulativeQuoteQty': '0.05016209', 
+                    # 'status': 'FILLED', 'timeInForce': 'GTC', 
+                    # 'type': 'LIMIT', 'side': 'BUY', 'fills':
+                    if order_result['status'] =='FILLED':
+                        order_success = True
+                        orderD[ORDERSTATUS] = ORDERSTATUS_FILLED
+                except Exception as err:
+                    orderD[ORDERSTATUS] = ORDERSTATUS_REJECTED
 
-                #TODO rejected
             else:
-                order_result = client.submit_order_sell(market, qty, order_price)                
-                logger.info("order result: %s"%str(order_result))
-                order_success = False
-                if order_result['status'] =='FILLED':
-                    order_success = True
-                    order[ORDERSTATUS] = ORDERSTATUS_FILLED
-
-                #TODO rejected
+                try:
+                    order_result = client.submit_order_sell(market, qty, order_price)                
+                    logger.info("order result: %s"%str(order_result))
+                    order_success = False
+                    if order_result['status'] =='FILLED':
+                        order_success = True
+                        orderD[ORDERSTATUS] = ORDERSTATUS_FILLED
+                except Exception as err:
+                    orderD[ORDERSTATUS] = ORDERSTATUS_REJECTED
                 
 
         if order_success:
