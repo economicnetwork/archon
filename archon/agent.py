@@ -43,7 +43,7 @@ log = setup_logger(logpath, 'info_logger', 'mm')
 
 class Agent(threading.Thread):
 
-    def __init__(self, arch, exchange):
+    def __init__(self, abroker, exchange):
         threading.Thread.__init__(self)        
         #config = agent_config()["AGENT"]
         #m = config["market"]    
@@ -51,7 +51,7 @@ class Agent(threading.Thread):
         self.agent_id = "agent" #config["agentid"]
         self.threadID = "thread-" + self.agent_id
         self.afacade = facade.Facade()
-        self.broker = arch
+        self.abroker = abroker
         nom,denom = market.split('_')
         #TODO config
         self.e = exchange
@@ -74,7 +74,7 @@ class Agent(threading.Thread):
             logger.info("postion %s"%p)
 
     def balances(self):
-        b = self.broker.afacade.balance_all(exc.BINANCE)
+        b = self.abroker.afacade.balance_all(exc.BINANCE)
         return b
 
     def cancel_all(self):
@@ -128,7 +128,7 @@ class Agent(threading.Thread):
 
     def global_orderbook(self,market=None):
         if market==None: market=self.market
-        [obids,oasks,ts] = self.broker.get_global_orderbook(market)
+        [obids,oasks,ts] = self.abroker.get_global_orderbook(market)
         return [obids,oasks,ts]
 
     def show_ob(self):
