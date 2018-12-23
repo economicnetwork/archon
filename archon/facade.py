@@ -317,7 +317,7 @@ class Facade:
         
         elif exchange==exc.BINANCE:
             market = models.conv_markets_to(market, exchange)
-            klines = client.get_candles_daily(market)    
+            klines = client.get_candles_daily(market) 
             return models.conv_candle(klines,exchange)
 
     def get_candles_hourly(self, market, exchange):

@@ -757,9 +757,7 @@ def conv_candle(history, exchange):
         newcandle = list()
         for x in history:
             ts,o,h,l,c,v = x[:6]
-            dt = conv_timestamp_tx_dt(ts, exchange)  
-            #conv_timestamp_tx_dt   
-            #print (dt,type(dt))
+            dt = conv_timestamp_tx_dt(ts, exchange)
             newcandle.append([dt,o,h,l,c,v])
         return newcandle
 
