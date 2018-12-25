@@ -130,7 +130,7 @@ def plot_portfolio(portfolio):
 	plt.show()
 
 
-def backtest_market(data, buy_barrier, short_barrier, volume_barrier_long, volume_barrier_short):		
+def backtest_market(data, buy_barrier, short_barrier):		
 	COL_TIME = 0
 	COL_CLOSE = 4
 	COL_VOLUME = 5
@@ -147,7 +147,7 @@ def backtest_market(data, buy_barrier, short_barrier, volume_barrier_long, volum
 	bars['volumeROC'] = talib.ROC(bars['volume'])
 	
 	symbol = market	
-	rfs = RSIStrategy('close', bars, buy_barrier, short_barrier, volume_barrier_long, volume_barrier_short)
+	rfs = RSIStrategy('close', bars, buy_barrier, short_barrier)
 	signals = rfs.generate_signals()
 	#print ("signal summary \n",signals.describe())	
 
