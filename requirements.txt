@@ -8,4 +8,5 @@ python-binance
 krakenex
 bitmex
 bitmex-ws
+deribit-api
 loguru

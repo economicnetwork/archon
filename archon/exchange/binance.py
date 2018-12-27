@@ -640,27 +640,32 @@ class Client(object):
 
     def get_candles_minute(self, market):
         resolution = self.KLINE_INTERVAL_1MINUTE
-        x = self.get_klines(symbol=market,limit=100,interval=resolution)
+        candle_limit = 100
+        x = self.get_klines(symbol=market,limit=candle_limit,interval=resolution)
         return x
 
     def get_candles_minute15(self, market):
         resolution = self.KLINE_INTERVAL_15MINUTE
-        x = self.get_klines(symbol=market,limit=100,interval=resolution)
+        candle_limit = 100
+        x = self.get_klines(symbol=market,limit=candle_limit,interval=resolution)
         return x        
 
     def get_candles_hourly(self, market):
         resolution = self.KLINE_INTERVAL_1HOUR
-        x = self.get_klines(symbol=market,limit=100,interval=resolution)
+        candle_limit = 100
+        x = self.get_klines(symbol=market,limit=candle_limit,interval=resolution)
         return x
 
     def get_candles_daily(self, market):
         resolution = self.KLINE_INTERVAL_1DAY
-        x = self.get_klines(symbol=market,limit=100,interval=resolution)
+        candle_limit = 1000
+        x = self.get_klines(symbol=market,limit=candle_limit,interval=resolution)
         return x
 
     def get_candles_timeframe(self, market, timeframe):
         resolution = timeframe
-        x = self.get_klines(symbol=market,limit=100,interval=resolution)
+        candle_limit = 100
+        x = self.get_klines(symbol=market,limit=candle_limit,interval=resolution)
         return x
 
         
