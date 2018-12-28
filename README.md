@@ -17,6 +17,23 @@ Ecosystem which can be built on top
 
 ## examples
 
+get global balances ([source](examples/balance_simple.py))
+
+```
+a = broker.Broker()
+a.set_active_exchanges([exc.BINANCE])
+bl = a.global_balances()
+print (bl)
+```
+ 
+orderbooks ([source](examples/show_ordersbooks.py))
+ 
+```
+book = a.afacade.get_orderbook(market,exchange)
+name = exc.NAMES[exchange]
+display_book(book, name)
+```
+
 balance_all.py - send balance report via mail 
 
 order.py - submit order example

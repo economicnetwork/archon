@@ -1,5 +1,5 @@
 """
-
+show orderbooks for all exchanges
 """
 
 import archon.facade as facade
@@ -15,15 +15,12 @@ import math
 a = broker.Broker()
 ae = [exc.KUCOIN,exc.BITTREX,exc.CRYPTOPIA,exc.HITBTC,exc.KRAKEN]
 a.set_active_exchanges(ae)
-a.set_keys_exchange_file()
 
 
-def show_book_exc(exchange, market):
-    global a
-    i = 0
-    [bids,asks] = a.afacade.get_orderbook(market,exchange)
-    name= exc.NAMES[exchange]
+def display_book(book,name):
+    [bids,asks] = book
     print ("** bid **       %s     ** ask **"%(name))
+    i = 0
     for b in bids[:10]:
         ask = asks[i]  
         bp = b['price']
@@ -33,9 +30,14 @@ def show_book_exc(exchange, market):
         print ("%.8f  %.2f   %.8f  %.2f" % (bp,bv,ap,av))
         i+=1  
 
+def show_book_exc(exchange, market):
+    global a    
+    book = a.afacade.get_orderbook(market,exchange)
+    name = exc.NAMES[exchange]
+    display_book(book, name)
+
 def show_book(nom,denom):
-    #for e in [exc.CRYPTOPIA, exc.BITTREX, exc.KUCOIN]:
-    for e in [exc.KUCOIN]:
+    for e in [exc.CRYPTOPIA, exc.BITTREX, exc.KUCOIN]:
         market = model.market_from(nom,denom)
         show_book_exc(e,market)
 
