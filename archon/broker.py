@@ -1,5 +1,4 @@
-
-import toml
+from archon.config import *
 import archon.facade as facade
 import archon.exchange.exchanges as exc
 import time
@@ -12,20 +11,6 @@ from archon.util import *
 import logging
 from loguru import logger
 
-
-def toml_file(fs):
-    with open(fs, "r") as f:
-        return f.read()
-
-def parse_toml(filename):
-    toml_string = toml_file(filename)
-    parsed_toml = toml.loads(toml_string)
-    return parsed_toml
-
-def set_keys_exchange(afacade, e, keys):
-    pubkey = keys["public_key"]
-    secret = keys["secret"]
-    afacade.set_api_keys(e,pubkey,secret)
 
     
 class Broker:
@@ -49,8 +34,10 @@ class Broker:
         self.balances = None
         self.openorders = list()
         self.submitted_orders = list()
-        self.active_exchanges = None
+        self.active_exchanges = list()
         self.selected_exchange = None
+
+        self.set_keys_exchange_file()
 
         try:
             all_conf = parse_toml("conf.toml")
@@ -98,26 +85,24 @@ class Broker:
         logger.info("set keys %s"%self.active_exchanges)
         try:
             apikeys = parse_toml(keys_filename)
-            if self.active_exchanges:
-                for k,v in apikeys.items():
-                    eid = exc.get_id(k)
-                    if eid >= 0 and eid in self.active_exchanges:
-                        self.set_keys_exchange(eid, apikeys[k])
-                    else:
-                        logger.error("exchange not supported or not set")
-            else:
+            if not self.active_exchanges:
                 ae = list()
                 for k,v in apikeys.items():
                     eid = exc.get_id(k)
                     if eid >= 0:
-                        self.set_keys_exchange(eid, apikeys[k])
-                        ae.append(eid)
+                        try:
+                            self.set_keys_exchange(eid, apikeys[k])
+                            ae.append(eid)
+                        except Exception as err:
+                            logger.error("could not set %s"%err)
                     else:
                         logger.error ("exchange not supported or not set")
                 logger.info("active exchanges %s"%ae)
-                self.active_exchanges = ae
+            else:
+                logger.error("active exchanages already set")
+                
         except Exception as err: 
-            logger.error("error prasing apikeys file %s"%(err))
+            logger.error("error parsing apikeys file %s"%(err))
             
 
     def set_keys_exchange(self, exchange, keys):
@@ -126,6 +111,7 @@ class Broker:
         logger.debug ("set keys %i %s"%(exchange,keys['public_key']))
         #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.afacade.set_api_keys(exchange, pubkey, secret)
+        self.active_exchanges.append(exchange)
 
     def get_active_exchanges(self):
         return self.active_exchanges
