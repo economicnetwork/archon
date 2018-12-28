@@ -1,4 +1,4 @@
-from bitmex_ws import BitMEXWebsocket
+from archon.ws.bitmex.bitmex_ws import BitMEXWebsocket
 import logging
 from logging.handlers import RotatingFileHandler
 from time import sleep
@@ -74,7 +74,7 @@ def setup_logger():
 if __name__ == "__main__":
     
     filename = "apikeys.toml"
-    apikeys = parse_toml(filename)['bitmex']
-    k,s = apikeys['key'],apikeys['secret']
+    apikeys = parse_toml(filename)['BITMEX']
+    k,s = apikeys['public_key'],apikeys['secret']
     run(k,s)
 
