@@ -7,6 +7,12 @@ import logging
 import urllib
 import math
 from archon.ws.api_util import generate_nonce, generate_signature
+from archon.ws.bitmex.bitmex_topics import *
+
+table_orderbook = 'orderBook10'
+table_instrument = 'instrument'  
+
+endpoint_V1 = "https://www.bitmex.com/api/v1"
 
 
 # Naive implementation of connecting to BitMEX websocket for streaming realtime data.
@@ -22,7 +28,7 @@ class BitMEXWebsocket:
     # Don't grow a table larger than this amount. Helps cap memory usage.
     MAX_TABLE_LEN = 200
 
-    def __init__(self, endpoint, symbol, api_key=None, api_secret=None):
+    def __init__(self, symbol, api_key=None, api_secret=None, endpoint=endpoint_V1):
         '''Connect to the websocket and initialize data stores.'''
         self.logger = logging.getLogger(__name__)
         self.logger.debug("Initializing WebSocket.")
@@ -88,7 +94,8 @@ class BitMEXWebsocket:
 
     def market_depth(self):
         '''Get market depth (orderbook). Returns all levels.'''
-        return self.data['orderBookL2']
+        #return self.data['orderBookL2']
+        return self.data['orderBook10']
 
     def open_orders(self, clOrdIDPrefix):
         '''Get all your open orders.'''
@@ -153,8 +160,10 @@ class BitMEXWebsocket:
         '''
 
         # You can sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
-        symbolSubs = ["execution", "instrument", "order", "orderBookL2", "position", "quote", "trade"]
-        genericSubs = ["margin"]
+        #symbolSubs = ["execution", "instrument", "order", "orderBookL2", "position", "quote", "trade"]
+        #symbolSubs = [TOPIC_execution, TOPIC_instrument, TOPIC_order, TOPIC_orderBookL2, TOPIC_position, TOPIC_quote, TOPIC_trade]
+        symbolSubs = [TOPIC_execution, TOPIC_instrument, TOPIC_order, TOPIC_orderBook10, TOPIC_position, TOPIC_quote, TOPIC_trade]
+        genericSubs = [TOPIC_margin]
 
         subscriptions = [sub + ':' + self.symbol for sub in symbolSubs]
         subscriptions += genericSubs
@@ -184,17 +193,31 @@ class BitMEXWebsocket:
     def __on_message(self, message):
         '''Handler for parsing WS messages.'''
         message = json.loads(message)
-        self.logger.debug(json.dumps(message))
+        
+        m = json.dumps(message)
+        print (">> ",m)
+        self.logger.debug(m)
 
         table = message['table'] if 'table' in message else None
         action = message['action'] if 'action' in message else None
+        
+    
         try:
             if 'subscribe' in message:
                 self.logger.debug("Subscribed to %s." % message['subscribe'])
-            elif action:
 
+            elif action:
+                #print (action," ",table)
                 if table not in self.data:
                     self.data[table] = []
+
+                """
+                if table == table_orderbook and action == 'update':
+                    data = message['data'][0]
+                    a = data['asks']
+                    b = data['bids']
+                """
+                    
 
                 # There are four possible actions from the WS:
                 # 'partial' - full table image
@@ -217,7 +240,7 @@ class BitMEXWebsocket:
                         self.data[table] = self.data[table][int(BitMEXWebsocket.MAX_TABLE_LEN / 2):]
 
                 elif action == 'update':
-                    self.logger.debug('%s: updating %s' % (table, message['data']))
+                    #self.logger.debug('%s: updating %s' % (table, message['data']))
                     # Locate the item in the collection and update it.
                     for updateData in message['data']:
                         item = findItemByKeys(self.keys[table], self.data[table], updateData)
@@ -236,7 +259,11 @@ class BitMEXWebsocket:
                 else:
                     raise Exception("Unknown action: %s" % action)
         except:
-            self.logger.error(traceback.format_exc())
+            e = traceback.format_exc()
+            print ("error ",e)
+            self.logger.error("!" ,e)
+
+        
 
     def __on_error(self, error):
         '''Called on fatal websocket errors. We exit on these.'''

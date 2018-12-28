@@ -21,8 +21,7 @@ def parse_toml(filename):
 def run(k,s):
     logger = setup_logger()
 
-    ws = BitMEXWebsocket(endpoint="https://www.bitmex.com/api/v1",
-                         symbol=crypto, api_key=k, api_secret=s)
+    ws = BitMEXWebsocket(symbol=crypto, api_key=k, api_secret=s)
     logger.info("Instrument data: %s" % ws.get_instrument())
     logger.info("\n\n\n\n************\n\n\n")
     while(ws.ws.sock.connected):        

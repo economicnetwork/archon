@@ -2,6 +2,8 @@
 
 Trading and broker framework for Internet/Crypto exchanges
 
+Archon makes it simple to trade on multiple exchanges driven by code.
+
 The framework interacts with the exchanges through the API keys for the purpose of 
 
 * all typical exchange functions such as: submitting orders, tracking balances and market prices
@@ -10,7 +12,7 @@ The framework interacts with the exchanges through the API keys for the purpose 
 
 Ecosystem which can be built on top
 
-* Trading bots: arbitrage, market-making, directional
+* Trading bots: arbitrage, market-making, directional trading
 * Multi-Exchange trading interface
 * Streaming service
 * and more
@@ -34,15 +36,17 @@ name = exc.NAMES[exchange]
 display_book(book, name)
 ```
 
-balance_all.py - send balance report via mail 
+[balance_all.py](examples/balance_all.py) - send balance report via mail 
 
-order.py - submit order example
+[order.py](examples/order.py) - submit order example
 
-cancel.py - cancel open order by command line
+[cancel.py](examples/cancel.py) - cancel open order by command line
 
-user_tx.py - user transactions
+[user_tx.py](examples/user_tx.py) - user transactions
 
-strategy.py - basic strategy example
+## simply strategy
+
+[strategy.py](examples/strategy.py) - basic strategy example
 
 ## install 
 
