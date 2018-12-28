@@ -20,11 +20,8 @@ class Broker:
     """
 
     def __init__(self):
-        #logpath = './log'
-        #log = setup_logger(logpath, 'archon_logger', 'archon')
 
         logger.start("log/broker.log", rotation="500 MB")
-        #logger.start("log/broker.log", colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
         logger.debug("init arch")
 
@@ -82,9 +79,9 @@ class Broker:
         self.active_exchanges = ne
 
     def set_keys_exchange_file(self,keys_filename="apikeys.toml"):
-        logger.info("set keys %s"%self.active_exchanges)
         try:
             apikeys = parse_toml(keys_filename)
+            logger.info("set keys %s"%apikeys.keys())
             if not self.active_exchanges:
                 ae = list()
                 for k,v in apikeys.items():

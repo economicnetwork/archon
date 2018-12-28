@@ -37,10 +37,6 @@ def agent_config():
     return parsed_toml
 
 
-logpath = './log'
-log = setup_logger(logpath, 'info_logger', 'mm')
-
-
 class Agent(threading.Thread):
 
     def __init__(self, abroker, exchange):
@@ -164,10 +160,10 @@ class Agent(threading.Thread):
 
     def sync_openorders(self):
         try:
-            log.info("sync orders " + str(self.e))
+            logger.info("sync orders %s" %str(self.e))
             #oo = self.afacade.open_orders_symbol(self.market,self.e)
             oo = self.afacade.open_orders(exc.BINANCE)
-            log.info("oo " + str(oo))
+            logger.info("oo %s" %str(oo))
             if oo != None:
                 self.openorders = oo
                 self.open_bids = list(filter(lambda x: x['otype']=='bid',self.openorders))

@@ -6,24 +6,17 @@ KUCOIN = 2
 BINANCE = 3
 KRAKEN = 4
 HITBTC = 5
+DERIBIT = 6
+BITMEX = 7
 
-NAMES = {CRYPTOPIA:"Cryptopia",BITTREX:"Bittrex",KUCOIN:"Kucoin",BINANCE:"Binance",KRAKEN:"Kraken",HITBTC:"Hitbtc"}
+NAMES = {CRYPTOPIA:"CRYPTOPIA",BITTREX:"BITTREX",KUCOIN:"KUCOIN",BINANCE:"BINANCE",KRAKEN:"KRAKEN",HITBTC:"HITBTC",DERIBIT:"DERIBIT",BITMEX:"BITMEX"}
 
-CRYPTOPIA_NAME = "Cryptopia"
-BITTREX_NAME = "Bittrex"
-KUCOIN_NAME = "Kucoin"
-BINANCE_NAME = "Binance"
-KRAKEN_NAME = "Kraken"
-HITBTC_NAME = "Hitbtc"
-#supported_exchanges = [CRYPTOPIA,BITTREX,KUCOIN,BINANCE,KRAKEN,HITBTC]
 supported_exchanges = [CRYPTOPIA,BITTREX,KUCOIN,HITBTC]
-
-names_arr = [CRYPTOPIA_NAME,BITTREX_NAME,KUCOIN_NAME,BINANCE_NAME,KRAKEN_NAME,HITBTC_NAME]
-#supported_exchanges = [CRYPTOPIA,BITTREX]
 
 def get_id(name):    
     try:
-        return names_arr.index(name.title())
+        v = list(NAMES.values())
+        return v.index(name)
     except:
         logger.error("exchange does not exist %s"%name)
 
