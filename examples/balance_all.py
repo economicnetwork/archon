@@ -35,7 +35,6 @@ def process(bl):
     return newbl
 
 def write_to_file(html):
-    #print (total_all)
     date_broker_format = "%Y-%m-%d"
     from datetime import datetime
     ds = datetime.now().strftime("%Y%m%d")

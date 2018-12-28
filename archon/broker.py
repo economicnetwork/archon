@@ -167,7 +167,8 @@ class Broker:
         for e in self.active_exchanges:
             n = exc.NAMES[e]
             b = self.afacade.balance_all(exchange=e)
-            if b == None: print ("could not fetch balances from %s"%n)
+            if b == None: 
+                logger.error("could not fetch balances from %s"%n)
             for x in b:
                 x['exchange'] = n
                 s = x['symbol']
@@ -198,7 +199,7 @@ class Broker:
                     if s == 'BTC': continue
                     if s == 'USDT': continue
                     ms = models.get_market(m['symbol'],"BTC",exc.BINANCE)
-                    #print ("?? ",ms)
+                    
                     tx = self.afacade.trade_history(market=ms,exchange=e)
                     alltx += tx
                 txlist += alltx                    
@@ -206,7 +207,6 @@ class Broker:
                 n = exc.NAMES[e]
                 logger.info("get %s"%n)
                 tx = self.afacade.get_tradehistory_all(exchange=e)
-                #print (tx)
                 if tx != None:
                     for x in tx:
                         x["exchange"] = n
@@ -334,7 +334,7 @@ class Broker:
 
     def sync_orderbook(self, market, exchange):
         smarket = models.conv_markets_to(market, exchange)  
-        #print ("sync",market," ",exchange)   
+        logger.debug("sync %s %i"%(market,exchange))   
         #TODO check if symbol is supported by exchange   
         try:
             n = exc.NAMES[exchange]
@@ -355,7 +355,7 @@ class Broker:
 
     def sync_balances(self):
         balances = self.global_balances()
-        print ("insert ",balances)
+        logger.info("insert %s"%balances)
         self.db.balances.drop()
         dt = datetime.datetime.utcnow()
         self.db.balances.insert({'balance_items':balances,'t':dt})
@@ -398,7 +398,7 @@ class Broker:
             self.db.txs.insert(x)     
             self.db.txs_history.insert(x)
         except:
-            print ("symbol not supported")
+            logger.error("symbol not supported")
 
     def sync_tx_all(self, market):              
         for e in self.active_exchanges:
@@ -479,5 +479,5 @@ class Broker:
             ts = tx['timestamp'][:19]
             dt = datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')        
             if dt > self.starttime:
-                print ("new tx")
+                logger.info("new tx")
             

@@ -82,9 +82,9 @@ class Agent(threading.Thread):
         oo = self.openorders
         logger.info(oo)
         for o in oo:
-            print ("cancelling ",o)
+            logger.info("cancelling %s"%o)
             result = self.afacade.cancel(o) #, exchange=self.e)
-            print ("cancel result: " + str(result))
+            logger.info("cancel result: " + str(result))
             time.sleep(0.5)
 
 
@@ -94,11 +94,11 @@ class Agent(threading.Thread):
         i = 0
         for o in oo:
             if o['otype']=='bid':
-                print ("cancelling ",o)
+                logger.info("cancelling %s"%o)
                 k = "oid"
                 oid = o[k]
                 result = self.afacade.cancel(o, exchange=self.e)
-                print ("result" + str(result))
+                logger.info("result" + str(result))
 
     def submit_buy(self,price, qty):
         o = [self.market, "BUY", price, qty]
@@ -147,7 +147,6 @@ class Agent(threading.Thread):
             mybidprice = 0
         [obids,oasks] = self.orderbook()
         
-        #print (oo)
         oasks.reverse()
         for a in oasks[-3:]:
             p,q = a['price'],a['quantity']

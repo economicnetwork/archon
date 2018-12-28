@@ -1,3 +1,4 @@
+from loguru import logger
 
 CRYPTOPIA = 0
 BITTREX = 1
@@ -24,5 +25,5 @@ def get_id(name):
     try:
         return names_arr.index(name.title())
     except:
-        print ("exchange does not exist %s"%name)
+        logger.error("exchange does not exist %s"%name)
 
