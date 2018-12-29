@@ -5,6 +5,7 @@ from time import sleep
 import datetime
 import json
 import toml
+from loguru import logger
 
 crypto = "XBTUSD"
 sleeping = 1
@@ -19,20 +20,23 @@ def parse_toml(filename):
     return parsed_toml
 
 def run(k,s):
-    logger = setup_logger()
+    
+    logger.info("run")
 
-    ws = BitMEXWebsocket(symbol=crypto, api_key=k, api_secret=s)
+    bitmexws = BitMEXWebsocket(symbol=crypto, api_key=k, api_secret=s)
+    logger.info("NEXT???????")
+
     logger.info("Instrument data: %s" % ws.get_instrument())
     logger.info("\n\n\n\n************\n\n\n")
-    while(ws.ws.sock.connected):        
+    while(bitmexws.ws.sock.connected):        
         logger.info("Ticker: %s" % ws.get_ticker())
 
         logger.info("Open orders: %s" % ws.open_orders(''))
 
-        t = ws.recent_trades()
+        t = bitmexws.recent_trades()
         logger.info("recent trades: %i" % len(t))
 
-        d = ws.market_depth()
+        d = bitmexws.market_depth()
         logger.info("depth %i " % len(d))
         sells = list(filter(lambda d: d['side'] == 'Sell' , d))        
         buys = list(filter(lambda d: d['side'] == 'Buy' , d))        
@@ -50,25 +54,6 @@ def run(k,s):
             logger.info("%5.3f   %5.2f"%(bp,sp))
 
         sleep(sleeping)
-
-def setup_logger():
-    # Prints logger info to terminal
-    logger = logging.getLogger()
-    # Change this to DEBUG if you want a lot more info
-    logger.setLevel(logging.INFO)
-    ch = logging.StreamHandler()
-    # create formatter
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    file_handler = RotatingFileHandler(
-        '_activity.log', 'a', 1000000, 1)
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    # add formatter to ch
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    return logger
 
 if __name__ == "__main__":
     
