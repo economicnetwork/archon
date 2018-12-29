@@ -8,6 +8,7 @@ import math
 from archon.ws.api_util import generate_nonce, generate_signature
 from archon.ws.bitmex.bitmex_topics import *
 from loguru import logger
+import pdb
 
 table_orderbook = 'orderBook10'
 table_instrument = 'instrument'  
@@ -30,7 +31,10 @@ class BitMEXWebsocket:
 
     def __init__(self, symbol, api_key=None, api_secret=None, endpoint=endpoint_V1):
         '''Connect to the websocket and initialize data stores.'''
-        logger.start("log/bitmex_ws.log", rotation="500 MB")
+        logger.start("log/bitmex_ws.log", rotation="500 MB",level="DEBUG")
+        #logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
+
+        #logger.add(sys.stdout, format="{time} {level} {message}", filter="my_module", level="debug")
         logger.debug("Initializing WebSocket.")
 
         self.endpoint = endpoint
@@ -51,12 +55,13 @@ class BitMEXWebsocket:
         #define topics
         # You can sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
         #self.symbolSubs = [TOPIC_execution, TOPIC_instrument, TOPIC_order, TOPIC_orderBook10, TOPIC_position, TOPIC_quote, TOPIC_trade]
-        self.symbolSubs = [TOPIC_instrument, TOPIC_order, TOPIC_position, TOPIC_trade]
+        self.symbolSubs = []
         self.genericSubs = [TOPIC_margin]
 
         #account_sub_topics = {TOPIC_margin, TOPIC_position, TOPIC_order, TOPIC_orderBook10}
         #symbol_topics = {TOPIC_instrument, TOPIC_trade, TOPIC_quote}
         self.all_topics = self.symbolSubs + self.genericSubs
+        self.subscribed = list()
 
         # We can subscribe right in the connection querystring, so let's build that.
         # Subscribe to all pertinent endpoints
@@ -73,9 +78,10 @@ class BitMEXWebsocket:
 
         self.got_init_data = False
         
-        self.__wait_for_symbol(symbol)
-        if api_key:
-            self.__wait_for_account()
+        self.__wait_for_subscription()
+        #self.__wait_for_symbol(symbol)
+        #if api_key:
+        #self.__wait_for_account()
 
         self.got_init_data = True
         
@@ -241,6 +247,9 @@ class BitMEXWebsocket:
             """
             sleep(1.0)
 
+    def __wait_for_subscription(self):
+        return
+
     def __send_command(self, command, args=None):
         '''Send a raw command.'''
         if args is None:
@@ -253,71 +262,79 @@ class BitMEXWebsocket:
         
         msg = json.dumps(message)
         logger.debug(msg)
-        logger.debug("got msg. %s"%str(self.got_init_data))
-        self.missing_topics()
+        #pdb.set_trace()
+        #logger.debug("got msg. %s %s"%str(self.got_init_data),set(self.data))
+        #self.missing_topics()
         logger.debug("keys %s"%str(self.data.keys()))
 
         table = message['table'] if 'table' in message else None
         action = message['action'] if 'action' in message else None
 
-        logdebug = True
+        #logdebug = True
             
         try:
             if 'subscribe' in message:
-                if logdebug: logger.debug("Subscribed to %s." % message['subscribe'])
+                topic = message['subscribe']
+                logger.info("Subscribed to %s." % topic)
+                logger.info(msg)
+                self.subscribed.append(topic)
+                self.data[topic] = []
+
 
             elif action:
                 #print (action," ",table)
                 if table not in self.data:
                     #new table
+                    logger.info("!! new data ",table)
                     self.data[table] = []
 
-                if self.got_init_data:
-                    # four possible actions
-                    # 'partial' - full table image
-                    # 'insert'  - new row
-                    # 'update'  - update row
-                    # 'delete'  - delete row
-                    if action == 'partial':
-                        if logdebug: logger.debug("%s: partial" % table)
-                        self.data[table] += message['data']
-                        # Keys are communicated on partials to let you know how to uniquely identify
-                        # an item. We use it for updates.
-                        self.keys[table] = message['keys']
+                #if self.got_init_data:
+                # four possible actions
+                # 'partial' - full table image
+                # 'insert'  - new row
+                # 'update'  - update row
+                # 'delete'  - delete row
+                if action == 'partial':
+                    logger.debug("%s: partial" % table)
+                    self.data[table] += message['data']
+                    logger.debug("keys now %s" % self.data.keys())
+                    # Keys are communicated on partials to let you know how to uniquely identify
+                    # an item. We use it for updates.
+                    self.keys[table] = message['keys']
 
-                    elif action == 'insert':
-                        if logdebug: logger.debug('%s: inserting %s' % (table, message['data']))
-                        self.data[table] += message['data']
+                elif action == 'insert':
+                    logger.debug('%s: inserting %s' % (table, message['data']))
+                    self.data[table] += message['data']
 
-                        # Limit the max length of the table to avoid excessive memory usage.
-                        # Don't trim orders because we'll lose valuable state if we do.
-                        if table not in ['order', 'orderBookL2'] and len(self.data[table]) > BitMEXWebsocket.MAX_TABLE_LEN:
-                            self.data[table] = self.data[table][int(BitMEXWebsocket.MAX_TABLE_LEN / 2):]
+                    # Limit the max length of the table to avoid excessive memory usage.
+                    # Don't trim orders because we'll lose valuable state if we do.
+                    if table not in ['order', 'orderBookL2'] and len(self.data[table]) > BitMEXWebsocket.MAX_TABLE_LEN:
+                        self.data[table] = self.data[table][int(BitMEXWebsocket.MAX_TABLE_LEN / 2):]
 
-                    elif action == 'update':
-                        #logger.debug('%s: updating %s' % (table, message['data']))
-                        # Locate the item in the collection and update it.
-                        logger.debug("update %s %s"%(table,self.keys))
-                        data = message['data']
-                        for updateData in data:
-                            logger.debug("udpate item %s"%updateData)
-                            item = findItemByKeys(self.keys[table], self.data[table], updateData)
-                            if not item:
-                                return  # No item found to update. Could happen before push
-                            item.update(updateData)
-                            # Remove cancelled / filled orders
-                            if table == 'order' and item['leavesQty'] <= 0:
-                                self.data[table].remove(item)
-                    elif action == 'delete':
-                        if logdebug: logger.debug('%s: deleting %s' % (table, message['data']))
-                        # Locate the item in the collection and remove it.
-                        for deleteData in message['data']:
-                            item = findItemByKeys(self.keys[table], self.data[table], deleteData)
+                elif action == 'update':
+                    #logger.debug('%s: updating %s' % (table, message['data']))
+                    # Locate the item in the collection and update it.
+                    logger.debug("update %s %s"%(table,self.keys))
+                    data = message['data']
+                    for updateData in data:
+                        logger.debug("udpate item %s"%updateData)
+                        item = findItemByKeys(self.keys[table], self.data[table], updateData)
+                        if not item:
+                            return  # No item found to update. Could happen before push
+                        item.update(updateData)
+                        # Remove cancelled / filled orders
+                        if table == 'order' and item['leavesQty'] <= 0:
                             self.data[table].remove(item)
-                    else:
-                        raise Exception("Unknown action: %s" % action)
+                elif action == 'delete':
+                    logger.debug('%s: deleting %s' % (table, message['data']))
+                    # Locate the item in the collection and remove it.
+                    for deleteData in message['data']:
+                        item = findItemByKeys(self.keys[table], self.data[table], deleteData)
+                        self.data[table].remove(item)
+                else:
+                    raise Exception("Unknown action: %s" % action)
         except:
-            e = traceback.format_exc()     
+            e = debugback.format_exc()     
             logger.error("error on msg %s"%msg)       
             logger.error("! %s"%e)
 
