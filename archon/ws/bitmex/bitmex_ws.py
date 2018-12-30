@@ -8,6 +8,7 @@ import math
 from archon.ws.api_util import generate_nonce, generate_signature
 from archon.ws.bitmex.bitmex_topics import *
 from loguru import logger
+import pdb
 
 table_orderbook = 'orderBook10'
 table_instrument = 'instrument'  
@@ -30,7 +31,10 @@ class BitMEXWebsocket:
 
     def __init__(self, symbol, api_key=None, api_secret=None, endpoint=endpoint_V1):
         '''Connect to the websocket and initialize data stores.'''
-        logger.start("log/bitmex_ws.log", rotation="500 MB")
+        logger.start("log/bitmex_ws.log", rotation="500 MB",level="DEBUG")
+        #logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
+
+        #logger.add(sys.stdout, format="{time} {level} {message}", filter="my_module", level="debug")
         logger.debug("Initializing WebSocket.")
 
         self.endpoint = endpoint
@@ -48,6 +52,17 @@ class BitMEXWebsocket:
         self.keys = {}
         self.exited = False
 
+        #define topics
+        # You can sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
+        #self.symbolSubs = [TOPIC_execution, TOPIC_instrument, TOPIC_order, TOPIC_orderBook10, TOPIC_position, TOPIC_quote, TOPIC_trade]
+        self.symbolSubs = []
+        self.genericSubs = [TOPIC_margin]
+
+        #account_sub_topics = {TOPIC_margin, TOPIC_position, TOPIC_order, TOPIC_orderBook10}
+        #symbol_topics = {TOPIC_instrument, TOPIC_trade, TOPIC_quote}
+        self.all_topics = self.symbolSubs + self.genericSubs
+        self.subscribed = list()
+
         # We can subscribe right in the connection querystring, so let's build that.
         # Subscribe to all pertinent endpoints
         wsURL = self.__get_url()
@@ -56,19 +71,33 @@ class BitMEXWebsocket:
         logger.info('Connected to WS.')
 
         # Connected. Wait for partials
-        """
-        logger.info('Wait for partials')
+
+        #self.subscribe_topic(TOPIC_orderBook10)
         
-        self.__wait_for_symbol(symbol)
-        if api_key:
-            self.__wait_for_account()
-        """
+        logger.info('Wait for initial data')
+
+        self.got_init_data = False
+        
+        self.__wait_for_subscription()
+        #self.__wait_for_symbol(symbol)
+        #if api_key:
+        #self.__wait_for_account()
+
+        self.got_init_data = True
+        
         logger.info('Got all market data. Starting.')
 
     def exit(self):
         '''Call this to exit - will close websocket.'''
         self.exited = True
         self.ws.close()
+
+    def subscribe_topic(self, topic):
+        #{"op": "subscribe", "args": ["orderBookL2_25:XBTUSD"]}
+        symbol = "XBTUSD"
+        #args = ["orderBookL2_25:" + symbol]
+        args = [topic + ":" + symbol]
+        self.__send_command("subscribe",args)
 
     def get_instrument(self):
         '''Get the raw instrument data for this symbol.'''
@@ -166,30 +195,60 @@ class BitMEXWebsocket:
         Most subscription topics are scoped by the symbol we're listening to.
         '''
 
-        # You can sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
-        symbolSubs = [TOPIC_execution, TOPIC_instrument, TOPIC_order, TOPIC_orderBook10, TOPIC_position, TOPIC_quote, TOPIC_trade]
-        genericSubs = [TOPIC_margin]
-
-        subscriptions = [sub + ':' + self.symbol for sub in symbolSubs]
-        subscriptions += genericSubs
+        
+        subscriptions = [sub + ':' + self.symbol for sub in self.symbolSubs]
+        subscriptions += self.genericSubs
 
         urlParts = list(urllib.parse.urlparse(self.endpoint))
         urlParts[0] = urlParts[0].replace('http', 'ws')
         urlParts[2] = "/realtime?subscribe={}".format(','.join(subscriptions))
         return urllib.parse.urlunparse(urlParts)
 
+    def missing_topics(self):
+        
+        k = self.data.keys()
+        logger.debug(k)
+        delta = self.all_topics - k
+        if len(delta) > 0:
+            logger.error("missing %s"%delta)
+
+            for missing_topic in delta:
+                logger.debug("subscribe again missing topic %s"%missing_topic)
+                self.subscribe_topic(missing_topic)
+
     def __wait_for_account(self):
-        '''On subscribe, this data will come down. Wait for it.'''
+        '''account topics. On subscribe, this data will come down. Wait for it.'''
         # Wait for the keys to show up from the ws
         #TODO ensure this is what we subscribe to
         logger.debug(self.data)
-        while not {TOPIC_margin, TOPIC_position, TOPIC_order, TOPIC_orderBookL2} <= set(self.data):
+        account_sub_topics = {TOPIC_margin, TOPIC_position, TOPIC_order, TOPIC_orderBook10}
+        while not account_sub_topics <= set(self.data):
+            logger.debug("__wait_for_account")
+            self.missing_topics()
+            """
+            k = self.data.keys()
+            logger.debug(k)
+            delta = account_sub_topics - k
+            logger.debug("missing %s"%delta)
+            """
             sleep(1.0)
 
     def __wait_for_symbol(self, symbol):
-        '''On subscribe, this data will come down. Wait for it.'''
-        while not {TOPIC_instrument, TOPIC_trade, TOPIC_quote} <= set(self.data):
+        '''symobl topics. On subscribe, this data will come down. Wait for it.'''
+        symbol_topics = {TOPIC_instrument, TOPIC_trade, TOPIC_quote}
+        while not symbol_topics <= set(self.data):
+            logger.debug("__wait_for_symbols ")
+            self.missing_topics()
+            """
+            k = self.data.keys()
+            logger.debug(k)
+            delta = symbol_topics - k
+            logger.debug("missing %s"%delta)
+            """
             sleep(1.0)
+
+    def __wait_for_subscription(self):
+        return
 
     def __send_command(self, command, args=None):
         '''Send a raw command.'''
@@ -201,38 +260,50 @@ class BitMEXWebsocket:
         '''Handler for parsing WS messages.'''
         message = json.loads(message)
         
-        m = json.dumps(message)
-        logger.debug("got msg")
+        msg = json.dumps(message)
+        logger.debug(msg)
+        #pdb.set_trace()
+        #logger.debug("got msg. %s %s"%str(self.got_init_data),set(self.data))
+        #self.missing_topics()
+        logger.debug("keys %s"%str(self.data.keys()))
 
         table = message['table'] if 'table' in message else None
         action = message['action'] if 'action' in message else None
 
-        logdebug = False
+        #logdebug = True
             
         try:
             if 'subscribe' in message:
-                if logdebug: logger.debug("Subscribed to %s." % message['subscribe'])
+                topic = message['subscribe']
+                logger.info("Subscribed to %s." % topic)
+                logger.info(msg)
+                self.subscribed.append(topic)
+                self.data[topic] = []
+
 
             elif action:
                 #print (action," ",table)
                 if table not in self.data:
                     #new table
+                    logger.info("!! new data ",table)
                     self.data[table] = []
 
+                #if self.got_init_data:
                 # four possible actions
                 # 'partial' - full table image
                 # 'insert'  - new row
                 # 'update'  - update row
                 # 'delete'  - delete row
                 if action == 'partial':
-                    if logdebug: logger.debug("%s: partial" % table)
+                    logger.debug("%s: partial" % table)
                     self.data[table] += message['data']
+                    logger.debug("keys now %s" % self.data.keys())
                     # Keys are communicated on partials to let you know how to uniquely identify
                     # an item. We use it for updates.
                     self.keys[table] = message['keys']
 
                 elif action == 'insert':
-                    if logdebug: logger.debug('%s: inserting %s' % (table, message['data']))
+                    logger.debug('%s: inserting %s' % (table, message['data']))
                     self.data[table] += message['data']
 
                     # Limit the max length of the table to avoid excessive memory usage.
@@ -243,7 +314,10 @@ class BitMEXWebsocket:
                 elif action == 'update':
                     #logger.debug('%s: updating %s' % (table, message['data']))
                     # Locate the item in the collection and update it.
-                    for updateData in message['data']:
+                    logger.debug("update %s %s"%(table,self.keys))
+                    data = message['data']
+                    for updateData in data:
+                        logger.debug("udpate item %s"%updateData)
                         item = findItemByKeys(self.keys[table], self.data[table], updateData)
                         if not item:
                             return  # No item found to update. Could happen before push
@@ -252,7 +326,7 @@ class BitMEXWebsocket:
                         if table == 'order' and item['leavesQty'] <= 0:
                             self.data[table].remove(item)
                 elif action == 'delete':
-                    if logdebug: logger.debug('%s: deleting %s' % (table, message['data']))
+                    logger.debug('%s: deleting %s' % (table, message['data']))
                     # Locate the item in the collection and remove it.
                     for deleteData in message['data']:
                         item = findItemByKeys(self.keys[table], self.data[table], deleteData)
@@ -260,9 +334,9 @@ class BitMEXWebsocket:
                 else:
                     raise Exception("Unknown action: %s" % action)
         except:
-            e = traceback.format_exc()
-            print ("error ",e)
-            logger.error("!" ,e)
+            e = debugback.format_exc()     
+            logger.error("error on msg %s"%msg)       
+            logger.error("! %s"%e)
 
         
 
