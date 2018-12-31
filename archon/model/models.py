@@ -1,7 +1,6 @@
 """ unified model """
 
 import archon.exchange.exchanges as exc
-import archon.tx as atx
 import archon.feeds.cryptocompare as cryptocompare
 import datetime
 import pytz
@@ -111,6 +110,48 @@ def ask_key(exchange):
         return "Ask"
     elif exchange==exc.KUCOIN:
         return "ask"    
+
+
+#date_broker_format = "%Y-%m-%d %H:%M:%S"
+
+#def toUTC(d):
+#    tz = pytz.timezone ("Europe/Berlin") 
+#    return tz.normalize(tz.localize(d)).astimezone(pytz.utc)
+
+
+def convert_type_key(key, exchange):
+    if exchange==exc.CRYPTOPIA:
+        return key
+    elif exchange==exc.BITTREX:    
+        if key == 'BUY': 
+            return 'Buy'
+        else:
+            return 'Sell'
+
+def buy_key(exchange):
+    if exchange==exc.CRYPTOPIA:
+        return 'Buy'
+    elif exchange==exc.BITTREX:    
+        return 'BUY'
+
+def sell_key(exchange):
+    if exchange==exc.CRYPTOPIA:
+        return 'Sell'
+    elif exchange==exc.BITTREX:    
+        return 'SELL'
+
+def timestamp_key(exchange):
+    if exchange==exc.CRYPTOPIA:
+        return 'Timestamp'
+    elif exchange==exc.BITTREX:    
+        return 'TimeStamp'
+
+def otype_key(exchange):
+    if exchange==exc.CRYPTOPIA:
+        return 'Type'
+    elif exchange==exc.BITTREX:    
+        return 'OrderType'
+
 
 def conv_timestamp_tx(ts, exchange):   
     target_format = '%Y-%m-%dT%H:%M:%S' 
@@ -313,6 +354,9 @@ def conv_usertx(tx, exchange):
         d = {'price':p,'quantity':q,'txtype':ty,'market':m,'timestamp':dt,'exchange':n}
         return d        
 
+TXTYPE_BUY = "BUY"
+TXTYPE_SELL = "SELL"
+
 def conv_tx(tx, exchange, market):
     """ convert transaction """
     if exchange==exc.CRYPTOPIA:
@@ -321,9 +365,9 @@ def conv_tx(tx, exchange, market):
         dt = conv_timestamp(ts, exchange)
         ty = tx['Type']
         if ty == "Buy": 
-            ty="BUY"
+            ty=TXTYPE_BUY
         else:
-            ty="SELL"
+            ty=TXTYPE_SELL
         p = tx['Price']
         market = tx['Label']
         conv_market = conv_markets_from(market, exchange)
@@ -762,7 +806,7 @@ def conv_candle(history, exchange):
         return newcandle
 
 
-def nomdenom(market):
+def market_parts(market):
     nom,denom = market.split('_')
     return [nom,denom]
 

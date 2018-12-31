@@ -42,6 +42,12 @@ ORDERSTATUS_FILLED = 1
 ORDERSTATUS_CANCELLED = 2
 ORDERSTATUS_REJECTED = 3
 
+TIMEFRAME_DAILY = "1d"
+TIMEFRAME_1HOUR = "1h"
+TIMEFRAME_15MINUTE = "15min"
+TIMEFRAME_1MINUTE = "1min"
+
+
 class Facade:
 
     def __init__(self):
@@ -385,7 +391,13 @@ class Facade:
             return candles            
 
     #TODO
-    #def get_candles_timeframe(self, market, exchange, timeframe):
+    def get_candles_timeframe(self, market, exchange, timeframe):
+        if timeframe==TIMEFRAME_DAILY:
+            self.get_candles_daily(market, exchange)
+        elif timeframe==TIMEFRAME_1HOUR:
+            self.get_candles_hourly(market,exchange)
+        elif timeframe==TIMEFRAME_15MINUTE:
+            self.get_candles_minute15(market,exchange)
         
     def get_latest_candle(self, market, exchange):
         pass
