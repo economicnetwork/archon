@@ -38,7 +38,7 @@ def run(k,s):
 
         #positiondata = bws.data['position']
         #print (positiondata)
-        time.sleep(1)
+        time.sleep(10)
 
         """
         bids = ob['bids']

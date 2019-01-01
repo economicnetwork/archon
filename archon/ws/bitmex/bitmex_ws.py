@@ -7,14 +7,20 @@ import urllib
 import math
 from archon.ws.api_util import generate_nonce, generate_signature
 from archon.ws.bitmex.bitmex_topics import *
-from loguru import logger
+#from loguru import logger
 import pdb
+import logging
+import colorlog
+import sys
 
 table_orderbook = 'orderBook10'
-table_instrument = 'instrument'  
+table_instrument = 'instrument'
+
+import logging
 
 endpoint_V1 = "https://www.bitmex.com/api/v1"
 
+        
 
 # Naive implementation of connecting to BitMEX websocket for streaming realtime data.
 # The Marketmaker still interacts with this as if it were a REST Endpoint, but now it can get
@@ -31,11 +37,40 @@ class BitMEXWebsocket:
 
     def __init__(self, symbol, api_key=None, api_secret=None, endpoint=endpoint_V1):
         '''Connect to the websocket and initialize data stores.'''
-        logger.start("log/bitmex_ws.log", rotation="500 MB",level="DEBUG")
         #logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
+        #logger.start("log/bitmex_ws.log", rotation="500 MB",level="INFO")
+        # create logger with 'spam_application'
+        """
+        self.logger = logging.getLogger('bitmex')
+        """
 
-        #logger.add(sys.stdout, format="{time} {level} {message}", filter="my_module", level="debug")
-        logger.debug("Initializing WebSocket.")
+        logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+        handlers=[
+            logging.FileHandler("{0}/{1}.log".format("./log", "bitmex")),
+            logging.StreamHandler(sys.stdout),
+            #ColoredLogger
+            #colorlog.StreamHandler(sys.stdout)
+        ])
+        self.logger = logging.getLogger()
+
+        handler = colorlog.StreamHandler()
+        #handler.setFormatter(colorlog.ColoredFormatter('%(log_color)s%(levelname)s:%(name)s:%(message)s'))
+        handler.setFormatter(colorlog.ColoredFormatter('%(log_color)s%(message)s'))
+        logger = colorlog.getLogger('colorexample')
+        logger.addHandler(handler)
+
+        #logging.setLoggerClass(ColoredLogger)
+        self.logger.debug("TEST debug")
+        self.logger.info("TEST info")
+
+
+
+        #self.logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
+
+        #self.logger.add(sys.stdout, format="{time} {level} {message}", filter="my_module", level="debug")
+        self.logger.debug("Initializing WebSocket.")
 
         self.endpoint = endpoint
         self.symbol = symbol
@@ -52,7 +87,21 @@ class BitMEXWebsocket:
         self.keys = {}
         self.exited = False
 
+        #assume one symbol for now
+        self.orderbook = {}
+
         #define topics to subscribe to
+        #Orderbook topics
+        # If you wish to get real-time order book data, we recommend you use the orderBookL2_25 subscription. 
+        # orderBook10 pushes the top 10 levels on every tick, but transmits much more data. 
+        # orderBookL2 pushes the full L2 order book, but the payload can get very large.
+        #  In the future, orderBook10 may be throttled, so use orderBookL2_25 in any latency-sensitive application. 
+        # For those curious, the id on an orderBookL2_25 or orderBookL2 entry is a composite of price and symbol, 
+        # and is always unique for any given price level. It should be used to apply update and delete actions.
+
+        #"orderBook10",         // Top 10 levels using traditional full book push
+        #"orderBookL2_25",      // Top 25 levels of level 2 order book
+        #"orderBookL2",         // Full level 2 order book                
 
         # sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
         #self.symbolSubs = [TOPIC_execution, TOPIC_instrument, TOPIC_order, TOPIC_orderBook10, TOPIC_position, TOPIC_quote, TOPIC_trade]
@@ -64,6 +113,7 @@ class BitMEXWebsocket:
         #2 wait for subscription success
         #3 handle update (could e.g. ignore updates)        
 
+        #self.symbolSubs = [TOPIC_orderBookL2_25]
         self.symbolSubs = [TOPIC_orderBook10]
         self.genericSubs = [TOPIC_margin]
 
@@ -77,15 +127,15 @@ class BitMEXWebsocket:
         # We can subscribe right in the connection querystring, so let's build that.
         # Subscribe to all pertinent endpoints
         wsURL = self.__get_url()
-        logger.info("Connecting to %s" % wsURL)
+        self.logger.info("Connecting to %s" % wsURL)
         self.__connect(wsURL, symbol)
-        logger.info('Connected to WS.')
+        self.logger.info('Connected to WS.')
 
         # Connected. Wait for partials
 
         #self.subscribe_topic(TOPIC_orderBook10)
         
-        logger.info('Wait for initial data')
+        self.logger.info('Wait for initial data')
 
         self.got_init_data = False
         
@@ -96,7 +146,7 @@ class BitMEXWebsocket:
 
         self.got_init_data = True
         
-        logger.info('Got all market data. Starting.')
+        self.logger.info('Got all market data. Starting.')
 
     def exit(self):
         '''Call this to exit - will close websocket.'''
@@ -140,7 +190,8 @@ class BitMEXWebsocket:
     def market_depth(self):
         '''Get market depth (orderbook). Returns all levels.'''
         #return self.data['orderBookL2']
-        return self.data['orderBook10']
+        #return self.data['orderBook10']
+        return self.orderbook
 
     def open_orders(self, clOrdIDPrefix):
         '''Get all your open orders.'''
@@ -158,7 +209,7 @@ class BitMEXWebsocket:
 
     def __connect(self, wsURL, symbol):
         '''Connect to the websocket in a thread.'''
-        logger.debug("Starting thread")
+        self.logger.debug("Starting thread")
 
         self.ws = websocket.WebSocketApp(wsURL,
                                          on_message=self.__on_message,
@@ -170,7 +221,7 @@ class BitMEXWebsocket:
         self.wst = threading.Thread(target=lambda: self.ws.run_forever())
         self.wst.daemon = True
         self.wst.start()
-        logger.debug("Started thread")
+        self.logger.debug("Started thread")
 
         # Wait for connect before continuing
         conn_timeout = 5
@@ -179,16 +230,16 @@ class BitMEXWebsocket:
             conn_timeout -= 1
 
         if not conn_timeout:
-            logger.error("Couldn't connect to WS! Exiting.")
+            self.logger.error("Couldn't connect to WS! Exiting.")
             self.exit()
             raise websocket.WebSocketTimeoutException('Couldn\'t connect to WS! Exiting.')
 
-        logger.debug("exit connect")
+        self.logger.debug("exit connect")
 
     def __get_auth(self):
         '''Return auth headers. Will use API Keys if present in settings.'''
         if self.api_key:
-            logger.info("Authenticating with API Key.")
+            self.logger.info("Authenticating with API Key.")
             # To auth to the WS using an API key, we generate a signature of a nonce and
             # the WS API endpoint.
             expires = generate_nonce()
@@ -198,7 +249,7 @@ class BitMEXWebsocket:
                 "api-key:" + self.api_key
             ]
         else:
-            logger.info("Not authenticating.")
+            self.logger.info("Not authenticating.")
             return []
 
     def __get_url(self):
@@ -207,7 +258,7 @@ class BitMEXWebsocket:
         Most subscription topics are scoped by the symbol we're listening to.
         '''
                 
-        logger.info("subscribe to %s"%(str(self.subscriptions)))
+        self.logger.info("subscribe to %s"%(str(self.subscriptions)))
 
         urlParts = list(urllib.parse.urlparse(self.endpoint))
         urlParts[0] = urlParts[0].replace('http', 'ws')
@@ -217,29 +268,29 @@ class BitMEXWebsocket:
     def missing_topics(self):
         
         k = self.data.keys()
-        logger.debug(k)
+        self.logger.debug(k)
         delta = self.all_topics - k
         if len(delta) > 0:
-            logger.error("missing %s"%delta)
+            self.logger.error("missing %s"%delta)
 
             for missing_topic in delta:
-                logger.debug("subscribe again missing topic %s"%missing_topic)
+                self.logger.debug("subscribe again missing topic %s"%missing_topic)
                 self.subscribe_topic(missing_topic)
 
     def __wait_for_account(self):
         '''account topics. On subscribe, this data will come down. Wait for it.'''
         # Wait for the keys to show up from the ws
         #TODO ensure this is what we subscribe to
-        logger.debug(self.data)
+        self.logger.debug(self.data)
         account_sub_topics = {TOPIC_margin, TOPIC_position, TOPIC_order, TOPIC_orderBook10}
         while not account_sub_topics <= set(self.data):
-            logger.debug("__wait_for_account")
+            self.logger.debug("__wait_for_account")
             self.missing_topics()
             """
             k = self.data.keys()
-            logger.debug(k)
+            self.logger.debug(k)
             delta = account_sub_topics - k
-            logger.debug("missing %s"%delta)
+            self.logger.debug("missing %s"%delta)
             """
             sleep(1.0)
 
@@ -247,13 +298,13 @@ class BitMEXWebsocket:
         '''symobl topics. On subscribe, this data will come down. Wait for it.'''
         symbol_topics = {TOPIC_instrument, TOPIC_trade, TOPIC_quote}
         while not symbol_topics <= set(self.data):
-            logger.debug("__wait_for_symbols ")
+            self.logger.debug("__wait_for_symbols ")
             self.missing_topics()
             """
             k = self.data.keys()
-            logger.debug(k)
+            self.logger.debug(k)
             delta = symbol_topics - k
-            logger.debug("missing %s"%delta)
+            self.logger.debug("missing %s"%delta)
             """
             sleep(1.0)
 
@@ -269,15 +320,15 @@ class BitMEXWebsocket:
         self.ws.send(json.dumps({"op": command, "args": args}))
 
     def handle_partial(self, table, message):
-        logger.debug("%s: partial" % table)
+        self.logger.debug("%s: partial" % table)
         self.data[table] += message['data']
-        logger.debug("keys now %s" % self.data.keys())
+        self.logger.debug("keys now %s" % self.data.keys())
         # Keys are communicated on partials to let you know how to uniquely identify
         # an item. We use it for updates.
         self.keys[table] = message['keys']
 
     def handle_insert(self, table, message):
-        logger.debug('%s: inserting %s' % (table, message['data']))
+        self.logger.debug('%s: inserting %s' % (table, message['data']))
         self.data[table] += message['data']
 
         # Limit the max length of the table to avoid excessive memory usage.
@@ -285,23 +336,42 @@ class BitMEXWebsocket:
         if table not in ['order', 'orderBookL2'] and len(self.data[table]) > BitMEXWebsocket.MAX_TABLE_LEN:
             self.data[table] = self.data[table][int(BitMEXWebsocket.MAX_TABLE_LEN / 2):]
 
+    #def handle_update_book_incremental(self):
+    #    #orderBookL2_25
+
+    def handle_update_bookpush(self, message):        
+        """orderBook10"""
+        self.logger.debug("book push %s"%message)
+        #!! assumes only 1 update
+        data = message['data'][0]
+        bids = data['bids']
+        asks = data['asks']
+        self.orderbook["bids"] = bids
+        self.orderbook["asks"] = asks
+
+
+
     def handle_update(self, table, message):
-        #logger.debug('%s: updating %s' % (table, message['data']))
+        #self.logger.debug('%s: updating %s' % (table, message['data']))
         # Locate the item in the collection and update it.
-        logger.debug("update %s %s"%(table,self.keys))
+        self.logger.debug("update %s %s"%(table,self.keys))
         data = message['data']
-        for updateData in data:
-            logger.debug("udpate item %s"%updateData)
-            item = findItemByKeys(self.keys[table], self.data[table], updateData)
-            if not item:
-                return  # No item found to update. Could happen before push
-            item.update(updateData)
-            # Remove cancelled / filled orders
-            if table == 'order' and item['leavesQty'] <= 0:
-                self.data[table].remove(item)
+        if table == TOPIC_orderBook10:
+            self.handle_update_bookpush(message)
+
+        else:
+            for updateData in data:
+                self.logger.debug("udpate item %s"%updateData)
+                item = findItemByKeys(self.keys[table], self.data[table], updateData)
+                if not item:
+                    return  # No item found to update. Could happen before push
+                item.update(updateData)
+                # Remove cancelled / filled orders
+                if table == 'order' and item['leavesQty'] <= 0:
+                    self.data[table].remove(item)
 
     def handle_delete(self, table, message):
-        logger.debug('%s: deleting %s' % (table, message['data']))
+        self.logger.debug('%s: deleting %s' % (table, message['data']))
         # Locate the item in the collection and remove it.
         for deleteData in message['data']:
             item = findItemByKeys(self.keys[table], self.data[table], deleteData)
@@ -312,11 +382,11 @@ class BitMEXWebsocket:
         message = json.loads(message)
         
         msg = json.dumps(message)
-        logger.debug(msg)
+        self.logger.debug(msg)
         #pdb.set_trace()
-        #logger.debug("got msg. %s %s"%str(self.got_init_data),set(self.data))
+        #self.logger.debug("got msg. %s %s"%str(self.got_init_data),set(self.data))
         #self.missing_topics()
-        logger.debug("keys %s"%str(self.data.keys()))
+        self.logger.debug("keys %s"%str(self.data.keys()))
 
         table = message['table'] if 'table' in message else None
         action = message['action'] if 'action' in message else None
@@ -326,8 +396,8 @@ class BitMEXWebsocket:
         try:
             if 'subscribe' in message:
                 topic = message['subscribe']
-                logger.info("Subscribed to %s." % topic)
-                logger.info(msg)
+                self.logger.info("Subscribed to %s." % topic)
+                self.logger.info(msg)
                 self.subscribed.append(topic)
                 self.data[topic] = []
 
@@ -338,7 +408,7 @@ class BitMEXWebsocket:
                 
                 if table not in self.data:
                     #new table
-                    logger.info("!! new data ",table)
+                    self.logger.info("!! new data %s"%table)
                     self.data[table] = []
 
                 #TODO should check what is the status
@@ -363,25 +433,25 @@ class BitMEXWebsocket:
                 else:
                     raise Exception("Unknown action: %s" % action)
         except:
-            e = debugback.format_exc()     
-            logger.error("error on msg %s"%msg)       
-            logger.error("! %s"%e)
+            e = traceback.format_exc()     
+            self.logger.error("error on msg %s"%msg)       
+            self.logger.error("! %s"%e)
 
         
 
     def __on_error(self, error):
         '''Called on fatal websocket errors. We exit on these.'''
         if not self.exited:
-            logger.error("Error : %s" % error)
+            self.logger.error("Error : %s" % error)
             raise websocket.WebSocketException(error)
 
     def __on_open(self):
         '''Called when the WS opens.'''
-        logger.debug("Websocket Opened.")
+        self.logger.debug("Websocket Opened.")
 
     def __on_close(self):
         '''Called on websocket close.'''
-        logger.info('Websocket Closed')
+        self.logger.info('Websocket Closed')
 
 
 # Utility method for finding an item in the store.
