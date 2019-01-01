@@ -45,7 +45,7 @@ class BitMEXWebsocket:
         """
 
         logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
         handlers=[
             logging.FileHandler("{0}/{1}.log".format("./log", "bitmex")),
@@ -62,24 +62,18 @@ class BitMEXWebsocket:
         logger.addHandler(handler)
 
         #logging.setLoggerClass(ColoredLogger)
-        self.logger.debug("TEST debug")
-        self.logger.info("TEST info")
-
-
-
-        #self.logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
-
-        #self.logger.add(sys.stdout, format="{time} {level} {message}", filter="my_module", level="debug")
-        self.logger.debug("Initializing WebSocket.")
+        self.logger.debug("bitmex - initializing WebSocket.")
 
         self.endpoint = endpoint
         self.symbol = symbol
+
+        self.msg_processed = 0
 
         if api_key is not None and api_secret is None:
             raise ValueError('api_secret is required if api_key is provided')
         if api_key is None and api_secret is not None:
             raise ValueError('api_key is required if api_secret is provided')
-
+        
         self.api_key = api_key
         self.api_secret = api_secret
 
@@ -139,7 +133,9 @@ class BitMEXWebsocket:
 
         self.got_init_data = False
         
-        self.__wait_for_subscription()
+        #TODO
+        #self.__wait_for_subscription()
+
         #self.__wait_for_symbol(symbol)
         #if api_key:
         #self.__wait_for_account()
@@ -311,7 +307,9 @@ class BitMEXWebsocket:
     def __wait_for_subscription(self):
         sub_all = False
         while not sub_all:
-            self.subscribed
+            print ("subscribed " ,self.subscribed)
+            time.sleep(1.0)
+            #self.subscribed
 
     def __send_command(self, command, args=None):
         '''Send a raw command.'''
@@ -436,6 +434,10 @@ class BitMEXWebsocket:
             e = traceback.format_exc()     
             self.logger.error("error on msg %s"%msg)       
             self.logger.error("! %s"%e)
+
+        self.msg_processed +=1
+        if self.msg_processed%10==0:
+            self.logger.info("self.msg_processed %i "%self.msg_processed)
 
         
 
