@@ -52,14 +52,25 @@ class BitMEXWebsocket:
         self.keys = {}
         self.exited = False
 
-        #define topics
-        # You can sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
-        #self.symbolSubs = [TOPIC_execution, TOPIC_instrument, TOPIC_order, TOPIC_orderBook10, TOPIC_position, TOPIC_quote, TOPIC_trade]
-        self.symbolSubs = []
-        self.genericSubs = [TOPIC_margin]
+        #define topics to subscribe to
 
+        # sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
+        #self.symbolSubs = [TOPIC_execution, TOPIC_instrument, TOPIC_order, TOPIC_orderBook10, TOPIC_position, TOPIC_quote, TOPIC_trade]
         #account_sub_topics = {TOPIC_margin, TOPIC_position, TOPIC_order, TOPIC_orderBook10}
         #symbol_topics = {TOPIC_instrument, TOPIC_trade, TOPIC_quote}
+
+        #data loop
+        #1 subscribe 
+        #2 wait for subscription success
+        #3 handle update (could e.g. ignore updates)        
+
+        self.symbolSubs = [TOPIC_orderBook10]
+        self.genericSubs = [TOPIC_margin]
+
+        self.subscriptions = [sub + ':' + self.symbol for sub in self.symbolSubs]
+        self.subscriptions += self.genericSubs
+
+        
         self.all_topics = self.symbolSubs + self.genericSubs
         self.subscribed = list()
 
@@ -91,6 +102,7 @@ class BitMEXWebsocket:
         '''Call this to exit - will close websocket.'''
         self.exited = True
         self.ws.close()
+
 
     def subscribe_topic(self, topic):
         #{"op": "subscribe", "args": ["orderBookL2_25:XBTUSD"]}
@@ -194,14 +206,12 @@ class BitMEXWebsocket:
         Generate a connection URL. We can define subscriptions right in the querystring.
         Most subscription topics are scoped by the symbol we're listening to.
         '''
-
-        
-        subscriptions = [sub + ':' + self.symbol for sub in self.symbolSubs]
-        subscriptions += self.genericSubs
+                
+        logger.info("subscribe to %s"%(str(self.subscriptions)))
 
         urlParts = list(urllib.parse.urlparse(self.endpoint))
         urlParts[0] = urlParts[0].replace('http', 'ws')
-        urlParts[2] = "/realtime?subscribe={}".format(','.join(subscriptions))
+        urlParts[2] = "/realtime?subscribe={}".format(','.join(self.subscriptions))
         return urllib.parse.urlunparse(urlParts)
 
     def missing_topics(self):
@@ -248,13 +258,54 @@ class BitMEXWebsocket:
             sleep(1.0)
 
     def __wait_for_subscription(self):
-        return
+        sub_all = False
+        while not sub_all:
+            self.subscribed
 
     def __send_command(self, command, args=None):
         '''Send a raw command.'''
         if args is None:
             args = []
         self.ws.send(json.dumps({"op": command, "args": args}))
+
+    def handle_partial(self, table, message):
+        logger.debug("%s: partial" % table)
+        self.data[table] += message['data']
+        logger.debug("keys now %s" % self.data.keys())
+        # Keys are communicated on partials to let you know how to uniquely identify
+        # an item. We use it for updates.
+        self.keys[table] = message['keys']
+
+    def handle_insert(self, table, message):
+        logger.debug('%s: inserting %s' % (table, message['data']))
+        self.data[table] += message['data']
+
+        # Limit the max length of the table to avoid excessive memory usage.
+        # Don't trim orders because we'll lose valuable state if we do.
+        if table not in ['order', 'orderBookL2'] and len(self.data[table]) > BitMEXWebsocket.MAX_TABLE_LEN:
+            self.data[table] = self.data[table][int(BitMEXWebsocket.MAX_TABLE_LEN / 2):]
+
+    def handle_update(self, table, message):
+        #logger.debug('%s: updating %s' % (table, message['data']))
+        # Locate the item in the collection and update it.
+        logger.debug("update %s %s"%(table,self.keys))
+        data = message['data']
+        for updateData in data:
+            logger.debug("udpate item %s"%updateData)
+            item = findItemByKeys(self.keys[table], self.data[table], updateData)
+            if not item:
+                return  # No item found to update. Could happen before push
+            item.update(updateData)
+            # Remove cancelled / filled orders
+            if table == 'order' and item['leavesQty'] <= 0:
+                self.data[table].remove(item)
+
+    def handle_delete(self, table, message):
+        logger.debug('%s: deleting %s' % (table, message['data']))
+        # Locate the item in the collection and remove it.
+        for deleteData in message['data']:
+            item = findItemByKeys(self.keys[table], self.data[table], deleteData)
+            self.data[table].remove(item)
 
     def __on_message(self, message):
         '''Handler for parsing WS messages.'''
@@ -283,54 +334,32 @@ class BitMEXWebsocket:
 
             elif action:
                 #print (action," ",table)
+                #Handle first update
+                
                 if table not in self.data:
                     #new table
                     logger.info("!! new data ",table)
                     self.data[table] = []
 
-                #if self.got_init_data:
+                #TODO should check what is the status
+
                 # four possible actions
                 # 'partial' - full table image
                 # 'insert'  - new row
                 # 'update'  - update row
                 # 'delete'  - delete row
                 if action == 'partial':
-                    logger.debug("%s: partial" % table)
-                    self.data[table] += message['data']
-                    logger.debug("keys now %s" % self.data.keys())
-                    # Keys are communicated on partials to let you know how to uniquely identify
-                    # an item. We use it for updates.
-                    self.keys[table] = message['keys']
+                    self.handle_partial(table, message)                    
 
                 elif action == 'insert':
-                    logger.debug('%s: inserting %s' % (table, message['data']))
-                    self.data[table] += message['data']
-
-                    # Limit the max length of the table to avoid excessive memory usage.
-                    # Don't trim orders because we'll lose valuable state if we do.
-                    if table not in ['order', 'orderBookL2'] and len(self.data[table]) > BitMEXWebsocket.MAX_TABLE_LEN:
-                        self.data[table] = self.data[table][int(BitMEXWebsocket.MAX_TABLE_LEN / 2):]
+                    self.handle_insert(table, message)                    
 
                 elif action == 'update':
-                    #logger.debug('%s: updating %s' % (table, message['data']))
-                    # Locate the item in the collection and update it.
-                    logger.debug("update %s %s"%(table,self.keys))
-                    data = message['data']
-                    for updateData in data:
-                        logger.debug("udpate item %s"%updateData)
-                        item = findItemByKeys(self.keys[table], self.data[table], updateData)
-                        if not item:
-                            return  # No item found to update. Could happen before push
-                        item.update(updateData)
-                        # Remove cancelled / filled orders
-                        if table == 'order' and item['leavesQty'] <= 0:
-                            self.data[table].remove(item)
+                    self.handle_update(table, message)
+
                 elif action == 'delete':
-                    logger.debug('%s: deleting %s' % (table, message['data']))
-                    # Locate the item in the collection and remove it.
-                    for deleteData in message['data']:
-                        item = findItemByKeys(self.keys[table], self.data[table], deleteData)
-                        self.data[table].remove(item)
+                    self.handle_delete(table, message)
+                    
                 else:
                     raise Exception("Unknown action: %s" % action)
         except:
