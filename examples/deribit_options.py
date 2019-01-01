@@ -39,14 +39,20 @@ def get_options_expiring_soon(opts):
             # 'settlement': 'week', 'created': '2018-12-27 08:00:02 GMT', 
             # 'tickSize': 0.0005, 'pricePrecision': 4, 'expiration': '2019-01-04 08:00:00 GMT',
             #  'strike': 4000.0, 'optionType': 'call'}
-            s = x['strike']
-            ot = x['optionType']
-            inst = x['instrumentName']
-            summary = w.getsummary(inst)
-            print (s,ot,exp,summary['last'])
+            try:
+                s = x['strike']
+                ot = x['optionType']
+                inst = x['instrumentName']
+                summary = w.getsummary(inst)
+                ask = float(summary['askPrice'])
+                bid = float(summary['bidPrice'])
+                spread = (ask-bid)/ask
+                print (s,ot,exp,summary['last'],spread)
+            except:
+                continue
             
                 
 if __name__=='__main__':                
     options = get_options()                
-    print (options)
+    #print (options)
     get_options_expiring_soon(options)
