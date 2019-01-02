@@ -21,15 +21,9 @@ import logging
 endpoint_V1 = "https://www.bitmex.com/api/v1"
 
         
-
-# Naive implementation of connecting to BitMEX websocket for streaming realtime data.
-# The Marketmaker still interacts with this as if it were a REST Endpoint, but now it can get
-# much more realtime data without polling the hell out of the API.
-#
-# The Websocket offers a bunch of data as raw properties right on the object.
+# implementation of connecting to BitMEX websocket for streaming realtime data.
 # On connect, it synchronously asks for a push of all this data then returns.
-# Right after, the MM can start using its data. It will be updated in realtime, so the MM can
-# poll really often if it wants.
+
 class BitMEXWebsocket:
 
     # Don't grow a table larger than this amount. Helps cap memory usage.
@@ -85,19 +79,23 @@ class BitMEXWebsocket:
         self.orderbook = {}
 
         #define topics to subscribe to
-        #Orderbook topics
-        # If you wish to get real-time order book data, we recommend you use the orderBookL2_25 subscription. 
-        # orderBook10 pushes the top 10 levels on every tick, but transmits much more data. 
-        # orderBookL2 pushes the full L2 order book, but the payload can get very large.
-        #  In the future, orderBook10 may be throttled, so use orderBookL2_25 in any latency-sensitive application. 
-        # For those curious, the id on an orderBookL2_25 or orderBookL2 entry is a composite of price and symbol, 
-        # and is always unique for any given price level. It should be used to apply update and delete actions.
 
-        #"orderBook10",         // Top 10 levels using traditional full book push
-        #"orderBookL2_25",      // Top 25 levels of level 2 order book
-        #"orderBookL2",         // Full level 2 order book                
+        """
+        Orderbook topics
+        
+        orderBook10 pushes the top 10 levels on every tick, but transmits much more data. 
+        orderBookL2 pushes the full L2 order book, but the payload can get very large.
+        In the future, orderBook10 may be throttled, so use orderBookL2_25 in any latency-sensitive application. 
+        For those curious, the id on an orderBookL2_25 or orderBookL2 entry is a composite of price and symbol, 
+        and is always unique for any given price level. It should be used to apply update and delete actions.
+        
+        "orderBook10",         // Top 10 levels using traditional full book push
+        "orderBookL2_25",      // Top 25 levels of level 2 order book
+        "orderBookL2",         // Full level 2 order book                
 
-        # sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
+        sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
+        """
+
         #self.symbolSubs = [TOPIC_execution, TOPIC_instrument, TOPIC_order, TOPIC_orderBook10, TOPIC_position, TOPIC_quote, TOPIC_trade]
         #account_sub_topics = {TOPIC_margin, TOPIC_position, TOPIC_order, TOPIC_orderBook10}
         #symbol_topics = {TOPIC_instrument, TOPIC_trade, TOPIC_quote}
