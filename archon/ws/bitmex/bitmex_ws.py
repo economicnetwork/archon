@@ -30,13 +30,7 @@ class BitMEXWebsocket:
     MAX_TABLE_LEN = 200
 
     def __init__(self, symbol, api_key=None, api_secret=None, endpoint=endpoint_V1):
-        '''Connect to the websocket and initialize data stores.'''
-        #logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
-        #logger.start("log/bitmex_ws.log", rotation="500 MB",level="INFO")
-        # create logger with 'spam_application'
-        """
-        self.logger = logging.getLogger('bitmex')
-        """
+        '''Connect to the websocket and initialize data stores.'''        
 
         logging.basicConfig(
         level=logging.INFO,
@@ -106,13 +100,14 @@ class BitMEXWebsocket:
         #3 handle update (could e.g. ignore updates)        
 
         #self.symbolSubs = [TOPIC_orderBookL2_25]
-        self.symbolSubs = [TOPIC_orderBook10]
+        self.symbolSubs = [TOPIC_instrument, TOPIC_orderBook10, TOPIC_quote, TOPIC_trade]
         self.genericSubs = [TOPIC_margin]
 
-        self.subscriptions = [sub + ':' + self.symbol for sub in self.symbolSubs]
-        self.subscriptions += self.genericSubs
+        symbol_subscriptions = [sub + ':' + self.symbol for sub in self.symbolSubs]
+        self.subscriptions = symbol_subscriptions  + self.genericSubs
 
-        
+        self.logger.info("subscriptions %s"%str(self.subscriptions))
+
         self.all_topics = self.symbolSubs + self.genericSubs
         self.subscribed = list()
 
@@ -158,8 +153,9 @@ class BitMEXWebsocket:
     def get_instrument(self):
         '''Get the raw instrument data for this symbol.'''
         # Turn the 'tickSize' into 'tickLog' for use in rounding
+        print ("?? ",instrument)
         instrument = self.data['instrument'][0]
-        instrument['tickLog'] = int(math.fabs(math.log10(instrument['tickSize'])))
+        #instrument['tickLog'] = int(math.fabs(math.log10(instrument['tickSize'])))
         return instrument
 
     def get_ticker(self):
@@ -174,8 +170,10 @@ class BitMEXWebsocket:
         }
 
         # The instrument has a tickSize. Use it to round values.
-        instrument = self.data['instrument'][0]
-        return {k: round(float(v or 0), instrument['tickLog']) for k, v in ticker.items()}
+        #TODO fix
+        #instrument = self.data['instrument'][0]
+        #d = {k: round(float(v or 0), instrument['tickLog']) for k, v in ticker.items()}
+        return ticker
 
     def funds(self):
         '''Get your margin details.'''
