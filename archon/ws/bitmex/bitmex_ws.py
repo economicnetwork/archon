@@ -433,7 +433,7 @@ class BitMEXWebsocket:
 
         self.msg_processed +=1
         if self.msg_processed%10==0:
-            self.logger.info("self.msg_processed %i "%self.msg_processed)
+            self.logger.debug("self.msg_processed %i "%self.msg_processed)
 
         
 
