@@ -56,10 +56,10 @@ class BitMEX(object):
 
         return {k: round(float(v), data['tickLog']) for k, v in ticker.items()}
 
-    def get_instrument(self):
+    def get_instrument(self, symbol):
         """Get an instrument's details."""
         path = "instrument"
-        instruments = self._query_bitmex(path=path, query={'filter': json.dumps({'symbol': self.symbol})})
+        instruments = self._query_bitmex(path=path, query={'filter': json.dumps({'symbol': symbol})})
         if len(instruments) == 0:
             print("Instrument not found: %s." % self.symbol)
             exit(1)
@@ -74,10 +74,11 @@ class BitMEX(object):
 
         return instrument
 
-    def market_depth(self):
+    def market_depth(self, symbol, depth=0):
         """Get market depth / orderbook."""
-        path = "orderBook"
-        return self._query_bitmex(path=path, query={'symbol': self.symbol})
+        path = "orderBook/L2"
+        #https://www.bitmex.com/api/v1/orderBook/L2?symbol=XBTUSD&depth=0
+        return self._query_bitmex(path=path, query={'symbol': symbol, 'depth': depth})
 
     def recent_trades(self):
         """Get recent trades.
