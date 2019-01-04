@@ -1,21 +1,25 @@
 # Archon
 
-Trading and broker framework for Internet/Crypto exchanges
+Archon is a trading framework for Internet/Crypto exchanges. It makes simple to trade on multiple exchanges through the API's. This allows the users to define any trading system or application they want across all available exchanges.
 
-Archon makes it simple to trade on multiple exchanges driven by code.
+The framework allows the user to
 
-The framework interacts with the exchanges through the API keys for the purpose of 
-
-* all typical exchange functions such as: submitting orders, tracking balances and market prices
+* engage in all typical exchange functions such as: submitting orders, tracking balances and market prices
 * tracking assets, Profit-and-loss statements, strategy analysis
-* exchange functionality independent from web-view 
+* hedging and portfolio construction
+* custom user-interface for trading
+* writing algorithms i.e. bots
 
 Ecosystem which can be built on top
 
-* Trading bots: arbitrage, market-making, directional trading
 * Multi-Exchange trading interface
+* Trading bots: arbitrage, market-making, directional trading
 * Streaming service
 * and more
+
+## Architecture
+
+![arch Image](docs/arch.png)
 
 ## examples
 
