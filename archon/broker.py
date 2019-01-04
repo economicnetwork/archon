@@ -12,6 +12,7 @@ import archon.orderbooks as orderbooks
 from archon.feeds import cryptocompare
 from archon.util import *
 
+standard_apikeys_file = "apikeys.toml"
 
 class Broker:
     """ 
@@ -19,12 +20,12 @@ class Broker:
     keeps datastructures in memory
     """
 
-    def __init__(self):
+    def __init__(self,setAuto=True):
 
         logger.start("log/broker.log", rotation="500 MB")
         logger.debug("init broker")
 
-        self.apikeys_file = "apikeys.toml"
+        
         self.afacade = facade.Facade()
         #in memory data
         self.balances = None
@@ -33,7 +34,8 @@ class Broker:
         self.active_exchanges = list()
         self.selected_exchange = None
 
-        self.set_keys_exchange_file()
+        if setAuto:
+            self.set_keys_exchange_file()
 
         try:
             all_conf = parse_toml("conf.toml")
@@ -74,7 +76,7 @@ class Broker:
             ne.append(eid)
         self.active_exchanges = ne
 
-    def set_keys_exchange_file(self,keys_filename=self.apikeys_file):
+    def set_keys_exchange_file(self,keys_filename=standard_apikeys_file):
         try:
             apikeys = parse_toml(keys_filename)
             logger.info("set keys %s"%apikeys.keys())
@@ -100,7 +102,7 @@ class Broker:
     def set_keys_exchange(self, exchange, keys):
         pubkey = keys["public_key"]
         secret = keys["secret"]
-        logger.debug ("set keys %i %s"%(exchange,keys['public_key']))
+        logger.info ("set keys %i %s"%(exchange,keys['public_key']))
         #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.afacade.set_api_keys(exchange, pubkey, secret)
         

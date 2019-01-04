@@ -16,6 +16,7 @@ from archon.exchange.cryptopia import CryptopiaAPI
 from archon.exchange.kucoin import KuClient
 import archon.exchange.hitbtc as hitbtc
 import archon.exchange.binance as binance
+from archon.exchange.bitmex import bitmex
 
 #Wrappers with foreign package
 import krakenex
@@ -66,7 +67,7 @@ class Facade:
 
     def set_api_keys(self, exchange, key, secret):
         """ set clients, assumes conf file present """
-        logger.debug("set api " + str(exchange))
+        logger.info("set api " + str(exchange))
         if exchange==exc.CRYPTOPIA:
             clients[exchange] = CryptopiaAPI(key, secret)
         elif exchange==exc.BITTREX:
@@ -81,6 +82,8 @@ class Facade:
             clients[exchange] = binance.Client(key,secret)
         elif exchange==exc.KRAKEN:        
             clients[exchange] = krakenex.API(key,secret)
+        elif exchange==exc.BITMEX:
+            clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
 
     def set_mail_config(self, apikey, domain, email_from, email_to):
         """ mailgun config """
