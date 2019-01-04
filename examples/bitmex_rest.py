@@ -2,10 +2,11 @@ from archon.exchange.bitmex import bitmex
 import archon.facade as facade
 import archon.broker as broker
 import archon.exchange.exchanges as exc
+import archon.model.models as m
 
-a = broker.Broker(setAuto=False)
-a.set_keys_exchange_file(keys_filename="bitmex.toml")
-client = a.afacade.get_client(exc.BITMEX)
+abroker = broker.Broker(setAuto=False)
+abroker.set_keys_exchange_file(keys_filename="bitmex.toml")
+client = abroker.afacade.get_client(exc.BITMEX)
 
 def get_trades():
     path = "trade"
@@ -45,4 +46,22 @@ def get_book():
     buys = list(filter(lambda x: x['side']=='Buy',book))
     print (buys[0],sells[0])
 
-get_book()
+def display_book(book,name):
+    [bids,asks] = book
+    print ("** bid **       %s     ** ask **"%(name))
+    i = 0
+    for b in bids[:10]:
+        ask = asks[i]  
+        bp = b['price']
+        ap = ask['price']
+        av = ask['quantity']
+        bv = b['quantity']
+        print ("%.8f  %.2f   %.8f  %.2f" % (bp,bv,ap,av))
+        i+=1  
+
+#get_book()
+#market = "XBT-USD"    
+market = m.market_from("XBT","USD")
+book = abroker.afacade.get_orderbook(market, exc.BITMEX)
+#print (book)
+display_book(book,"BITMEX")

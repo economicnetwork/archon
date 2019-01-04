@@ -570,7 +570,22 @@ def conv_orderbook(book, exchange):
             d = {'price':p,'quantity':v}
             newa.append(d)
         book = [newb,newa]
-        return book        
+        return book      
+    elif exchange==exc.BITMEX:
+        asks = list(filter(lambda x: x['side']=='Sell',book))
+        bids = list(filter(lambda x: x['side']=='Buy',book))
+        newb = list()
+        for b in bids:
+            p,v = float(b['price']),float(b['size'])
+            d = {'price':p,'quantity':v}
+            newb.append(d)
+        newa = list()
+        for a in asks:
+            p,v = float(a['price']),float(a['size'])
+            d = {'price':p,'quantity':v}
+            newa.append(d)
+        book = [newb,newa]
+        return book 
 
 
 def conv_summary(m,exchange):
@@ -845,6 +860,9 @@ def conv_markets_to(m, exchange):
             return 'XXBTZUSD'
         if nom == 'BTC' and denom == 'EUR':
             return 'XBTEUR'
+    elif exchange==exc.BITMEX:
+        #"XBTUSD"    
+        return nom + denom 
 
 
 def get_market(nom,denom,exchange):
@@ -858,3 +876,6 @@ def get_market(nom,denom,exchange):
         return nom + denom
     elif exchange==exc.BINANCE:
         return nom + denom
+    elif exchange==exc.BITMEX:
+        #"XBTUSD"    
+        return nom + "_" + denom 
