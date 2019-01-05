@@ -12,6 +12,10 @@ import archon.orderbooks as orderbooks
 from archon.feeds import cryptocompare
 from archon.util import *
 
+import threading
+from _thread import start_new_thread
+
+
 standard_apikeys_file = "apikeys.toml"
 
 class Broker:
@@ -314,15 +318,16 @@ class Broker:
     # --- sync functions ---
 
     def sync_orderbook(self, market, exchange):
-        smarket = models.conv_markets_to(market, exchange)  
-        logger.debug("sync %s %i"%(market,exchange))   
+        #smarket = models.conv_markets_to(market, exchange)  
+        #logger.debug("sync %s %i"%(smarket,exchange))   
         #TODO check if symbol is supported by exchange   
         try:
             n = exc.NAMES[exchange]
-            [bids,asks] = self.afacade.get_orderbook(smarket,exchange)
+            [bids,asks] = self.afacade.get_orderbook(market,exchange)
             dt = datetime.datetime.utcnow()
             x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
             
+            #TODO don't remove
             self.db.orderbooks.remove({'market':market,'exchange':n})
             self.db.orderbooks.insert(x)
             self.db.orderbooks_history.insert(x)
@@ -457,6 +462,16 @@ class Broker:
         #for e in self.active_exchanges:            
         #    #self.sync_candle_daily(market, e)   
 
+    def sync_book_work(self, market, exchange):
+        while True:
+            self.sync_orderbook(market, exchange)    
+            time.sleep(10)
+
+
+    def sync_book_thread(self, market, exchange):
+        start_new_thread(self.sync_book_work(market, exchange))
+
+        
 
 
     def transaction_queue(self,exchange):
@@ -469,3 +484,27 @@ class Broker:
             if dt > self.starttime:
                 logger.info("new tx")
             
+
+class ThreadingSync(object):
+    
+    def __init__(self, broker, interval=10):
+        """ Constructor
+        :type interval: int
+        :param interval: Check interval, in seconds
+        """
+        self.broker = broker
+        self.interval = interval
+
+        thread = threading.Thread(target=self.run, args=())
+        thread.daemon = True                            # Daemonize thread
+        thread.start()                                  # Start the execution
+
+    def run(self):
+        """ Method that runs forever """
+        while True:
+            print('sync orderbook in the background')
+            market = models.market_from("XBT","USD")
+
+            self.broker.sync_orderbook(market, exc.BITMEX)
+
+            time.sleep(self.interval)

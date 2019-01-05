@@ -10,3 +10,4 @@ bitmex
 bitmex-ws
 deribit-api
 loguru
+tasktiger

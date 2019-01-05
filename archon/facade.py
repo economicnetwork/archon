@@ -180,8 +180,8 @@ class Facade:
             except Exception:
                  raise Exception
 
-        elif exchange==exc.BITMEX:            
-            inst = client.get_instrument(market)
+        elif exchange==exc.BITMEX:     
+            logger.info("get orderbook %s"%(market))       
             bookdepth = 5
             ob = client.market_depth(market,depth=bookdepth)
             book = models.conv_orderbook(ob, exchange)
