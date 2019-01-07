@@ -1,8 +1,12 @@
 import toml
 
 def toml_file(fs):
-    with open(fs, "r") as f:
-        return f.read()
+    try:
+        with open(fs, "r") as f:
+            r = f.read() 
+            return r           
+    except Exception as e:
+        print ("file not found %s"%str(e))
 
 def parse_toml(filename):
     toml_string = toml_file(filename)

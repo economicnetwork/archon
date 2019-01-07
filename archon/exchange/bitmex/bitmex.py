@@ -77,7 +77,9 @@ class BitMEX(object):
         """Get market depth / orderbook."""
         path = "orderBook/L2"
         #https://www.bitmex.com/api/v1/orderBook/L2?symbol=XBTUSD&depth=0
-        return self._query_bitmex(path=path, query={'symbol': symbol, 'depth': depth})
+        result = self._query_bitmex(path=path, query={'symbol': symbol, 'depth': depth})
+        print ("book " ,result)
+        return result
 
     def recent_trades(self):
         """Get recent trades.

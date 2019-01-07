@@ -12,9 +12,6 @@ import archon.orderbooks as orderbooks
 from archon.feeds import cryptocompare
 from archon.util import *
 
-import threading
-from _thread import start_new_thread
-
 
 standard_apikeys_file = "apikeys.toml"
 
@@ -43,14 +40,20 @@ class Broker:
 
         try:
             all_conf = parse_toml("conf.toml")
-            
-            mongo_conf = all_conf["MONGO"]
-            #mongoHost = mongo_conf['host']
-            dbName = mongo_conf['db']        
-            url = mongo_conf["url"]
-            self.set_mongo(url, dbName)
         except:
             logger.error("no conf.toml file")
+            
+        try:
+            mongo_conf = all_conf["MONGO"]
+            #mongoHost = mongo_conf['host']
+            #dbName = mongo_conf['db']        
+            #url = mongo_conf["url"]
+            uri = mongo_conf["uri"]
+            #self.set_mongo(url, dbName)
+            self.set_mongo(uri)
+        except:
+            logger.error("could not set mongo")
+        
 
         self.starttime = datetime.datetime.utcnow()
 
@@ -59,12 +62,16 @@ class Broker:
         logging.getLogger("requests").setLevel(logging.WARNING)
 
         
-    def set_mongo(self, url, dbName):
+    def set_mongo(self, uri):
+        """
         self.mongo_url = url
-        logger.debug("using mongo " + str(url))
         self.mongoclient = MongoClient(self.mongo_url)
         logger.debug("db %s"%dbName)
         self.db = self.mongoclient[dbName]
+        """
+        logger.debug("using mongo " + str(uri))
+        mongoclient = MongoClient(uri)
+        self.db = mongoclient.get_default_database()
 
     def get_db(self):
         return self.db
@@ -484,27 +491,3 @@ class Broker:
             if dt > self.starttime:
                 logger.info("new tx")
             
-
-class ThreadingSync(object):
-    
-    def __init__(self, broker, interval=10):
-        """ Constructor
-        :type interval: int
-        :param interval: Check interval, in seconds
-        """
-        self.broker = broker
-        self.interval = interval
-
-        thread = threading.Thread(target=self.run, args=())
-        thread.daemon = True                            # Daemonize thread
-        thread.start()                                  # Start the execution
-
-    def run(self):
-        """ Method that runs forever """
-        while True:
-            print('sync orderbook in the background')
-            market = models.market_from("XBT","USD")
-
-            self.broker.sync_orderbook(market, exc.BITMEX)
-
-            time.sleep(self.interval)

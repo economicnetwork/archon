@@ -486,6 +486,10 @@ def conv_openorder(order, exchange):
         d = {'exchange':n,'oid':oid,'market':market,'quantity':quantity,'price':price,'otype':ty}
         return d            
 
+#def conv_order(price, quantity):
+#    return {'price':price,'quantity':quantity}
+
+
 def conv_orderbook(book, exchange):
     if exchange==exc.CRYPTOPIA:
         bids = (book["Buy"])
@@ -494,10 +498,12 @@ def conv_orderbook(book, exchange):
         qty_key =  book_key_qty(exchange)
         newb = list()
         for b in bids:
-            newb.append({'price':b[rate_key],'quantity':b[qty_key]})
+            order = {'price':b[rate_key],'quantity':b[qty_key]}
+            newb.append(order)
         newa = list()
         for a in asks:
-            newa.append({'price':a[rate_key],'quantity':a[qty_key]})            
+            order = {'price':a[rate_key],'quantity':a[qty_key]}
+            newa.append(order)
         return [newb,newa]
     elif exchange==exc.BITTREX:
         bids = book["buy"]
@@ -572,6 +578,7 @@ def conv_orderbook(book, exchange):
         book = [newb,newa]
         return book      
     elif exchange==exc.BITMEX:
+        #{'symbol': 'XBTUSD', 'id': 8799595600, 
         asks = list(filter(lambda x: x['side']=='Sell',book))
         bids = list(filter(lambda x: x['side']=='Buy',book))
         newb = list()
@@ -584,8 +591,11 @@ def conv_orderbook(book, exchange):
             p,v = float(a['price']),float(a['size'])
             d = {'price':p,'quantity':v}
             newa.append(d)
-        book = [newb,newa]
-        return book 
+        dt = datetime.datetime.utcnow()
+        dts = dt.strftime('%Y%m%d-%H:%M:%S')  
+        #date_time = now.strftime("%m/%d/%Y, %H:%M:%S")      
+        d = {'bids': newb,'asks':newa, 'symbol': book[0]['symbol'],'timestamp':dts}
+        return d
 
 
 def conv_summary(m,exchange):
