@@ -131,8 +131,8 @@ class Facade:
 
     def get_orderbook(self, market, exchange=None):
         client = clients[exchange]
-        market = models.conv_markets_to(market, exchange)
         logger.debug("get orderbook %s %i" %(str(market),exchange))
+        #market = models.conv_markets_to(market, exchange)
 
         if exchange==exc.CRYPTOPIA:
             book, err = client.get_orders(market)
@@ -182,9 +182,10 @@ class Facade:
 
         elif exchange==exc.BITMEX:     
             logger.info("get orderbook %s"%(market))       
-            bookdepth = 5
+            bookdepth = 10
             ob = client.market_depth(market,depth=bookdepth)
             book = models.conv_orderbook(ob, exchange)
+            #print (book)
             return book
 
     def get_market_summary(self, market, exchange):        
@@ -421,23 +422,23 @@ class Facade:
         client = clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
-            b, error = clients[exc.CRYPTOPIA].get_balance_all()        
+            b, error = client.get_balance_all()        
             b = models.conv_balance(b,exchange)
             return b
         
         elif exchange==exc.BITTREX:
-            r = clients[exc.BITTREX].get_balances()
+            r = client.get_balances()
             b = r["result"]
             b = models.conv_balance(b,exchange) 
             return b
 
         elif exchange==exc.KUCOIN:
-            b = clients[exc.KUCOIN].get_all_balances()       
+            b = client.get_all_balances()       
             b = models.conv_balance(b,exchange) 
             return b        
 
         elif exchange==exc.BINANCE:
-            b = clients[exc.BINANCE].get_account()['balances']
+            b = client.get_account()['balances']
             b = models.conv_balance(b,exchange) 
             return b
 
@@ -447,10 +448,19 @@ class Facade:
             return b
 
         elif exchange==exc.KRAKEN:
-            r = clients[exc.KRAKEN].query_private('Balance')
+            r = client.query_private('Balance')
             b = r['result']
             b = models.conv_balance(b,exchange) 
             return b
+
+        """
+        elif exchange==exc.BITMEX:
+            r = client.funds()
+            print (r)
+            return r
+        """
+
+
 
     def balance_currency(self, currency, exchange=None):
         """ Deprecated: use balance all """
@@ -743,6 +753,12 @@ class Facade:
                         orderD[ORDERSTATUS] = ORDERSTATUS_FILLED
                 except Exception as err:
                     orderD[ORDERSTATUS] = ORDERSTATUS_REJECTED
+
+        elif exchange==exc.BITMEX:
+            if ttype==ORDER_SIDE_BUY:
+                order_result = client.buy(quantity=qty, price=order_price, symbol=market)
+            elif ttype==ORDER_SIDE_SELL:
+                order_result = client.sell(quantity=qty, price=order_price, symbol=market)
                 
 
         if order_success:

@@ -11,7 +11,7 @@ from archon.model import models
 import archon.orderbooks as orderbooks
 from archon.feeds import cryptocompare
 from archon.util import *
-
+import archon.exchange.bitmex.fields as bitmexfields
 
 standard_apikeys_file = "apikeys.toml"
 
@@ -127,6 +127,20 @@ class Broker:
         x = list(filter(lambda x: x['oid'] == oid, self.openorders))
         return x[0]
 
+    # --- bitmex specfic ---
+     
+    def margin_balance(self, e):
+        if e == exc.BITMEX:             
+            n = exc.NAMES[e]            
+            client = self.afacade.get_client(exc.BITMEX)
+            r = client.funds()
+            mbal = r[bitmexfields.marginBalance]
+            logger.info("margin balance %s"%mbal)
+            return mbal
+
+    
+
+
     # --- broker data ---    
 
     def global_openorders(self):
@@ -163,22 +177,25 @@ class Broker:
                 bl.append(x)
         logger.debug("balance all %s"%(str(bl)))
         return bl
-    """
+    """        
 
     def global_balances(self):
         """ a list of balances by currency and exchange """
         bl = list()
         logger.debug("active exchanges %s"%(self.active_exchanges))
         for e in self.active_exchanges:
-            n = exc.NAMES[e]
-            b = self.afacade.balance_all(exchange=e)
-            if b == None: 
-                logger.error("could not fetch balances from %s"%n)
-            for x in b:
-                x['exchange'] = n
-                s = x['symbol']
-                t = float(x['amount'])
-                bl.append(x)
+            if e != exc.BITMEX:
+                n = exc.NAMES[e]
+                b = self.afacade.balance_all(exchange=e)
+                if b == None: 
+                    logger.error("could not fetch balances from %s"%n)
+                for x in b:
+                    x['exchange'] = n
+                    s = x['symbol']
+                    t = float(x['amount'])
+                    bl.append(x)
+            else:
+                logger.error("bitmex does not support balance call")
         return bl
 
     def global_balances_usd(self):
@@ -219,11 +236,15 @@ class Broker:
         
     def submit_order(self, order, exchange=None):
         if exchange is None: exchange=self.selected_exchange
-        #TODO check balance before submit
-        market,ttype,order_price,qty = order
-        self.submitted_orders.append(order)
-        [order_result,order_success] = self.afacade.submit_order(order, exchange)
-        logger.info("order result %s"%order_result)
+        if exchange!=exc.BITMEX:
+            #TODO check balance before submit
+            #market,ttype,order_price,qty = order
+            self.submitted_orders.append(order)
+            [order_result,order_success] = self.afacade.submit_order(order, exchange)
+            logger.info("order result %s"%order_result)
+        else:
+            [order_result,order_success] = self.afacade.submit_order(order, exchange)
+            logger.info("order result %s"%order_result)
 
 
     def cancel_order(self, oid): 
@@ -326,20 +347,23 @@ class Broker:
 
     def sync_orderbook(self, market, exchange):
         #smarket = models.conv_markets_to(market, exchange)  
-        #logger.debug("sync %s %i"%(smarket,exchange))   
+        logger.debug("sync %s %i"%(market,exchange))   
         #TODO check if symbol is supported by exchange   
         try:
             n = exc.NAMES[exchange]
-            [bids,asks] = self.afacade.get_orderbook(market,exchange)
-            dt = datetime.datetime.utcnow()
-            x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
             
+            book = self.afacade.get_orderbook(market,exchange)
+            dt = datetime.datetime.utcnow()
+            #x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
+            book['exchange'] = n
+            
+            logger.debug("sync %s"%str(dt))
             #TODO don't remove
-            self.db.orderbooks.remove({'market':market,'exchange':n})
-            self.db.orderbooks.insert(x)
-            self.db.orderbooks_history.insert(x)
-        except:
-            logger.info("sync book failed. symbol not supported")
+            #self.db.orderbooks.remove({'market':market,'exchange':n})
+            self.db.orderbooks.insert(book)
+            #self.db.orderbooks_history.insert(book)
+        except Exception as e:
+            logger.info("sync book failed %s"%e)
 
     def sync_orderbook_all(self, market):   
         self.db.orderbooks.drop()     
@@ -477,9 +501,7 @@ class Broker:
 
     def sync_book_thread(self, market, exchange):
         start_new_thread(self.sync_book_work(market, exchange))
-
         
-
 
     def transaction_queue(self,exchange):
         now = datetime.datetime.utcnow()

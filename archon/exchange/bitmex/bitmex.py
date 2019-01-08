@@ -78,7 +78,6 @@ class BitMEX(object):
         path = "orderBook/L2"
         #https://www.bitmex.com/api/v1/orderBook/L2?symbol=XBTUSD&depth=0
         result = self._query_bitmex(path=path, query={'symbol': symbol, 'depth': depth})
-        print ("book " ,result)
         return result
 
     def recent_trades(self):
@@ -135,36 +134,41 @@ class BitMEX(object):
         return self._query_bitmex(path="user/margin")
 
     @authentication_required
-    def buy(self, quantity, price):
+    def buy(self, symbol, quantity, price):
         """Place a buy order.
-
         Returns order object. ID: orderID
         """
-        return self.place_order(quantity, price)
+        #selling is encoded as positive quantities
+        directional_quantity = +quantity
+        return self.place_order(symbol, directional_quantity, price)
 
     @authentication_required
-    def sell(self, quantity, price):
+    def sell(self, symbol, quantity, price):
         """Place a sell order.
-
         Returns order object. ID: orderID
         """
-        return self.place_order(-quantity, price)
+        #selling is encoded as negative quantities
+        directional_quantity = -quantity
+        return self.place_order(symbol, directional_quantity, price)
 
     @authentication_required
-    def place_order(self, quantity, price):
+    def place_order(self, symbol, quantity, price):
         """Place an order."""
         if price < 0:
             raise Exception("Price must be positive.")
 
         endpoint = "order"
         # Generate a unique clOrdID with our prefix so we can identify it.
-        clOrdID = self.orderIDPrefix + uuid.uuid4().bytes.encode('base64').rstrip('=\n')
+        #AttributeError: 'bytes' object has no attribute 'encode'
+        #clOrdID = self.orderIDPrefix + uuid.uuid4().bytes.encode('base64').rstrip('=\n')
+        clOrdID = uuid.uuid4()
         postdict = {
-            'symbol': self.symbol,
+            'symbol': symbol,
             'quantity': quantity,
             'price': price,
             'clOrdID': clOrdID
         }
+        print ("post dict ",postdict)
         return self._query_bitmex(path=endpoint, postdict=postdict, verb="POST")
 
     @authentication_required

@@ -55,34 +55,29 @@ class SyncThread(object):
 
         thread = threading.Thread(target=self.run, args=())
         thread.daemon = True                            # Daemonize thread
-        thread.start()                                  # Start the execution
+        #thread.start()                                  # Start the execution
 
     def run(self):
         """ run worker """
     
         db = self.broker.get_db()
-        col = db['bitmex_orderbook']
+        col = db.orderbooks #['bitmex_orderbook']
 
         i = 0    
-        while i < 10:
+        logger.debug('sync orderbook in the background')
+        while True:
             market = m.market_from("XBT","USD")
-            book = self.broker.afacade.get_orderbook(market, exc.BITMEX)
-            #book = get_book(self.broker)
-            print (book)
-            #db = abroker.get_db()
-            col.insert_one(book)
-            #x = list(db.orderbooks_history.find({}))
-            #print (len(x))
+            smarket = models.conv_markets_to(market, exc.BITMEX)  
+            self.broker.sync_orderbook(smarket, exc.BITMEX)
+            #book = self.broker.afacade.get_orderbook(market, exc.BITMEX)
+            #col.insert_one(book)
+            #logger.debug("sync.. %s"%str(book))
+            #print (book)
             
-            time.sleep(10)
+            time.sleep(5)
             i+=1
 
-        """    
-        while True:
-            print('sync orderbook in the background')
+        """            
             market = models.market_from("XBT","USD")
-
-            self.broker.sync_orderbook(market, exc.BITMEX)
-
-            time.sleep(self.interval)
+            self.broker.sync_orderbook(market, exc.BITMEX)        
         """
