@@ -1,17 +1,17 @@
-ubuntu 16
-sudo apt-get update -y
-sudo apt-get install python3.6 -y
+# ubuntu 16
+```sudo apt-get update -y
+sudo apt-get install python3.6 -y```
 
-ubuntu 14
-sudo apt-get install software-properties-common -y
+# ubuntu 14
+```sudo apt-get install software-properties-common -y
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt-get update -y
-sudo apt-get install python3.6 -y
+sudo apt-get install python3.6 -y```
 
-pip3
+# pip3
 
-sudo apt-get install python3-pip -y
+```sudo apt-get install python3-pip -y```
 
-requirements
+install requirements
 
-pip3 install -r requirements.txt 
+```pip3 install -r requirements.txt```

@@ -93,8 +93,15 @@ class BitMEX(object):
 
         """
         path = "trade"
-        para = {'symbol': symbol}
-        return self._query_bitmex(path=path,query=para)
+        query = {
+            'symbol': symbol,
+            'reverse': 'true',
+            'count': 100
+            #'start': 0,
+            #'filter': 
+        }
+        
+        return self._query_bitmex(path=path,query=query)
 
     @property
     def snapshot(self):

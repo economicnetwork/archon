@@ -1,44 +1,42 @@
-from archon.ws.bitmex.bitmex_ws import BitMEXWebsocket
-import logging
-from logging.handlers import RotatingFileHandler
-from time import sleep
-import datetime
+import argparse
 import json
-import toml
-from loguru import logger
+import csv
+import sys
+import time
 
-crypto = "XBTUSD"
+import archon.orders as orders
+import archon.broker as broker
+import archon.exchange.exchanges as exc
 
+abroker = broker.Broker()
+abroker.set_active_exchanges([exc.BITMEX])
 
-def toml_file(fs):
-    with open(fs, "r") as f:
-        return f.read()
+client = abroker.afacade.get_client(exc.BITMEX)
 
-def parse_toml(filename):
-    toml_string = toml_file(filename)
-    parsed_toml = toml.loads(toml_string)
-    return parsed_toml
+while True:
+    trades = client.recent_trades("XBTUSD")
+    buys = list(filter(lambda x: x['side']=='Buy',trades))
+    sells = list(filter(lambda x: x['side']=='Sell',trades))
 
-def run(k,s):
-    
-    logger.info("run")
+    sumbuy = sum(list(map(lambda x: x['size'], buys)))
+    sumsell = sum(list(map(lambda x: x['size'], sells)))
 
-    bitmexws = BitMEXWebsocket(symbol=crypto, api_key=k, api_secret=s)
+    lastprice = trades[-1]['price']
 
-    #logger.info("Instrument data: %s" % ws.get_instrument())
-    logger.info("\n\n\n\n************\n\n\n")
-    while(bitmexws.ws.sock.connected):        
-        logger.info("Ticker: %s" % bitmexws.get_ticker())
-        #logger.info("Open orders: %s" % bitmexws.open_orders(''))
-        #t = bitmexws.recent_trades()
-        #logger.info("recent trades: %i" % len(t))
+    print ("buys ",len(buys))
+    print ("sell ",len(sells))
+    print ("sumbuy ",sumbuy)
+    print ("sumsell ",sumsell)
 
-        sleep(5.0)
+    print ("last ",lastprice)
 
-if __name__ == "__main__":
-    
-    filename = "apikeys.toml"
-    apikeys = parse_toml(filename)['BITMEX']
-    k,s = apikeys['public_key'],apikeys['secret']
-    run(k,s)
+    #for x in trades:
+    #    print (x)
 
+    first = trades[-1]
+    last = trades[0]
+    t1 = first['timestamp']
+    t2 = last['timestamp']
+    ret = first['price']/last['price'] -1
+    print(ret,t1,t2)
+    time.sleep(5)
