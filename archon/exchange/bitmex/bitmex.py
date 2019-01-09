@@ -80,7 +80,7 @@ class BitMEX(object):
         result = self._query_bitmex(path=path, query={'symbol': symbol, 'depth': depth})
         return result
 
-    def recent_trades(self):
+    def recent_trades(self, symbol):
         """Get recent trades.
 
         Returns
@@ -93,7 +93,8 @@ class BitMEX(object):
 
         """
         path = "trade"
-        return self._query_bitmex(path=path)
+        para = {'symbol': symbol}
+        return self._query_bitmex(path=path,query=para)
 
     @property
     def snapshot(self):
@@ -172,13 +173,13 @@ class BitMEX(object):
         return self._query_bitmex(path=endpoint, postdict=postdict, verb="POST")
 
     @authentication_required
-    def open_orders(self):
+    def open_orders(self, symbol):
         """Get open orders."""
         path = "order"
 
         filter_dict = {'ordStatus.isTerminated': False}
-        if self.symbol:
-            filter_dict['symbol'] = self.symbol
+        #if self.symbol:
+        #    filter_dict['symbol'] = self.symbol
 
         orders = self._query_bitmex(
             path=path,
@@ -186,7 +187,8 @@ class BitMEX(object):
             verb="GET"
         )
         # Only return orders that start with our clOrdID prefix.
-        return [o for o in orders if str(o['clOrdID']).startswith(self.orderIDPrefix)]
+        #orders = [o for o in orders if str(o['clOrdID']).startswith(self.orderIDPrefix)]
+        return orders
 
     @authentication_required
     def cancel(self, orderID):
@@ -195,7 +197,9 @@ class BitMEX(object):
         postdict = {
             'orderID': orderID,
         }
-        return self._query_bitmex(path=path, postdict=postdict, verb="DELETE")
+        cancel_result = self._query_bitmex(path=path, postdict=postdict, verb="DELETE")
+
+        return cancel_result
 
     def _query_bitmex(self, path, query=None, postdict=None, timeout=3, verb=None):
         """Send a request to BitMEX Servers."""

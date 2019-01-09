@@ -629,20 +629,21 @@ class Facade:
         #logger.info("get open orders " + str(exchange))
 
         oo = None
+        client = clients[exchange]
         if exchange==exc.CRYPTOPIA:
-            oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
+            oo, _ = client.get_openorders_all()    
             f = lambda x: models.conv_openorder(x,exchange)
             oo = list(map(f,oo))  
 
         elif exchange==exc.BITTREX:
             #TODO
             #oo = api.get_open_orders(market)["result"]
-            oo = clients[exc.BITTREX].get_open_orders()["result"]            
+            oo = client.get_open_orders()["result"]            
             f = lambda x: models.conv_openorder(x,exchange)
             oo = list(map(f,oo))
 
         elif exchange==exc.KUCOIN:
-            oo = clients[exc.KUCOIN].get_active_orders_all(kv_format=True)
+            oo = client.get_active_orders_all(kv_format=True)
             b = oo['BUY']
             a = oo['SELL']
             l = list()
@@ -651,7 +652,7 @@ class Facade:
             oo = l            
 
         elif exchange==exc.HITBTC:
-            oo = clients[exchange].get_orders()
+            oo = client.get_orders()
             f = lambda x: models.conv_openorder(x,exchange)
             oo = list(map(f,oo))            
 
@@ -660,6 +661,11 @@ class Facade:
             f = lambda x: models.conv_openorder(x,exchange)
             oo = list(map(f,oo))
 
+        elif exchange==exc.BITMEX:
+            #TODO
+            symbol = "XBTUSD"
+            oo = client.open_orders(symbol=symbol)
+            logger.info("open orders %s"%str(oo))
         n = exc.NAMES[exchange]
         #logger.info("open orders " + str(n) + " " + str(oo))
         return oo    
@@ -788,11 +794,13 @@ class Facade:
         #logger.info("cancel " + str(order)) 
         logger.info("cancel " + str(oid) + " " + str(e) + " " + str(otype) + " " + str(market))
         
+        client = clients[exchange]
+
         if exchange==exc.CRYPTOPIA:            
-            result,err = clients[exc.CRYPTOPIA].cancel_trade_id(oid)
+            result,err = client.cancel_trade_id(oid)
             
         elif exchange==exc.BITTREX:
-            result = clients[exc.BITTREX].cancel(oid)
+            result = client.cancel(oid)
             logger.info("bitrex " + str(result))
 
         elif exchange==exc.KUCOIN:
@@ -802,13 +810,20 @@ class Facade:
             else:
                 f = "SELL"   
             logger.info("cancel ",symbol,oid,f)
-            result = clients[exc.KUCOIN].cancel_order(oid,f,symbol)      
+            result = client.cancel_order(oid,f,symbol)      
             self.canceled_orders +=1
             return result                  
                         
         elif exchange==exc.HITBTC:
-            result = clients[exc.HITBTC].cancel_order(oid)
+            result = client.cancel_order(oid)
             self.canceled_orders +=1
+
+        elif exchange==exc.BINANCE:
+            logger.error("not implemented. cancel by id")
+
+        elif exchange==exc.BITMEX:
+            result = client.cancel_order(oid)
+        
                     
         logger.debug("result " + str(result))
         return result
@@ -818,8 +833,9 @@ class Facade:
             
         logger.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype))
         result = None
+        client = clients[exchange]
         if exchange==exc.CRYPTOPIA:            
-            result,err = clients[exc.CRYPTOPIA].cancel_trade_id(oid)
+            result,err = client.cancel_trade_id(oid)
             self.canceled_orders +=1
             
         elif exchange==exc.BITTREX:
@@ -840,6 +856,9 @@ class Facade:
         elif exchange == exc.BINANCE:
             result = clients[exchange].cancel_order(symbol=market,orderId=oid)
             self.canceled_orders +=1
+
+        elif exchange==exc.BITMEX:
+            result = client.cancel(oid)
 
         else:
             logger.error("no exchange provided")

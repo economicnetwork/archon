@@ -247,7 +247,7 @@ class Broker:
             logger.info("order result %s"%order_result)
 
 
-    def cancel_order(self, oid): 
+    def __old_cancel_order(self, oid): 
         logger.debug("cancel %s"%str(oid))
         #TODO check order exists             
         order = self.get_by_id(oid)
@@ -255,6 +255,11 @@ class Broker:
         oid, otype,exchange, market = order['oid'],order['otype'],order['exchange'],order['market']
         exchange = exc.get_id(exchange)
         self.afacade.cancel_id(oid, otype, market, exchange)
+
+    def cancel_order(self, oid, exchange): 
+        logger.debug("cancel %s"%str(oid))
+        result = self.afacade.cancel_id(oid, exchange=exchange)        
+        return result
 
     def cancel_all(self, exchange=None):
         logger.debug("cancel all")
