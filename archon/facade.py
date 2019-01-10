@@ -127,7 +127,17 @@ class Facade:
             f = lambda x: models.conv_tx(x, exchange, market)
             tx = list(map(f,tx))  
             return tx
+
+        elif exchange==exc.BITMEX:
+            try:
+                trades = client.recent_trades(market)
+                return trades
+            except Exception as e:
+                logger.info("get trades failed %s"%str(e))
+
+
         #TODO
+
 
     def get_orderbook(self, market, exchange=None):
         client = clients[exchange]

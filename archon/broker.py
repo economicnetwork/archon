@@ -370,6 +370,15 @@ class Broker:
         except Exception as e:
             logger.info("sync book failed %s"%e)
 
+    def sync_trades(self, market, exchange):
+        if exchange == exc.BITMEX:
+            try:
+                trades = self.afacade.market_history(market, exchange)
+                #logger.debug("trades %s"%str(trades))
+                self.db.trades.insert(trades)
+            except Exception as e:
+                logger.info("sync trades failed %s"%str(e))
+
     def sync_orderbook_all(self, market):   
         self.db.orderbooks.drop()     
         for e in self.active_exchanges:            

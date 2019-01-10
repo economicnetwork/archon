@@ -100,8 +100,9 @@ class BitMEX(object):
             #'start': 0,
             #'filter': 
         }
-        
-        return self._query_bitmex(path=path,query=query)
+        print ("query ",query)
+        result = self._query_bitmex(path=path,query=query)
+        return result
 
     @property
     def snapshot(self):

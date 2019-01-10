@@ -11,3 +11,4 @@ bitmex-ws
 deribit-api
 loguru
 tasktiger
+apscheduler

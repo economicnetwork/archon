@@ -17,6 +17,10 @@ import archon.model.models as m
 import threading
 from _thread import start_new_thread
 
+from apscheduler.schedulers.blocking import BlockingScheduler
+sched_logger = logging.getLogger("apscheduler") 
+sched_logger.setLevel(logging.WARNING)
+
 def get_book(abroker):    
     symbol = "XBTUSD" 
     client = abroker.afacade.get_client(exc.BITMEX)   
@@ -53,31 +57,46 @@ class SyncThread(object):
         self.broker = broker
         self.interval = interval
 
-        thread = threading.Thread(target=self.run, args=())
-        thread.daemon = True                            # Daemonize thread
+        #thread = threading.Thread(target=self.run, args=())
+        #thread.daemon = True                            # Daemonize thread
         #thread.start()                                  # Start the execution
 
-    def run(self):
+        scheduler = BlockingScheduler()
+        scheduler.add_job(self.sync_job, 'interval', seconds=10)
+        scheduler.start()
+
+    def sync_job(self):
         """ run worker """
     
         db = self.broker.get_db()
         col = db.orderbooks #['bitmex_orderbook']
 
-        i = 0    
+        #i = 0    
         logger.debug('sync orderbook in the background')
-        while True:
-            market = m.market_from("XBT","USD")
-            smarket = models.conv_markets_to(market, exc.BITMEX)  
-            self.broker.sync_orderbook(smarket, exc.BITMEX)
-            #book = self.broker.afacade.get_orderbook(market, exc.BITMEX)
+        #while True:
+        market = m.market_from("XBT","USD")
+        smarket = models.conv_markets_to(market, exc.BITMEX)  
+        self.broker.sync_orderbook(smarket, exc.BITMEX)
+        self.broker.sync_trades(smarket, exc.BITMEX)
+            
+            
             #col.insert_one(book)
             #logger.debug("sync.. %s"%str(book))
             #print (book)
             
-            time.sleep(5)
-            i+=1
+        #time.sleep(5)
+        #i+=1
 
         """            
             market = models.market_from("XBT","USD")
             self.broker.sync_orderbook(market, exc.BITMEX)        
         """
+
+def some_job():
+    t = datetime.datetime.now()
+    print ("job %s"%t)
+
+def start_schedule():
+    scheduler = BlockingScheduler()
+    scheduler.add_job(some_job, 'interval', seconds=5)
+    scheduler.start()
