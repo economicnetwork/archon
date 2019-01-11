@@ -25,7 +25,6 @@ class Broker:
 
         logger.start("log/broker.log", rotation="500 MB")
         logger.debug("init broker")
-
         
         self.afacade = facade.Facade()
         #in memory data
@@ -45,13 +44,11 @@ class Broker:
             
         try:
             mongo_conf = all_conf["MONGO"]
-            #mongoHost = mongo_conf['host']
-            #dbName = mongo_conf['db']        
-            #url = mongo_conf["url"]
-            uri = mongo_conf["uri"]
-            #self.set_mongo(url, dbName)
+            uri = mongo_conf["uri"]            
             self.set_mongo(uri)
+            self.using_mongo = True
         except:
+            self.using_mongo = False
             logger.error("could not set mongo")
         
 
@@ -62,13 +59,7 @@ class Broker:
         logging.getLogger("requests").setLevel(logging.WARNING)
 
         
-    def set_mongo(self, uri):
-        """
-        self.mongo_url = url
-        self.mongoclient = MongoClient(self.mongo_url)
-        logger.debug("db %s"%dbName)
-        self.db = self.mongoclient[dbName]
-        """
+    def set_mongo(self, uri):        
         logger.debug("using mongo " + str(uri))
         mongoclient = MongoClient(uri)
         self.db = mongoclient.get_default_database()
@@ -137,8 +128,6 @@ class Broker:
             mbal = r[bitmexfields.marginBalance]
             logger.info("margin balance %s"%mbal)
             return mbal
-
-    
 
 
     # --- broker data ---    
@@ -305,7 +294,6 @@ class Broker:
             else:
                 allmarkets += m
         return allmarkets
-
 
     def global_orderbook(self, market):
         #self.db.orderbooks.drop()
@@ -526,11 +514,9 @@ class Broker:
             self.sync_orderbook(market, exchange)    
             time.sleep(10)
 
-
     def sync_book_thread(self, market, exchange):
         start_new_thread(self.sync_book_work(market, exchange))
         
-
     def transaction_queue(self,exchange):
         now = datetime.datetime.utcnow()
         #delta = now - self.starttime
