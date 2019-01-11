@@ -190,12 +190,12 @@ class Facade:
             except Exception:
                  raise Exception
 
-        elif exchange==exc.BITMEX:     
-            logger.info("get orderbook %s"%(market))       
-            bookdepth = 10
+        elif exchange==exc.BITMEX:
+            logger.debug("get orderbook %s"%(market))       
+            bookdepth = 20
             ob = client.market_depth(market,depth=bookdepth)
+            logger.debug("book %s"%ob)
             book = models.conv_orderbook(ob, exchange)
-            #print (book)
             return book
 
     def get_market_summary(self, market, exchange):        
@@ -673,9 +673,12 @@ class Facade:
 
         elif exchange==exc.BITMEX:
             #TODO
-            symbol = "XBTUSD"
-            oo = client.open_orders(symbol=symbol)
-            logger.info("open orders %s"%str(oo))
+            try:
+                symbol = "XBTUSD"
+                oo = client.open_orders(symbol=symbol)
+                logger.debug("open orders %s"%str(oo))
+            except Exception as e:
+                logger.error("error %s"%str(e))
         n = exc.NAMES[exchange]
         #logger.info("open orders " + str(n) + " " + str(oo))
         return oo    

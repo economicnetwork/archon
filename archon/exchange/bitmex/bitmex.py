@@ -13,6 +13,8 @@ import uuid
 from .accessTokenAuth import AccessTokenAuth
 from .apiKeyAuthWithExpires import APIKeyAuthWithExpires
 
+from loguru import logger
+
 API_BASE = 'https://www.bitmex.com/api/v1/'
 # https://www.bitmex.com/api/explorer/
 
@@ -22,6 +24,9 @@ class BitMEX(object):
 
     def __init__(self, base_url=API_BASE, symbol=None, login=None, password=None, otpToken=None,
                  apiKey=None, apiSecret=None, orderIDPrefix='mm_bitmex_'):
+
+        logger.start("log/bitmex.log", rotation="500 MB")
+        logger.debug("init bitmex")                 
         self.base_url = base_url
         self.symbol = symbol
         self.token = None
@@ -60,13 +65,13 @@ class BitMEX(object):
         path = "instrument"
         instruments = self._query_bitmex(path=path, query={'filter': json.dumps({'symbol': symbol})})
         if len(instruments) == 0:
-            print("Instrument not found: %s." % self.symbol)
-            exit(1)
+            logger.error("Instrument not found: %s." % self.symbol)
+            #logger.error
 
         instrument = instruments[0]
         if instrument["state"] != "Open":
-            print("The instrument %s is no longer open. State: %s" % (self.symbol, instrument["state"]))
-            exit(1)
+            logger.error("The instrument %s is no longer open. State: %s" % (self.symbol, instrument["state"]))
+            #logger.error
 
         # tickLog is the log10 of tickSize
         instrument['tickLog'] = int(math.fabs(math.log10(instrument['tickSize'])))
@@ -100,7 +105,7 @@ class BitMEX(object):
             #'start': 0,
             #'filter': 
         }
-        print ("query ",query)
+        logger.debug("query ",query)
         result = self._query_bitmex(path=path,query=query)
         return result
 
@@ -177,7 +182,7 @@ class BitMEX(object):
             'price': price,
             'clOrdID': clOrdID
         }
-        print ("post dict ",postdict)
+        logger.debug("post dict ",postdict)
         return self._query_bitmex(path=endpoint, postdict=postdict, verb="POST")
 
     @authentication_required
@@ -235,12 +240,12 @@ class BitMEX(object):
             # 401 - Auth error. Re-auth and re-run this request.
             if response.status_code == 401:
                 if self.token is None:
-                    print("Login information or API Key incorrect, please check and restart.")
-                    print("Error: " + response.text)
+                    logger.error("Login information or API Key incorrect, please check and restart.")
+                    logger.error("Error: " + response.text)
                     if postdict:
-                        print(postdict)
-                    exit(1)
-                print("Token expired, reauthenticating...")
+                        logger.error(postdict)
+                    #logger.error
+                logger.error("Token expired, reauthenticating...")
                 sleep(1)
                 self.authenticate()
                 return self._query_bitmex(path, query, postdict, timeout, verb)
@@ -248,29 +253,29 @@ class BitMEX(object):
             # 404, can be thrown if order canceled does not exist.
             elif response.status_code == 404:
                 if verb == 'DELETE':
-                    print("Order not found: %s" % postdict['orderID'])
+                    logger.error("Order not found: %s" % postdict['orderID'])
                     return
-                print("Unable to contact the BitMEX API (404). Request: %s \n %s" % (url, json.dumps(postdict)))
-                exit(1)
+                logger.error("Unable to contact the BitMEX API (404). Request: %s \n %s" % (url, json.dumps(postdict)))
+                raise Exception("bitmex connection")
 
             # 503 - BitMEX temporary downtime, likely due to a deploy. Try again
             elif response.status_code == 503:
-                print("Unable to contact the BitMEX API (503), retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
+                logger.error("Unable to contact the BitMEX API (503), retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
                 sleep(1)
                 return self._query_bitmex(path, query, postdict, timeout, verb)
             # Unknown Error
             else:
-                print("Unhandled Error:", e, response.text)
-                print("Endpoint was: %s %s" % (verb, path))
-                exit(1)
+                logger.error("Unhandled Error:", e, response.text)
+                logger.error("Endpoint was: %s %s" % (verb, path))
+                raise Exception("bitmex connection")
 
         except requests.exceptions.Timeout as e:
             # Timeout, re-run this request
-            print("Timed out, retrying...")
+            logger.error("Timed out, retrying...")
             return self._query_bitmex(path, query, postdict, timeout, verb)
 
         except requests.exceptions.ConnectionError as e:
-            print("Unable to contact the BitMEX API (ConnectionError). Please check the URL. Retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
+            logger.error("Unable to contact the BitMEX API (ConnectionError). Please check the URL. Retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
             sleep(1)
             return self._query_bitmex(path, query, postdict, timeout, verb)
 

@@ -233,18 +233,31 @@ class Broker:
                         x["exchange"] = n
                         txlist.append(x)
         return txlist
+
+    def log_submit_order(self, order):
+        with open ('submit_orders.csv','a') as f:
+                f.write(str(order) + '\n')
+
+    def log_cancel_order(self, orderid):
+        with open ('cancel_orders.csv','a') as f:
+                f.write(str(orderid) + '\n')
+
         
     def submit_order(self, order, exchange=None):
         if exchange is None: exchange=self.selected_exchange
         if exchange!=exc.BITMEX:
             #TODO check balance before submit
             #market,ttype,order_price,qty = order
+            self.log_submit_order(order)
+            
             self.submitted_orders.append(order)
             [order_result,order_success] = self.afacade.submit_order(order, exchange)
             logger.info("order result %s"%order_result)
         else:
             [order_result,order_success] = self.afacade.submit_order(order, exchange)
             logger.info("order result %s"%order_result)
+
+        return [order_result,order_success]
 
 
     def __old_cancel_order(self, oid): 
@@ -258,6 +271,7 @@ class Broker:
 
     def cancel_order(self, oid, exchange): 
         logger.debug("cancel %s"%str(oid))
+        self.log_cancel_order(oid)
         result = self.afacade.cancel_id(oid, exchange=exchange)        
         return result
 

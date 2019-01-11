@@ -72,7 +72,7 @@ class SyncThread(object):
         col = db.orderbooks #['bitmex_orderbook']
 
         #i = 0    
-        logger.debug('sync orderbook in the background')
+        logger.debug('sync in the background')
         #while True:
         market = m.market_from("XBT","USD")
         smarket = models.conv_markets_to(market, exc.BITMEX)  
@@ -91,12 +91,3 @@ class SyncThread(object):
             market = models.market_from("XBT","USD")
             self.broker.sync_orderbook(market, exc.BITMEX)        
         """
-
-def some_job():
-    t = datetime.datetime.now()
-    print ("job %s"%t)
-
-def start_schedule():
-    scheduler = BlockingScheduler()
-    scheduler.add_job(some_job, 'interval', seconds=5)
-    scheduler.start()
