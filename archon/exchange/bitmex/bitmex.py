@@ -147,6 +147,26 @@ class BitMEX(object):
         """Get your current balance."""
         return self._query_bitmex(path="user/margin")
 
+    def execution_history(self):
+        path = "user/executionHistory"
+        symbol = "XBTUSD"
+        query = {
+            'symbol': symbol,
+            'timestamp': "2019-01-12T12:00:00.000Z",
+            'reverse': 'true'
+            #'count': 100
+            #'start': 0,
+            #'filter': 
+        }
+        logger.debug("query ",query)
+        result = self._query_bitmex(path=path,query=query)
+        return result
+
+    @authentication_required
+    def position(self):
+        """Position : Summary of Open and Closed Positions"""
+        return self._query_bitmex(path="position")
+
     @authentication_required
     def buy(self, symbol, quantity, price):
         """Place a buy order.
@@ -213,6 +233,7 @@ class BitMEX(object):
         cancel_result = self._query_bitmex(path=path, postdict=postdict, verb="DELETE")
 
         return cancel_result
+
 
     def _query_bitmex(self, path, query=None, postdict=None, timeout=3, verb=None):
         """Send a request to BitMEX Servers."""
