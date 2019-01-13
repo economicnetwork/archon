@@ -183,6 +183,15 @@ class BitMEX(object):
         return self.place_order(symbol, directional_quantity, price)
 
     @authentication_required
+    def buy_post(self, symbol, quantity, price):
+        """Place a buy order.
+        Returns order object. ID: orderID
+        """
+        #selling is encoded as positive quantities
+        directional_quantity = +quantity
+        return self.place_order_post(symbol, directional_quantity, price)        
+
+    @authentication_required
     def sell(self, symbol, quantity, price):
         """Place a sell order.
         Returns order object. ID: orderID
@@ -190,6 +199,15 @@ class BitMEX(object):
         #selling is encoded as negative quantities
         directional_quantity = -quantity
         return self.place_order(symbol, directional_quantity, price)
+
+    @authentication_required
+    def sell_post(self, symbol, quantity, price):
+        """Place a sell order.
+        Returns order object. ID: orderID
+        """
+        #selling is encoded as negative quantities
+        directional_quantity = -quantity
+        return self.place_order_post(symbol, directional_quantity, price)
 
     @authentication_required
     def place_order(self, symbol, quantity, price):
@@ -210,6 +228,27 @@ class BitMEX(object):
         }
         logger.debug("post dict ",postdict)
         return self._query_bitmex(path=endpoint, postdict=postdict, verb="POST")
+
+    @authentication_required
+    def place_order_post(self, symbol, quantity, price):
+        """Place an order with post only"""
+        if price < 0:
+            raise Exception("Price must be positive.")
+
+        endpoint = "order"
+        # Generate a unique clOrdID with our prefix so we can identify it.
+        #AttributeError: 'bytes' object has no attribute 'encode'
+        #clOrdID = self.orderIDPrefix + uuid.uuid4().bytes.encode('base64').rstrip('=\n')
+        clOrdID = uuid.uuid4()
+        postdict = {
+            'symbol': symbol,
+            'quantity': quantity,
+            'price': price,
+            'clOrdID': clOrdID,
+            'execInst': 'ParticipateDoNotInitiate'
+        }
+        logger.debug("post dict ",postdict)
+        return self._query_bitmex(path=endpoint, postdict=postdict, verb="POST")        
 
     @authentication_required
     def open_orders(self, symbol):
@@ -292,7 +331,7 @@ class BitMEX(object):
                 return self._query_bitmex(path, query, postdict, timeout, verb)
             # Unknown Error
             else:
-                logger.error("Unhandled Error:", e, response.text)
+                logger.error("Unhandled Error: %s %s"%(str(e), str(response.text)))
                 logger.error("Endpoint was: %s %s" % (verb, path))
                 raise Exception("bitmex connection")
 
