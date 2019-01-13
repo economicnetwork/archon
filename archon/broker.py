@@ -25,6 +25,8 @@ class Broker:
 
         logger.start("log/broker.log", rotation="500 MB")
         logger.debug("init broker")
+
+        #logger = logging.getLogger('broker')
         
         self.afacade = facade.Facade()
         #in memory data
@@ -522,7 +524,7 @@ class Broker:
         #delta = now - self.starttime
         txs = self.afacade.get_tradehistory_all(exchange)
         for tx in txs[:]:
-            ts = tx['timestamp'][:19]
+            ts = tx['timestamp'][:19]   
             dt = datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')        
             if dt > self.starttime:
                 logger.info("new tx")

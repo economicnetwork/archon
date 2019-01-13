@@ -226,7 +226,7 @@ class BitMEX(object):
             'price': price,
             'clOrdID': clOrdID
         }
-        logger.debug("post dict ",postdict)
+        logger.debug("place order. post dict %s"%str(postdict))
         return self._query_bitmex(path=endpoint, postdict=postdict, verb="POST")
 
     @authentication_required
@@ -247,7 +247,7 @@ class BitMEX(object):
             'clOrdID': clOrdID,
             'execInst': 'ParticipateDoNotInitiate'
         }
-        logger.debug("post dict ",postdict)
+        logger.debug("place order. post dict %s"%str(postdict))
         return self._query_bitmex(path=endpoint, postdict=postdict, verb="POST")        
 
     @authentication_required
