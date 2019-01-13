@@ -147,18 +147,24 @@ class BitMEX(object):
         """Get your current balance."""
         return self._query_bitmex(path="user/margin")
 
-    def execution_history(self):
-        path = "user/executionHistory"
-        symbol = "XBTUSD"
+    def execution_history(self, symbol, timestamp):
+        #path = "user/executionHistory" 
+        #['execID', 'orderID', 'clOrdID', 'clOrdLinkID', 'account', 'symbol', 'side', 'lastQty', 'lastPx', 'underlyingLastPx', 
+        # 'lastMkt', 'lastLiquidityInd', 'simpleOrderQty', 'orderQty', 'price', 'displayQty', 'stopPx', 'pegOffsetValue',
+        #  'pegPriceType', 'currency', 'settlCurrency', 'execType', 'ordType', 'timeInForce', 'execInst', 'contingencyType', 
+        # 'exDestination', 'ordStatus', 'triggered', 'workingIndicator', 'ordRejReason', 'simpleLeavesQty', 'leavesQty', 
+        # 'simpleCumQty', 'cumQty', 'avgPx', 'commission', 'tradePublishIndicator', 'multiLegReportingType', 'text', 
+        # 'trdMatchID', 'execCost', 'execComm', 'homeNotional', 'foreignNotional', 'transactTime', 'timestamp']       
+        path = "execution"        
         query = {
             'symbol': symbol,
-            'timestamp': "2019-01-12T12:00:00.000Z",
-            'reverse': 'true'
+            'timestamp': timestamp,
+            #'reverse': 'true'
             #'count': 100
             #'start': 0,
             #'filter': 
         }
-        logger.debug("query ",query)
+        logger.debug("query %s"%str(query))
         result = self._query_bitmex(path=path,query=query)
         return result
 
