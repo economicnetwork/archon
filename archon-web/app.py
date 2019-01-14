@@ -18,9 +18,6 @@ abroker.set_keys_exchange_file()
 
 client = abroker.afacade.get_client(exc.BITMEX)
 
-import logging
-import os
-
 @app.route('/data')
 def data():
   client = abroker.afacade.get_client(exc.BITMEX)
