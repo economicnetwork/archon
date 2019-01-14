@@ -12,3 +12,4 @@ deribit-api
 loguru
 tasktiger
 apscheduler
+arctic
