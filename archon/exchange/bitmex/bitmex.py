@@ -18,6 +18,11 @@ from loguru import logger
 API_BASE = 'https://www.bitmex.com/api/v1/'
 # https://www.bitmex.com/api/explorer/
 
+candle_1m = '1m'
+candle_5m = '5m'
+candle_1h = '1h'
+candle_1d = '1d'
+
 class BitMEX(object):
 
     """BitMEX REST API"""
@@ -109,13 +114,13 @@ class BitMEX(object):
         result = self._query_bitmex(path=path,query=query)
         return result
 
-    def trades_candle(self, symbol):
+    def trades_candle(self, symbol, resolution):
         path = "trade/bucketed"
         query = {
             'symbol': symbol,
             'reverse': 'true',
             'count': 100,
-            'binSize': '1m', #1m,5m,1h,1d
+            'binSize': resolution
             #'start': 0,
             #'filter': 
         }
