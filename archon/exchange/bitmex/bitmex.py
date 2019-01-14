@@ -109,6 +109,20 @@ class BitMEX(object):
         result = self._query_bitmex(path=path,query=query)
         return result
 
+    def trades_candle(self, symbol):
+        path = "trade/bucketed"
+        query = {
+            'symbol': symbol,
+            'reverse': 'true',
+            'count': 100,
+            'binSize': '1m', #1m,5m,1h,1d
+            #'start': 0,
+            #'filter': 
+        }
+        logger.debug("query ",query)
+        result = self._query_bitmex(path=path,query=query)
+        return result
+
     @property
     def snapshot(self):
         """Get current BBO."""
