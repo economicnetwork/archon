@@ -14,6 +14,7 @@ from .accessTokenAuth import AccessTokenAuth
 from .apiKeyAuthWithExpires import APIKeyAuthWithExpires
 
 from loguru import logger
+import datetime
 
 API_BASE = 'https://www.bitmex.com/api/v1/'
 # https://www.bitmex.com/api/explorer/
@@ -114,19 +115,42 @@ class BitMEX(object):
         result = self._query_bitmex(path=path,query=query)
         return result
 
-    def trades_candle(self, symbol, resolution):
+    def trades_candle(self, symbol, resolution, count=100, startTime=None, endTime=None):
         path = "trade/bucketed"
         query = {
             'symbol': symbol,
             'reverse': 'true',
-            'count': 100,
-            'binSize': resolution
+            'count': count,
+            'binSize': resolution            
             #'start': 0,
             #'filter': 
         }
+        if startTime:
+            query['startTime'] = startTime
+        if endTime:
+            query['endTime'] = endTime
+
         logger.debug("query ",query)
         result = self._query_bitmex(path=path,query=query)
         return result
+
+    def get_minute_1day(startday):
+        """ gets 1m data for a single day . split request in two because maximum candles per request is 750 """
+        maxrequest = 750
+        startTime = startday
+        endTime = startTime + timedelta(hours=12)
+        candles = client.trades_candle("XBTUSD", mex.candle_1m, maxrequest, startTime, endTime)
+        candles.reverse()
+
+        #add second half of the day
+        startTime = endTime
+        endTime = startTime + timedelta(hours=12)
+        candles2 = client.trades_candle("XBTUSD", mex.candle_1m, maxrequest, startTime, endTime)
+        candles2.reverse()
+
+        candles += candles2
+
+        return candles
 
     @property
     def snapshot(self):
