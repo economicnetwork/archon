@@ -14,6 +14,17 @@ class DeribitWebsocket():
         self.logger = logging.getLogger('root')
         self.__reset()
 
+        logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s %(name)s %(levelname)-8s  %(message)s',
+        datefmt='(%H:%M:%S)')
+
+        # disable all loggers from different files
+        logging.getLogger('asyncio').setLevel(logging.ERROR)
+        logging.getLogger('asyncio.coroutines').setLevel(logging.ERROR)
+        logging.getLogger('websockets.server').setLevel(logging.ERROR)
+        logging.getLogger('websockets.protocol').setLevel(logging.ERROR)
+
     def on_message(self, ws, message):
         message = json.loads(message)
         if 'notifications' in message:
@@ -40,6 +51,7 @@ class DeribitWebsocket():
         data['sig'] = self.client.generate_signature(data['action'], data['arguments'])
 
         ws.send(json.dumps(data))
+
     def connect(self):
         websocket.enableTrace(True)
         self.ws = websocket.WebSocketApp("wss://www.deribit.com/ws/api/v1/",

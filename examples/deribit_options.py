@@ -5,10 +5,7 @@ find options of deribit
 from archon.ws.deribit.Wrapper import DeribitWrapper
 import archon.config as config
 
-from archon.ws.broker import WSBroker
 from datetime import datetime
-
-wsbroker = WSBroker()
 
 apikeys = config.parse_toml("apikeys.toml")
 

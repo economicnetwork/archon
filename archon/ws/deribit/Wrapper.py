@@ -1,7 +1,9 @@
-import time, hashlib, requests, base64, sys
+import time, hashlib, base64, sys
 from collections import OrderedDict
 from archon.ws.deribit.deribit_ws import DeribitWebsocket
+import logging
 
+import requests
 
 class DeribitWrapper(object):
     def __init__(self, key=None, secret=None, url=None):
@@ -10,7 +12,7 @@ class DeribitWrapper(object):
         self.session = requests.Session()
         self.ws = DeribitWebsocket()
         self.ws.connect()
-
+        
         if url:
             self.url = url
         else:
