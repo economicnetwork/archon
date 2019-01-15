@@ -15,6 +15,7 @@ from .apiKeyAuthWithExpires import APIKeyAuthWithExpires
 
 from loguru import logger
 import datetime
+from datetime import timedelta
 
 API_BASE = 'https://www.bitmex.com/api/v1/'
 # https://www.bitmex.com/api/explorer/
@@ -134,18 +135,18 @@ class BitMEX(object):
         result = self._query_bitmex(path=path,query=query)
         return result
 
-    def get_minute_1day(startday):
+    def get_minute_1day(self, startday):
         """ gets 1m data for a single day . split request in two because maximum candles per request is 750 """
         maxrequest = 750
         startTime = startday
         endTime = startTime + timedelta(hours=12)
-        candles = client.trades_candle("XBTUSD", mex.candle_1m, maxrequest, startTime, endTime)
+        candles = self.trades_candle("XBTUSD", candle_1m, maxrequest, startTime, endTime)
         candles.reverse()
 
         #add second half of the day
         startTime = endTime
         endTime = startTime + timedelta(hours=12)
-        candles2 = client.trades_candle("XBTUSD", mex.candle_1m, maxrequest, startTime, endTime)
+        candles2 = self.trades_candle("XBTUSD", candle_1m, maxrequest, startTime, endTime)
         candles2.reverse()
 
         candles += candles2

@@ -22,3 +22,39 @@
 marginBalance = "marginBalance"
 walletBalance = "walletBalance"
 availableMargin = "availableMargin"
+
+
+position_description = {
+    "account" :  "Your unique account ID",
+    "symbol" :  "The contract for this position",
+    "currency" :  "The margin currency for this position",
+    "underlying" :  "Meta data of the symbol",
+    "quoteCurrency" :  "Meta data of the symbol, All prices are in the quoteCurrency",
+    "commission" :  "The maximum of the maker, taker, and settlement fee",
+    "initMarginReq" :  "The initial margin requirement This will be at least the symbol's default initial maintenance margin, but can be higher if you choose lower leverage",
+    "maintMarginReq" :  "The maintenance margin requirement This will be at least the symbol's default maintenance maintenance margin, but can be higher if you choose a higher risk limit",
+    "riskLimit" :  "This is a function of your maintMarginReq",
+    "leverage" :  "1 / initMarginReq",
+    "crossMargin" :  "True/false depending on whether you set cross margin on this position",
+    "deleveragePercentile" :  "Indicates where your position is in the ADL queue",
+    "rebalancedPnl" :  "The value of realised PNL that has transferred to your wallet for this position",
+    "prevRealisedPnl" :  "The value of realised PNL that has transferred to your wallet for this position since the position was closed",
+    "currentQty" :  "The current position amount in contracts",
+    "currentCost" :  "The current cost of the position in the settlement currency of the symbol (currency)",
+    "currentComm" :  "The current commission of the position in the settlement currency of the symbol (currency)",
+    "realisedCost" :  "The realised cost of this position calculated with regard to average cost accounting",
+    "unrealisedCost" :  "currentCost - realisedCost",
+    "grossOpenCost" :  "The absolute value of your open orders for this symbol",
+    "grossOpenPremium" :  "The amount your bidding above the mark price in the settlement currency of the symbol (currency)",
+    "markPrice" :  "The mark price of the symbol in quoteCurrency",
+    "markValue" :  "The currentQty at the mark price in the settlement currency of the symbol (currency)",
+    "homeNotional" :  "Value of position in units of underlying",
+    "foreignNotional" :  "Value of position in units of quoteCurrency",
+    "realisedPnl" :  "The negative of realisedCost",
+    "unrealisedGrossPnl" :  "markValue - unrealisedCost",
+    "unrealisedPnl" :  "unrealisedGrossPnl",
+    "liquidationPrice" :  "Once markPrice reaches this price, this position will be liquidated",
+    "bankruptPrice" :  "Once markPrice reaches this price, this position will have no equity",
+####
+"prevUnrealisedPnl" : "??"
+}
