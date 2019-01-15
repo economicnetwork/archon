@@ -578,7 +578,6 @@ def conv_orderbook(book, exchange):
         book = [newb,newa]
         return book      
     elif exchange==exc.BITMEX:
-        #{'symbol': 'XBTUSD', 'id': 8799595600, 
         asks = list(filter(lambda x: x['side']=='Sell',book))
         bids = list(filter(lambda x: x['side']=='Buy',book))
         newb = list()

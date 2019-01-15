@@ -46,7 +46,7 @@ class Broker:
             
         try:
             mongo_conf = all_conf["MONGO"]
-            uri = mongo_conf["uri"]            
+            uri = mongo_conf["uri"]  
             self.set_mongo(uri)
             self.using_mongo = True
         except:
@@ -62,9 +62,9 @@ class Broker:
 
         
     def set_mongo(self, uri):        
-        logger.debug("using mongo " + str(uri))
+        logger.debug("using mongo %s"%str(uri))
         mongoclient = MongoClient(uri)
-        self.db = mongoclient.get_default_database()
+        self.db = mongoclient["broker-db"]
 
     def get_db(self):
         return self.db

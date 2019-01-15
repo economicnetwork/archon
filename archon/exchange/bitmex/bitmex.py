@@ -53,9 +53,9 @@ class BitMEX(object):
 
     # --- Public methods ---
 
-    def ticker_data(self):
+    def ticker_data(self, symbol):
         """Get ticker data."""
-        data = self.get_instrument()
+        data = self.get_instrument(symbol)
 
         ticker = {
             # Rounding to tickLog covers up float error
@@ -192,6 +192,8 @@ class BitMEX(object):
         return self._query_bitmex(path="user/margin")
 
     def execution_history(self, symbol, timestamp):
+        """ all orders including non-executed """
+        
         #path = "user/executionHistory" 
         #['execID', 'orderID', 'clOrdID', 'clOrdLinkID', 'account', 'symbol', 'side', 'lastQty', 'lastPx', 'underlyingLastPx', 
         # 'lastMkt', 'lastLiquidityInd', 'simpleOrderQty', 'orderQty', 'price', 'displayQty', 'stopPx', 'pegOffsetValue',
