@@ -56,6 +56,7 @@ class BitMEX(object):
     def ticker_data(self, symbol):
         """Get ticker data."""
         data = self.get_instrument(symbol)
+        #print (data)
 
         ticker = {
             # Rounding to tickLog covers up float error
@@ -65,7 +66,10 @@ class BitMEX(object):
             "mid": (float(data['bidPrice']) + float(data['askPrice'])) / 2
         }
 
-        return {k: round(float(v), data['tickLog']) for k, v in ticker.items()}
+        #rounded = {k: round(float(v), data['tickLog']) for k, v in ticker.items()}
+        #print (rounded["buy"])
+        #print (rounded["sell"])
+        return ticker
 
     def get_instrument(self, symbol):
         """Get an instrument's details."""

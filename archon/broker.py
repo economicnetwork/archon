@@ -80,27 +80,36 @@ class Broker:
             ne.append(eid)
         self.active_exchanges = ne
 
-    def set_keys_exchange_file(self,keys_filename=standard_apikeys_file):
-        try:
-            apikeys = parse_toml(keys_filename)
-            logger.info("set keys %s"%apikeys.keys())
-            if not self.active_exchanges:                
-                for k,v in apikeys.items():
-                    eid = exc.get_id(k)
-                    if eid >= 0:
-                        try:
-                            self.set_keys_exchange(eid, apikeys[k])
-                            self.active_exchanges.append(eid)
-                        except Exception as err:
-                            logger.error("could not set %s"%err)
-                    else:
-                        logger.error ("exchange not supported or not set")
-                logger.info("active exchanges %s"%self.active_exchanges)
-            else:
-                logger.error("active exchanages already set")
-                
-        except Exception as err: 
-            logger.error("error parsing apikeys file %s"%(err))
+    def set_keys_exchange_file(self,keys_filename=standard_apikeys_file,exchanges=None):
+        apikeys = parse_toml(keys_filename)
+        logger.info("set keys %s"%apikeys.keys())
+        if exchanges:
+            for e in exchanges:
+                #eid = exc.get_id(e)
+                name = exc.NAMES[e]
+                try:
+                    self.set_keys_exchange(e, apikeys[name])
+                except Exception as err:
+                    logger.error("could not set %s"%err)
+        else:            
+            try:            
+                if not self.active_exchanges:                
+                    for k,v in apikeys.items():
+                        eid = exc.get_id(k)
+                        if eid >= 0:
+                            try:
+                                self.set_keys_exchange(eid, apikeys[k])
+                                self.active_exchanges.append(eid)
+                            except Exception as err:
+                                logger.error("could not set %s"%err)
+                        else:
+                            logger.error ("exchange not supported or not set")
+                    logger.info("active exchanges %s"%self.active_exchanges)
+                else:
+                    logger.error("active exchanages already set")
+                    
+            except Exception as err: 
+                logger.error("error parsing apikeys file %s"%(err))
             
 
     def set_keys_exchange(self, exchange, keys):

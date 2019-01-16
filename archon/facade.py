@@ -17,6 +17,7 @@ from archon.exchange.kucoin import KuClient
 import archon.exchange.hitbtc as hitbtc
 import archon.exchange.binance as binance
 from archon.exchange.bitmex import bitmex
+from archon.ws.deribit.Wrapper import DeribitWrapper
 
 #Wrappers with foreign package
 import krakenex
@@ -82,6 +83,9 @@ class Facade:
             clients[exchange] = krakenex.API(key,secret)
         elif exchange==exc.BITMEX:
             clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
+        elif exchange==exc.DERIBIT:
+            clients[exchange] = DeribitWrapper(key=key,secret=secret)
+
 
     def set_mail_config(self, apikey, domain, email_from, email_to):
         """ mailgun config """
