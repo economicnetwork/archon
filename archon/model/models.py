@@ -563,8 +563,8 @@ def conv_orderbook(book, exchange):
         book = [newb,newa]
         return book
     elif exchange==exc.BINANCE:
-        bids = (book["bids"])
-        asks = (book["asks"])
+        bids = book["bids"]
+        asks = book["asks"]
         newb = list()
         for b in bids:
             p,v,_ = b
@@ -595,6 +595,24 @@ def conv_orderbook(book, exchange):
         #date_time = now.strftime("%m/%d/%Y, %H:%M:%S")      
         d = {'bids': newb,'asks':newa, 'symbol': book[0]['symbol'],'timestamp':dts}
         return d
+    elif exchange==exc.DERIBIT:
+        bids = book["bids"]
+        asks = book["asks"]
+        newb = list()
+        for b in bids:
+            p,v = b['price'],b['quantity']            
+            d = {'price':p,'quantity':v}
+            newb.append(d)
+        newa = list()
+        for a in asks:
+            p,v = a['price'],a['quantity']            
+            d = {'price':p,'quantity':v}
+            newa.append(d)
+        d = {'bids': newb,'asks':newa} #'timestamp':book['tstamp']}
+        return d
+
+        #print (b['price']," ",b['quantity'])    
+
 
 
 def conv_summary(m,exchange):

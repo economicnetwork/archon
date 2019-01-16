@@ -74,7 +74,8 @@ def order_dict(order):
 
 def display_book(book,name="orderbook"):
     bids,asks = book['bids'],book['asks']
-    asks.reverse()
+    #TODO bitmex
+    #asks.reverse()
     print ("** bid **       %s     ** ask **"%(name))
     i = 0
     for b in bids[:10]:
@@ -84,4 +85,4 @@ def display_book(book,name="orderbook"):
         av = ask['quantity']
         bv = b['quantity']
         print ("%.2f  %.0f   %.2f  %.0f" % (bp,bv,ap,av))
-        i+=1  
+        i+=1
