@@ -17,7 +17,7 @@ from archon.exchange.kucoin import KuClient
 import archon.exchange.hitbtc as hitbtc
 import archon.exchange.binance as binance
 from archon.exchange.bitmex import bitmex
-from archon.ws.deribit.Wrapper import DeribitWrapper
+from archon.exchange.deribit.Wrapper import DeribitWrapper
 
 #Wrappers with foreign package
 import krakenex
@@ -182,23 +182,26 @@ class Facade:
             book = models.conv_orderbook(r, exchange)
             return book
 
-        elif exchange==exc.BINANCE:
-            logger.info("get orderbook %s"%(market))
+        elif exchange==exc.BINANCE:            
             try:
                 ob = client.get_orderbook_symbol(market)
                 book = models.conv_orderbook(ob, exchange)
-                logger.debug("book %s"%book)
+                #logger.debug("book %s"%book)
                 return book
             except Exception:
                  raise Exception
 
         elif exchange==exc.BITMEX:
-            logger.debug("get orderbook %s"%(market))       
             bookdepth = 20
             ob = client.market_depth(market,depth=bookdepth)
-            logger.debug("book %s"%ob)
+            #logger.debug("book %s"%ob)
             book = models.conv_orderbook(ob, exchange)
             return book
+
+        elif exchange==exc.DERIBIT:            
+            book = client.getorderbook(market)
+            #book = models.conv_orderbook(ob, exchange)
+            return book            
 
     def get_market_summary(self, market, exchange):        
 
@@ -224,7 +227,6 @@ class Facade:
             r = client.get_orderbook_ticker_symbol(market)
             r = models.conv_summary(r, exchange)
             return r
-
 
     def get_market_summaries(self, exchange=None):
 

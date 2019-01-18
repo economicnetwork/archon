@@ -13,8 +13,6 @@ from datetime import datetime
 from archon.exchange.date_util import *
 from archon.util import *
     
-logpath = './log'
-log = setup_logger(logpath, 'kucoin', 'kucoin')
 
 class KucoinAPIException(Exception):
     """Exception class to handle general API Exceptions
@@ -22,6 +20,9 @@ class KucoinAPIException(Exception):
         `message` format
     """
     def __init__(self, response):
+        logpath = './log'
+        self.log = setup_logger(logpath, 'kucoin', 'kucoin')
+
         self.code = ''
         self.message = 'Unknown Error'
         try:
@@ -175,7 +176,7 @@ class KuClient(object):
         try:
             return self._handle_response(response)
         except KucoinAPIException as err:
-            log.error(err)
+            self.log.error(err)
 
     def _request_retry(self, method, path, signed, **kwargs):
         numtries = 0    
@@ -184,7 +185,7 @@ class KuClient(object):
             try:
                 return self._request(method, path, signed, **kwargs)
             except KucoinAPIException as err:
-                log.error(err)
+                self.log.error(err)
                 numtries +=1
             
 
@@ -193,12 +194,12 @@ class KuClient(object):
         Raises the appropriate exceptions when necessary; otherwise, returns the
         response.
         """
-        log.debug("response " + str(response))
+        self.log.debug("response " + str(response))
         if not str(response.status_code).startswith('2'):
             raise KucoinAPIException(response)
         try:
             json = response.json()
-            log.debug("response " + str(json))
+            self.log.debug("response " + str(json))
 
             if 'success' in json and not json['success']:
                 raise KucoinAPIException(response)
@@ -218,7 +219,7 @@ class KuClient(object):
             return res
 
         except ValueError:
-            #log
+            #self.log
             raise Exception('Invalid Response: %s' % response.text)
 
     def _get(self, path, signed=False, **kwargs):
@@ -229,7 +230,7 @@ class KuClient(object):
 
     def _post(self, path, signed=False, **kwargs):
         r = self._request('post', path, signed, **kwargs)
-        log.debug("result " + str(r))
+        self.log.debug("result " + str(r))
         return r
 
     def _put(self, path, signed=False, **kwargs):
@@ -383,10 +384,10 @@ class KuClient(object):
 
         try:
             r = self._post('cancel-order', True, data=data)
-            log.info("cancel result " + str(r))
+            self.log.info("cancel result " + str(r))
             return r
         except KucoinAPIException as e:
-            log.error ("error " + str(e))
+            self.log.error ("error " + str(e))
 
     def cancel_all_orders(self, symbol=None, order_type=None):
         """Cancel all orders"""

@@ -5,6 +5,7 @@ from time import sleep
 import json
 import urllib
 import math
+from archon.custom_logger import archon_setup_logger
 from archon.ws.api_util import generate_nonce, generate_signature
 from archon.ws.bitmex.bitmex_topics import *
 #from loguru import logger
@@ -31,25 +32,8 @@ class BitMEXWebsocket:
 
     def __init__(self, symbol, api_key=None, api_secret=None, endpoint=endpoint_V1):
         '''Connect to the websocket and initialize data stores.'''        
-
-        logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
-        handlers=[
-            logging.FileHandler("{0}/{1}.log".format("./log", "bitmex")),
-            logging.StreamHandler(sys.stdout),
-            #ColoredLogger
-            #colorlog.StreamHandler(sys.stdout)
-        ])
-        self.logger = logging.getLogger()
-
-        handler = colorlog.StreamHandler()
-        #handler.setFormatter(colorlog.ColoredFormatter('%(log_color)s%(levelname)s:%(name)s:%(message)s'))
-        handler.setFormatter(colorlog.ColoredFormatter('%(log_color)s%(message)s'))
-        logger = colorlog.getLogger('colorexample')
-        logger.addHandler(handler)
-
-        #logging.setLoggerClass(ColoredLogger)
+        archon_setup_logger(__name__, 'strategy.log')
+        self.logger = logging.getLogger(__name__)        
         self.logger.debug("bitmex - initializing WebSocket.")
 
         self.endpoint = endpoint
@@ -201,7 +185,7 @@ class BitMEXWebsocket:
 
     def __connect(self, wsURL, symbol):
         '''Connect to the websocket in a thread.'''
-        self.logger.debug("Starting thread")
+        self.logger.debug(".....Starting thread")
 
         self.ws = websocket.WebSocketApp(wsURL,
                                          on_message=self.__on_message,

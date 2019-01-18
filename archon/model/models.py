@@ -590,6 +590,7 @@ def conv_orderbook(book, exchange):
             p,v = float(a['price']),float(a['size'])
             d = {'price':p,'quantity':v}
             newa.append(d)
+        newa.reverse()    
         dt = datetime.datetime.utcnow()
         dts = dt.strftime('%Y%m%d-%H:%M:%S')  
         #date_time = now.strftime("%m/%d/%Y, %H:%M:%S")      

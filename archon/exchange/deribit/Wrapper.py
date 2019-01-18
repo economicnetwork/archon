@@ -1,11 +1,20 @@
 import time, hashlib, base64, sys
 from collections import OrderedDict
-from archon.ws.deribit.deribit_ws import DeribitWebsocket
+from archon.exchange.ws.deribit.deribit_ws import DeribitWebsocket
 import logging
 
 import requests
 
+instrument_btc_perp = "BTC-PERPETUAL"
+instrument_btc_june ="BTC-28JUN19"
+instrument_btc_march = "BTC-29MAR19"
+
+
+base_public_api = "/api/v1/public/"
+base_private_api = "/api/v1/private/"
+
 class DeribitWrapper(object):
+
     def __init__(self, key=None, secret=None, url=None):
         self.key = key
         self.secret = secret
@@ -18,7 +27,7 @@ class DeribitWrapper(object):
         else:
             self.url = "https://www.deribit.com"
 
-    def request(self, action, data):
+    def _deri_request(self, action, data):
         response = None
 
         if action.startswith("/api/v1/private/"):
@@ -76,7 +85,7 @@ class DeribitWrapper(object):
         return sig
 
     def getorderbook(self, instrument):
-        return self.request("/api/v1/public/getorderbook", {'instrument': instrument})
+        return self._deri_request(base_public_api + "getorderbook", {'instrument': instrument})
 
     def json_depth(self, instrument):
         return self.ws.market_depth(instrument)
@@ -112,10 +121,10 @@ class DeribitWrapper(object):
         return self.ws.market_depth(instrument)['last']
 
     def getinstruments(self):
-        return self.request("/api/v1/public/getinstruments", {})
+        return self._deri_request(base_public_api + "getinstruments", {})
 
     def getcurrencies(self):
-        return self.request("/api/v1/public/getcurrencies", {})
+        return self._deri_request(base_public_api + "getcurrencies", {})
 
     def getlasttrades(self, instrument, count=None, since=None):
         options = {
@@ -128,19 +137,19 @@ class DeribitWrapper(object):
         if count:
             options['count'] = count
 
-        return self.request("/api/v1/public/getlasttrades", options)
+        return self._deri_request(base_public_api + "getlasttrades", options)
 
     def getsummary(self, instrument):
-        return self.request("/api/v1/public/getsummary", {"instrument": instrument})
+        return self._deri_request(base_public_api + "getsummary", {"instrument": instrument})
 
     def index(self):
-        return self.request("/api/v1/public/index", {})
+        return self._deri_request(base_public_api + "index", {})
 
     def stats(self):
-        return self.request("/api/v1/public/stats", {})
+        return self._deri_request(base_public_api + "stats", {})
 
     def account(self):
-        return self.request("/api/v1/private/account", {})
+        return self._deri_request("/api/v1/private/account", {})
 
     def buy(self, instrument, quantity, price, postOnly=None, label=None):
         options = {
@@ -155,7 +164,7 @@ class DeribitWrapper(object):
         if postOnly:
             options["postOnly"] = postOnly
 
-        return self.request("/api/v1/private/buy", options)
+        return self._deri_request("/api/v1/private/buy", options)
 
     def sell(self, instrument, quantity, price, postOnly=None, label=None):
         options = {
@@ -169,17 +178,17 @@ class DeribitWrapper(object):
         if postOnly:
             options["postOnly"] = postOnly
 
-        return self.request("/api/v1/private/sell", options)
+        return self._deri_request("/api/v1/private/sell", options)
 
     def cancel(self, orderId):
         options = {
             "orderId": orderId
         }
 
-        return self.request("/api/v1/private/cancel", options)
+        return self._deri_request("/api/v1/private/cancel", options)
 
     def cancelall(self, typeDef="all"):
-        return self.request("/api/v1/private/cancelall", {"type": typeDef})
+        return self._deri_request("/api/v1/private/cancelall", {"type": typeDef})
 
     def edit(self, orderId, quantity, price):
         options = {
@@ -188,7 +197,7 @@ class DeribitWrapper(object):
             "price": price
         }
 
-        return self.request("/api/v1/private/edit", options)
+        return self._deri_request("/api/v1/private/edit", options)
 
     def getopenorders(self, instrument=None, orderId=None):
         options = {}
@@ -198,17 +207,17 @@ class DeribitWrapper(object):
         if orderId:
             options["orderId"] = orderId
 
-        return self.request("/api/v1/private/getopenorders", options)
+        return self._deri_request("/api/v1/private/getopenorders", options)
 
     def positions(self):
-        return self.request("/api/v1/private/positions", {})
+        return self._deri_request("/api/v1/private/positions", {})
 
     def orderhistory(self, count=None):
         options = {}
         if count:
             options["count"] = count
 
-        return self.request("/api/v1/private/orderhistory", options)
+        return self._deri_request("/api/v1/private/orderhistory", options)
 
     def tradehistory(self, countNum=None, instrument="all", startTradeId=None):
         options = {
@@ -220,4 +229,4 @@ class DeribitWrapper(object):
         if startTradeId:
             options["startTradeId"] = startTradeId
 
-        return self.request("/api/v1/private/tradehistory", options)
+        return self._deri_request("/api/v1/private/tradehistory", options)

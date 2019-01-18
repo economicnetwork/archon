@@ -4,20 +4,17 @@ import json
 import ssl
 import threading
 import logging
-
-
+from archon.custom_logger import archon_setup_logger
 
 class DeribitWebsocket():
     def __init__(self):
         self.client = RestClient('', '')
         self.table = {}
-        self.logger = logging.getLogger('root')
+        #self.logger = logging.getLogger('root')
         self.__reset()
 
-        logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s %(name)s %(levelname)-8s  %(message)s',
-        datefmt='(%H:%M:%S)')
+        archon_setup_logger(__name__, 'strategy.log')
+        self.logger = logging.getLogger(__name__)        
 
         # disable all loggers from different files
         logging.getLogger('asyncio').setLevel(logging.ERROR)

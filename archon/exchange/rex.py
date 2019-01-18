@@ -61,8 +61,6 @@ PROTECTION_PRV = 'prv'  # authenticated methods
 
 using_version = API_V1_1
 
-logpath = './log'
-log = setup_logger(logpath, 'rex_logger', 'rex')
 
 
 def encrypt(api_key, api_secret, export=True, export_fn='secrets.json'):
@@ -91,6 +89,9 @@ class Bittrex(object):
     """
 
     def __init__(self, api_key, api_secret, calls_per_second=1, dispatch=using_requests, api_version=using_version):
+        logpath = './log'
+        self.log = setup_logger(logpath, 'rex_logger', 'rex')
+
         #api_version=API_V1_1):
         self.api_key = str(api_key) if api_key is not None else ''
         self.api_secret = str(api_secret) if api_secret is not None else ''
@@ -395,12 +396,12 @@ class Bittrex(object):
         :return:
         :rtype : dict
         """
-        log.info("cancel " + str(uuid))
+        self.log.info("cancel " + str(uuid))
         r = self._api_query(path_dict={
             API_V1_1: '/market/cancel',
             API_V2_0: '/key/market/tradecancel'
         }, options={'uuid': uuid, 'orderid': uuid}, protection=PROTECTION_PRV)
-        log.info("result " + str(r))
+        self.log.info("result " + str(r))
         return r
 
     def get_open_orders(self, market=None):

@@ -7,11 +7,9 @@ import archon.config as config
 
 from datetime import datetime
 
-apikeys = config.parse_toml("apikeys.toml")
+abroker = broker.Broker(setAuto=False)
+abroker.set_keys_exchange_file(exchanges=[exc.DERIBIT])
 
-k = apikeys["DERIBIT"]["public_key"]
-s = apikeys["DERIBIT"]["secret"]
-w = DeribitWrapper(key=k,secret=s)
 
 def instr():
     instr = w.getinstruments()
@@ -26,7 +24,4 @@ if __name__=='__main__':
     instr()
 
 """
-BTC-PERPETUAL
-BTC-28JUN19
-BTC-29MAR19
 """    

@@ -16,13 +16,14 @@ import requests
 from requests.compat import quote_plus
 from archon.util import *
 
-logpath = './log'
-log = setup_logger(logpath, 'cryptocopia_logger', 'cryptocopia')
 
 class CryptopiaAPI(object):
     """ Represents a wrapper for cryptopia API """
 
     def __init__(self, key, secret):
+        logpath = './log'
+        self.log = setup_logger(logpath, 'cryptocopia_logger', 'cryptocopia')
+
         self.key = key
         self.secret = secret
         self.public = ['GetCurrencies', 'GetTradePairs', 'GetMarkets',
@@ -41,15 +42,15 @@ class CryptopiaAPI(object):
             result, error = self.api_query_request(feature_requested, get_parameters, post_parameters)
             #print ("got result " + str(result))
             if error:
-                log.error("error ? " + str(error))
-                log.error(feature_requested)
+                self.log.error("error ? " + str(error))
+                self.log.error(feature_requested)
             #print (result)
             #print (error)
             if not error and result != None:
                 return result, error
             else:                
                 i+=1
-                log.error("request failed. retry")
+                self.log.error("request failed. retry")
                 if i > retires:
                     if result == None:
                         return None, "none returned"

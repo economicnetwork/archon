@@ -25,6 +25,8 @@ candle_5m = '5m'
 candle_1h = '1h'
 candle_1d = '1d'
 
+instrument_btc_perp = "XBTUSD"
+
 class BitMEX(object):
 
     """BitMEX REST API"""
@@ -56,7 +58,7 @@ class BitMEX(object):
     def ticker_data(self, symbol):
         """Get ticker data."""
         data = self.get_instrument(symbol)
-        #print (data)
+        #print (data.keys())
 
         ticker = {
             # Rounding to tickLog covers up float error
