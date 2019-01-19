@@ -6,8 +6,8 @@ import json
 import urllib
 import math
 from archon.custom_logger import archon_setup_logger
-from archon.ws.api_util import generate_nonce, generate_signature
-from archon.ws.bitmex.bitmex_topics import *
+from archon.exchange.ws.bitmex.api_util import generate_nonce, generate_signature
+from archon.exchange.ws.bitmex.bitmex_topics import *
 #from loguru import logger
 import pdb
 import logging
@@ -104,7 +104,7 @@ class BitMEXWebsocket:
 
         # Connected. Wait for partials
 
-        #self.subscribe_topic(TOPIC_orderBook10)
+        self.subscribe_topic(TOPIC_orderBook10)
         
         self.logger.info('Wait for initial data')
 
@@ -358,6 +358,7 @@ class BitMEXWebsocket:
     def __on_message(self, message):
         '''Handler for parsing WS messages.'''
         message = json.loads(message)
+        print ("got ",message)
         
         msg = json.dumps(message)
         self.logger.debug(msg)

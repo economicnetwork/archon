@@ -12,6 +12,7 @@ import archon.orderbooks as orderbooks
 from archon.feeds import cryptocompare
 from archon.util import *
 import archon.exchange.bitmex.fields as bitmexfields
+from archon.exchange.ws.bitmex.bitmex_ws import BitMEXWebsocket
 
 standard_apikeys_file = "apikeys.toml"
 
@@ -43,7 +44,7 @@ class Broker:
             all_conf = parse_toml("conf.toml")
         except:
             logger.error("no conf.toml file")
-            
+                
         try:
             mongo_conf = all_conf["MONGO"]
             uri = mongo_conf["uri"]  
@@ -128,6 +129,16 @@ class Broker:
     def get_by_id(self, oid):
         x = list(filter(lambda x: x['oid'] == oid, self.openorders))
         return x[0]
+
+    # --- WS specific ---
+
+    def init_bitmex_ws(self):  
+        apikeys = parse_toml(standard_apikeys_file)  
+        k,s = apikeys["BITMEX"]["public_key"],apikeys["BITMEX"]["secret"]
+        symbol = "XBTUSD"
+        #only xbt for now
+        self.bitmexws = BitMEXWebsocket(symbol=symbol, api_key=k, api_secret=s)
+        
 
     # --- bitmex specfic ---
      

@@ -1,5 +1,4 @@
-from archon.ws.bitmex.bitmex_ws import BitMEXWebsocket
-from archon.wsbroker import WSBroker
+from archon.exchange.ws.bitmex.bitmex_ws import BitMEXWebsocket
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -9,10 +8,14 @@ import json
 import toml
 import time
 from loguru import logger
-
+import archon.broker as broker
+import archon.exchange.exchanges as exc
 
 sleeping = 1
 
+abroker = broker.Broker()
+abroker.set_active_exchanges([exc.BITMEX])
+abroker.init_bitmex_ws()
 
 def print_orderbook(ob):
     print ('*** orderbook ***')
@@ -36,15 +39,16 @@ def print_orderbook(ob):
 
 def run():
 
-    wsbroker = WSBroker()
+    
     #logger.info("Instrument data: %s" % ws.get_instrument())
     logger.info("\n\n\n\n************\n\n\n")
     time.sleep(1)
-    while(wsbroker.bitmexws.ws.sock.connected):
+    while(abroker.bitmexws.ws.sock.connected):
+        print (".")
         #logger.info("Ticker: %s" % ws.get_ticker())
 
-        ob = wsbroker.bitmexws.market_depth()
-        print_orderbook(ob)
+        #ob = wsbroker.bitmexws.market_depth()
+        #print_orderbook(ob)
 
         #margindata = bws.data['margin'][0]
         #print ("data ",margindata) #['walletBalance'])
@@ -52,7 +56,7 @@ def run():
         #positiondata = bws.data['position']
         #print (positiondata)
             
-        time.sleep(10)
+        time.sleep(2.0)
 
         
 
