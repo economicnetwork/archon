@@ -6,6 +6,5 @@ build/
 archon/.vscode/
 dist/
 .vscode
-kraken.key
 *.sh
 *.pyc

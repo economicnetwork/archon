@@ -228,3 +228,40 @@ class KrakenAPI(object):
         #logger.debug("result %s"%str(response))
         r = list(response['result'].values())[0]
         return r
+
+    def get_trades(self, market):
+        response = self.query_public('Trades', {'pair': market, 'count': '100'})
+        print (response)
+        #logger.debug("result %s"%str(response))
+        r = list(response['result'].values())[0]
+        return r
+
+        
+
+
+"""
+#TODO
+private
+res = self.api.query_private('CancelOrder', data=data)
+res = self.api.query_private('Balance', data=data)
+res = self.api.query_private('TradeBalance', data=data)
+res = self.api.query_private('OpenOrders', data=data)
+res = self.api.query_private('ClosedOrders', data=data)
+res = self.api.query_private('QueryOrders', data=data)
+res = self.api.query_private('TradesHistory', data=data)
+res = self.api.query_private('QueryTrades', data=data)
+res = self.api.query_private('Ledgers', data=data)
+res = self.api.query_private('OpenPositions', data=data)
+res = self.api.query_private('QueryLedgers', data=data)
+res = self.api.query_private('TradeVolume', data=data)
+res = self.api.query_private('AddOrder', data=data)
+
+public
+res = self.api.query_public('Time')
+res = self.api.query_public('Assets', data=data)
+res = self.api.query_public('AssetPairs', data=data)
+res = self.api.query_public('Ticker', data=data)
+res = self.api.query_public('OHLC', data=data)
+res = self.api.query_public('Depth', data=data)
+res = self.api.query_public('Spread', data=data)
+"""        
