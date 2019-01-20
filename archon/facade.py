@@ -18,9 +18,8 @@ import archon.exchange.hitbtc as hitbtc
 import archon.exchange.binance as binance
 from archon.exchange.bitmex import bitmex
 from archon.exchange.deribit.Wrapper import DeribitWrapper
+from archon.exchange.kraken import KrakenAPI
 
-#Wrappers with foreign package
-import krakenex
 
 import time
 import sys
@@ -80,7 +79,7 @@ class Facade:
         elif exchange==exc.BINANCE:
             clients[exchange] = binance.Client(key,secret)
         elif exchange==exc.KRAKEN:        
-            clients[exchange] = krakenex.API(key,secret)
+            clients[exchange] = KrakenAPI(key,secret)
         elif exchange==exc.BITMEX:
             clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
         elif exchange==exc.DERIBIT:
@@ -177,8 +176,7 @@ class Facade:
                 logger.error("error fetching orderbook",exchange)
 
         elif exchange==exc.KRAKEN:
-            response = client.query_public('Depth', {'pair': market, 'count': '100'})
-            r = list(response['result'].values())[0]
+            r = client.get_orderbook(market)
             book = models.conv_orderbook(r, exchange)
             return book
 

@@ -91,3 +91,4 @@ class SyncThread(object):
             market = models.market_from("XBT","USD")
             self.broker.sync_orderbook(market, exc.BITMEX)        
         """
+

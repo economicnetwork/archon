@@ -13,7 +13,6 @@ import datetime
 import math
 
 abroker = broker.Broker(setAuto=False)
-#TOOD other exchanges
 abroker.set_keys_exchange_file(exchanges=[exc.KRAKEN])
 
 def display_book(book,name):
