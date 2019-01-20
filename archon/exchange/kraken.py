@@ -90,21 +90,6 @@ class KrakenAPI(object):
         self.session.close()
         return
 
-    def load_key(self, path):
-        """ Load key and secret from file.
-
-        Expected file format is key and secret on separate lines.
-
-        :param path: path to keyfile
-        :type path: str
-        :returns: None
-
-        """
-        with open(path, 'r') as f:
-            self.key = f.readline().strip()
-            self.secret = f.readline().strip()
-        return
-
     def _query(self, urlpath, data, headers=None, timeout=None):
         """ Low-level query handling.
 
@@ -236,6 +221,11 @@ class KrakenAPI(object):
         r = list(response['result'].values())[0]
         return r
 
+    def get_balance(self):
+        response = self.query_private('Balance') #, data=data)
+        r = response['result']
+        return r
+
         
 
 
@@ -262,6 +252,5 @@ res = self.api.query_public('Assets', data=data)
 res = self.api.query_public('AssetPairs', data=data)
 res = self.api.query_public('Ticker', data=data)
 res = self.api.query_public('OHLC', data=data)
-res = self.api.query_public('Depth', data=data)
 res = self.api.query_public('Spread', data=data)
 """        
