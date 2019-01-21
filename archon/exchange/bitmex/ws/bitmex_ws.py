@@ -56,25 +56,10 @@ class BitMEXWebsocket:
         #assume one symbol for now
         self.orderbook = {}
         self.msg_count = 0
+        self.last_msg = datetime.now()
 
         #define topics to subscribe to
-
-        """
-        Orderbook topics
         
-        orderBook10 pushes the top 10 levels on every tick, but transmits much more data. 
-        orderBookL2 pushes the full L2 order book, but the payload can get very large.
-        In the future, orderBook10 may be throttled, so use orderBookL2_25 in any latency-sensitive application. 
-        For those curious, the id on an orderBookL2_25 or orderBookL2 entry is a composite of price and symbol, 
-        and is always unique for any given price level. It should be used to apply update and delete actions.
-        
-        "orderBook10",         // Top 10 levels using traditional full book push
-        "orderBookL2_25",      // Top 25 levels of level 2 order book
-        "orderBookL2",         // Full level 2 order book                
-
-        sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
-        """
-
         #self.symbolSubs = [TOPIC_execution, TOPIC_instrument, TOPIC_order, TOPIC_orderBook10, TOPIC_position, TOPIC_quote, TOPIC_trade]
         #account_sub_topics = {TOPIC_margin, TOPIC_position, TOPIC_order, TOPIC_orderBook10}
         #symbol_topics = {TOPIC_instrument, TOPIC_trade, TOPIC_quote}
@@ -421,14 +406,20 @@ class BitMEXWebsocket:
     def __on_message(self, message):
         '''Handler for parsing WS messages.'''
         message = json.loads(message)
-        print ("got msg: %i %s"%(self.msg_count, str(message)))
+        #   print ("got msg: %i %s"%(self.msg_count, str(message)))
         self.msg_count += 1
-        dt = datetime.now()
-        print (dt)
+        """
+        since_last = datetime.now() - self.last_msg
+        if self.msg_count%100==0:
+            ssec = since_last
+            print (ssec)
+            msg_rate = 100/ssec
+            print (self.msg_count, ssec, msg_rate)
+        """
+        #print (self.msg_count)
+        self.last_msg = datetime.now()
         self.handle_message(message)
-
         
-
     def __on_error(self, error):
         '''Called on fatal websocket errors. We exit on these.'''
         if not self.exited:

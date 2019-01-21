@@ -57,6 +57,11 @@ class Broker:
 
         self.starttime = datetime.datetime.utcnow()
 
+        for key in logging.Logger.manager.loggerDict:
+            print("log key ",key)
+            logging.getLogger(key).setLevel(logging.WARNING)
+
+
         #workaround for urllib logger verbosity
         logging.getLogger("urllib3").setLevel(logging.WARNING)
         logging.getLogger("requests").setLevel(logging.WARNING)

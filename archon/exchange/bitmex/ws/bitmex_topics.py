@@ -32,3 +32,19 @@ TOPIC_position = "position"    # Updates on your positions
 TOPIC_privateNotifications = "privateNotifications" # Individual notifications - currently not used
 TOPIC_transact = "transact"     # Deposit/Withdrawal updates
 TOPIC_wallet = "wallet"       # Bitcoin address balance data including total deposits & withdrawals
+
+"""
+Orderbook topics
+
+orderBook10 pushes the top 10 levels on every tick, but transmits much more data. 
+orderBookL2 pushes the full L2 order book, but the payload can get very large.
+In the future, orderBook10 may be throttled, so use orderBookL2_25 in any latency-sensitive application. 
+For those curious, the id on an orderBookL2_25 or orderBookL2 entry is a composite of price and symbol, 
+and is always unique for any given price level. It should be used to apply update and delete actions.
+
+"orderBook10",         // Top 10 levels using traditional full book push
+"orderBookL2_25",      // Top 25 levels of level 2 order book
+"orderBookL2",         // Full level 2 order book                
+
+sub to orderBookL2 for all levels, or orderBook10 for top 10 levels & save bandwidth
+"""
