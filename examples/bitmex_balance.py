@@ -29,6 +29,7 @@ def show_desc(pos):
 def show():
     #show_desc()
     pos = client.position()
+    print ("pos ",pos)
     if pos: 
         pos = pos[0]
         unrelasedpnl = pos['unrealisedPnl']
