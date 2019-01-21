@@ -17,7 +17,7 @@ import sys
 table_orderbook = 'orderBook10'
 table_instrument = 'instrument'
 
-import logging
+from datetime import datetime
 
 endpoint_V1 = "https://www.bitmex.com/api/v1"
 
@@ -55,6 +55,7 @@ class BitMEXWebsocket:
 
         #assume one symbol for now
         self.orderbook = {}
+        self.msg_count = 0
 
         #define topics to subscribe to
 
@@ -122,7 +123,7 @@ class BitMEXWebsocket:
         
         self.logger.info('Got all market data. Starting.')
 
-        self.msg_count = 0
+        
 
     def exit(self):
         '''Call this to exit - will close websocket.'''
