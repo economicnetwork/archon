@@ -6,8 +6,8 @@ import json
 import urllib
 import math
 from archon.custom_logger import archon_setup_logger
-from archon.exchange.bitmex.ws.bitmex.api_util import generate_nonce, generate_signature
-from archon.exchange.bitmex.ws.bitmex.bitmex_topics import *
+from archon.exchange.bitmex.ws.api_util import generate_nonce, generate_signature
+from archon.exchange.bitmex.ws.bitmex_topics import *
 #from loguru import logger
 import pdb
 import logging
@@ -84,7 +84,8 @@ class BitMEXWebsocket:
         #3 handle update (could e.g. ignore updates)        
 
         #self.symbolSubs = [TOPIC_orderBookL2_25]
-        self.symbolSubs = [TOPIC_instrument, TOPIC_orderBook10, TOPIC_quote, TOPIC_trade]
+        #self.symbolSubs = [TOPIC_instrument, TOPIC_orderBook10, TOPIC_quote, TOPIC_trade]
+        self.symbolSubs = [TOPIC_instrument, TOPIC_orderBookL2_25, TOPIC_quote, TOPIC_trade]
         self.genericSubs = [TOPIC_margin]
 
         symbol_subscriptions = [sub + ':' + self.symbol for sub in self.symbolSubs]
@@ -120,6 +121,8 @@ class BitMEXWebsocket:
         self.got_init_data = True
         
         self.logger.info('Got all market data. Starting.')
+
+        self.msg_count = 0
 
     def exit(self):
         '''Call this to exit - will close websocket.'''
@@ -327,8 +330,6 @@ class BitMEXWebsocket:
         self.orderbook["bids"] = bids
         self.orderbook["asks"] = asks
 
-
-
     def handle_update(self, table, message):
         #self.logger.debug('%s: updating %s' % (table, message['data']))
         # Locate the item in the collection and update it.
@@ -355,11 +356,7 @@ class BitMEXWebsocket:
             item = findItemByKeys(self.keys[table], self.data[table], deleteData)
             self.data[table].remove(item)
 
-    def __on_message(self, message):
-        '''Handler for parsing WS messages.'''
-        message = json.loads(message)
-        print ("got ",message)
-        
+    def handle_message(self, message):
         msg = json.dumps(message)
         self.logger.debug(msg)
         #pdb.set_trace()
@@ -419,6 +416,15 @@ class BitMEXWebsocket:
         self.msg_processed +=1
         if self.msg_processed%10==0:
             self.logger.debug("self.msg_processed %i "%self.msg_processed)
+
+    def __on_message(self, message):
+        '''Handler for parsing WS messages.'''
+        message = json.loads(message)
+        print ("got msg: %i %s"%(self.msg_count, str(message)))
+        self.msg_count += 1
+        dt = datetime.now()
+        print (dt)
+        self.handle_message(message)
 
         
 
