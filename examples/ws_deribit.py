@@ -1,4 +1,4 @@
-from archon.ws.deribit.Wrapper import DeribitWrapper
+from archon.deribit.ws.Wrapper import DeribitWrapper
 import archon.config as config
 
 from archon.ws.broker import WSBroker

@@ -6,8 +6,8 @@ import json
 import urllib
 import math
 from archon.custom_logger import archon_setup_logger
-from archon.exchange.ws.bitmex.api_util import generate_nonce, generate_signature
-from archon.exchange.ws.bitmex.bitmex_topics import *
+from archon.exchange.bitmex.ws.bitmex.api_util import generate_nonce, generate_signature
+from archon.exchange.bitmex.ws.bitmex.bitmex_topics import *
 #from loguru import logger
 import pdb
 import logging

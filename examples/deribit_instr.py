@@ -2,7 +2,7 @@
 find options of deribit
 """
 
-from archon.ws.deribit.Wrapper import DeribitWrapper
+from archon.exchange.deribit.Wrapper import DeribitWrapper
 import archon.config as config
 
 from datetime import datetime

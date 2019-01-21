@@ -12,7 +12,7 @@ import archon.orderbooks as orderbooks
 from archon.feeds import cryptocompare
 from archon.util import *
 import archon.exchange.bitmex.fields as bitmexfields
-from archon.exchange.ws.bitmex.bitmex_ws import BitMEXWebsocket
+from archon.exchange.bitmex.ws.bitmex_ws import BitMEXWebsocket
 
 standard_apikeys_file = "apikeys.toml"
 

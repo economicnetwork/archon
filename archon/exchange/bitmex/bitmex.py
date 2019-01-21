@@ -73,6 +73,14 @@ class BitMEX(object):
         #print (rounded["sell"])
         return ticker
 
+
+    def get_instruments(self, symbol):
+        """Get all instrument's details."""
+        path = "instrument"
+        instruments = self._query_bitmex(path=path, query={})
+        print (instruments)
+
+
     def get_instrument(self, symbol):
         """Get an instrument's details."""
         path = "instrument"

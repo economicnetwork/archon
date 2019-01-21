@@ -1,4 +1,4 @@
-from archon.exchange.ws.bitmex.bitmex_ws import BitMEXWebsocket
+from archon.exchange.bitmex.ws.bitmex_ws import BitMEXWebsocket
 
 import logging
 from logging.handlers import RotatingFileHandler

@@ -216,13 +216,11 @@ class KrakenAPI(object):
 
     def get_trades(self, market):
         response = self.query_public('Trades', {'pair': market, 'count': '100'})
-        print (response)
-        #logger.debug("result %s"%str(response))
         r = list(response['result'].values())[0]
         return r
 
     def get_balance(self):
-        response = self.query_private('Balance') #, data=data)
+        response = self.query_private('Balance')
         r = response['result']
         return r
 
@@ -233,7 +231,6 @@ class KrakenAPI(object):
 #TODO
 private
 res = self.api.query_private('CancelOrder', data=data)
-res = self.api.query_private('Balance', data=data)
 res = self.api.query_private('TradeBalance', data=data)
 res = self.api.query_private('OpenOrders', data=data)
 res = self.api.query_private('ClosedOrders', data=data)

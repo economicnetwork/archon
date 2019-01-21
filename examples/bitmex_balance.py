@@ -28,18 +28,19 @@ def show_desc(pos):
 
 def show():
     #show_desc()
-    pos = client.position()[0]
-
-    unrelasedpnl = pos['unrealisedPnl']
-    avgentry = pos['avgEntryPrice']
-    #realisedpnl = pos['realisedPnl']
-    #markprice = pos['markPrice']
-    curQty = pos['currentQty']
-    print ("unrelasedpnl, avgentry,markprice")
-    print (unrelasedpnl, avgentry,curQty)
-    #print (pos)
-    
-    show_desc(pos)
+    pos = client.position()
+    if pos: 
+        pos = pos[0]
+        unrelasedpnl = pos['unrealisedPnl']
+        avgentry = pos['avgEntryPrice']
+        #realisedpnl = pos['realisedPnl']
+        #markprice = pos['markPrice']
+        curQty = pos['currentQty']
+        print ("unrelasedpnl, avgentry,markprice")
+        print (unrelasedpnl, avgentry,curQty)
+        #print (pos)
+        
+        show_desc(pos)
     
 
 

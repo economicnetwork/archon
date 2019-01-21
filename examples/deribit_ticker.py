@@ -2,7 +2,7 @@
 find options of deribit
 """
 
-from archon.ws.deribit.Wrapper import DeribitWrapper
+from archon.exchange.deribit.Wrapper import DeribitWrapper
 import archon.config as config
 
 from datetime import datetime
@@ -18,7 +18,7 @@ if __name__=='__main__':
     summary = w.getsummary(s)
     #'bidPrice': 3655.0, 'askPrice': 3655.5,
     bid,ask = summary['bidPrice'],summary['askPrice']
-    print ("??? ",bid,ask)
+    print ("ticker: ",bid,ask)
 
 """
 BTC-PERPETUAL

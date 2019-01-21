@@ -1,6 +1,6 @@
 import time, hashlib, base64, sys
 from collections import OrderedDict
-from archon.exchange.ws.deribit.deribit_ws import DeribitWebsocket
+from archon.exchange.deribit.ws.deribit_ws import DeribitWebsocket
 import logging
 
 import requests
