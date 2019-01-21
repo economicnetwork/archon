@@ -58,7 +58,7 @@ def cancel_all():
 
 if __name__=='__main__':
     #submit_buy()
-    buysell = input('buy or sell')
+    buysell = input('buy or cancel')
     print (buysell)
     if buysell == 'buy':
         submit_buy()
