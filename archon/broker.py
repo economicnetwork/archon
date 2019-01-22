@@ -58,7 +58,7 @@ class Broker:
         self.starttime = datetime.datetime.utcnow()
 
         for key in logging.Logger.manager.loggerDict:
-            print("log key ",key)
+            #print("log key ",key)
             logging.getLogger(key).setLevel(logging.WARNING)
 
 
