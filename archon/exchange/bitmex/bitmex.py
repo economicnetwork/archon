@@ -17,6 +17,7 @@ from archon.custom_logger import setup_logger
 import datetime
 from datetime import timedelta
 import logging
+import time
 
 API_BASE = 'https://www.bitmex.com/api/v1/'
 # https://www.bitmex.com/api/explorer/
@@ -87,13 +88,13 @@ class BitMEX(object):
         path = "instrument"
         instruments = self._query_bitmex(path=path, query={'filter': json.dumps({'symbol': symbol})})
         if len(instruments) == 0:
-            logger.error("Instrument not found: %s." % self.symbol)
-            #logger.error
+            self.logger.error("Instrument not found: %s." % self.symbol)
+            #self.logger.error
 
         instrument = instruments[0]
         if instrument["state"] != "Open":
-            logger.error("The instrument %s is no longer open. State: %s" % (self.symbol, instrument["state"]))
-            #logger.error
+            self.logger.error("The instrument %s is no longer open. State: %s" % (self.symbol, instrument["state"]))
+            #self.logger.error
 
         # tickLog is the log10 of tickSize
         instrument['tickLog'] = int(math.fabs(math.log10(instrument['tickSize'])))
@@ -127,7 +128,7 @@ class BitMEX(object):
             #'start': 0,
             #'filter': 
         }
-        logger.debug("query ",query)
+        self.logger.debug("query ",query)
         result = self._query_bitmex(path=path,query=query)
         return result
 
@@ -146,7 +147,7 @@ class BitMEX(object):
         if endTime:
             query['endTime'] = endTime
 
-        logger.debug("query ",query)
+        self.logger.debug("query ",query)
         result = self._query_bitmex(path=path,query=query)
         return result
 
@@ -225,7 +226,7 @@ class BitMEX(object):
             #'start': 0,
             #'filter': 
         }
-        logger.debug("query %s"%str(query))
+        self.logger.debug("query %s"%str(query))
         result = self._query_bitmex(path=path,query=query)
         return result
 
@@ -287,7 +288,7 @@ class BitMEX(object):
             'price': price,
             'clOrdID': clOrdID
         }
-        logger.debug("place order. post dict %s"%str(postdict))
+        self.logger.debug("place order. post dict %s"%str(postdict))
         return self._query_bitmex(path=endpoint, postdict=postdict, verb="POST")
 
     @authentication_required
@@ -308,7 +309,7 @@ class BitMEX(object):
             'clOrdID': clOrdID,
             'execInst': 'ParticipateDoNotInitiate'
         }
-        logger.debug("place order. post dict %s"%str(postdict))
+        self.logger.debug("place order. post dict %s"%str(postdict))
         return self._query_bitmex(path=endpoint, postdict=postdict, verb="POST")        
 
     @authentication_required
@@ -367,12 +368,12 @@ class BitMEX(object):
             # 401 - Auth error. Re-auth and re-run this request.
             if response.status_code == 401:
                 if self.token is None:
-                    logger.error("Login information or API Key incorrect, please check and restart.")
-                    logger.error("Error: " + response.text)
+                    self.logger.error("Login information or API Key incorrect, please check and restart.")
+                    self.logger.error("Error: " + response.text)
                     if postdict:
-                        logger.error(postdict)
-                    #logger.error
-                logger.error("Token expired, reauthenticating...")
+                        self.logger.error(postdict)
+                    #self.logger.error
+                self.logger.error("Token expired, reauthenticating...")
                 sleep(1)
                 self.authenticate()
                 return self._query_bitmex(path, query, postdict, timeout, verb)
@@ -380,29 +381,30 @@ class BitMEX(object):
             # 404, can be thrown if order canceled does not exist.
             elif response.status_code == 404:
                 if verb == 'DELETE':
-                    logger.error("Order not found: %s" % postdict['orderID'])
+                    self.logger.error("Order not found: %s" % postdict['orderID'])
                     return
-                logger.error("Unable to contact the BitMEX API (404). Request: %s \n %s" % (url, json.dumps(postdict)))
+                self.logger.error("Unable to contact the BitMEX API (404). Request: %s \n %s" % (url, json.dumps(postdict)))
                 raise Exception("bitmex connection")
 
             # 503 - BitMEX temporary downtime, likely due to a deploy. Try again
             elif response.status_code == 503:
-                logger.error("Unable to contact the BitMEX API (503), retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
+                self.logger.error("Unable to contact the BitMEX API (503), retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
                 sleep(1)
                 return self._query_bitmex(path, query, postdict, timeout, verb)
             # Unknown Error
             else:
-                logger.error("Unhandled Error: %s %s"%(str(e), str(response.text)))
-                logger.error("Endpoint was: %s %s" % (verb, path))
+                self.logger.error("Unhandled Error: %s %s"%(str(e), str(response.text)))
+                self.logger.error("Endpoint was: %s %s" % (verb, path))
                 raise Exception("bitmex connection")
 
         except requests.exceptions.Timeout as e:
             # Timeout, re-run this request
-            logger.error("Timed out, retrying...")
+            self.logger.error("Timed out, retrying...")
+            time.sleep(0.5)
             return self._query_bitmex(path, query, postdict, timeout, verb)
 
         except requests.exceptions.ConnectionError as e:
-            logger.error("Unable to contact the BitMEX API (ConnectionError). Please check the URL. Retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
+            self.logger.error("Unable to contact the BitMEX API (ConnectionError). Please check the URL. Retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
             sleep(1)
             return self._query_bitmex(path, query, postdict, timeout, verb)
 

@@ -32,8 +32,6 @@ import logging
 from archon.orders import *
 
 
-clients = {}
-
 rex_API_v2= "rex_API_v2"
 
 
@@ -53,7 +51,6 @@ TIMEFRAME_1MINUTE = "1min"
 class Facade:
 
     def __init__(self):
-        #log = logging.getLogger("broker."+__name__)
         setup_logger(logger_name=__name__, log_file='broker.log')
         self.logger = logging.getLogger(__name__)
 
@@ -63,28 +60,31 @@ class Facade:
         #facade tracks list of orders and their status
         self.orders = list()
 
+        self.clients = {}
+
 
     def set_api_keys(self, exchange, key, secret):
         """ set clients, assumes conf file present """
         self.logger.info("set api " + str(exchange))
         if exchange==exc.CRYPTOPIA:
-            clients[exchange] = CryptopiaAPI(key, secret)
+            self.clients[exchange] = CryptopiaAPI(key, secret)
         elif exchange==exc.BITTREX:
-            clients[exchange] = bittrex.Bittrex(key,secret)
+            self.clients[exchange] = bittrex.Bittrex(key,secret)
             #maintain version for candles
-            clients[rex_API_v2] = bittrex.Bittrex(key,secret,api_version=bittrex.API_V2_0)  
+            self.clients[rex_API_v2] = bittrex.Bittrex(key,secret,api_version=bittrex.API_V2_0)  
         elif exchange==exc.KUCOIN:
-            clients[exchange] = KuClient(key,secret)   
+            self.clients[exchange] = KuClient(key,secret)   
         elif exchange==exc.HITBTC:
-            clients[exchange] = hitbtc.RestClient(key,secret)   
+            self.clients[exchange] = hitbtc.RestClient(key,secret)   
         elif exchange==exc.BINANCE:
-            clients[exchange] = binance.Client(key,secret)
+            self.clients[exchange] = binance.Client(key,secret)
         elif exchange==exc.KRAKEN:        
-            clients[exchange] = KrakenAPI(key,secret)
+            self.clients[exchange] = KrakenAPI(key,secret)
         elif exchange==exc.BITMEX:
-            clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
+            self.clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
         elif exchange==exc.DERIBIT:
-            clients[exchange] = DeribitWrapper(key=key,secret=secret)
+            self.clients[exchange] = DeribitWrapper(key=key,secret=secret)
+            print ("set deri",self.clients[exchange])
 
 
     def set_mail_config(self, apikey, domain, email_from, email_to):
@@ -96,7 +96,7 @@ class Facade:
 
     def get_client(self, EXC):
         """ directly get a client """
-        return clients[EXC]
+        return self.clients[EXC]
 
 
     # --- public info ---
@@ -112,14 +112,14 @@ class Facade:
 
     def market_history(self, market, exchange=None):
 
-        client = clients[exchange]
+        client = self.clients[exchange]
         if exchange==exc.CRYPTOPIA:
-            txs, _ = clients[exc.CRYPTOPIA].get_history(market)
+            txs, _ = client.get_history(market)
             f = lambda x: models.conv_tx(x, exchange, market)
             txs = list(map(f,txs))
             return txs
         elif exchange==exc.BITTREX:
-            r = clients[exc.BITTREX].get_market_history(market)
+            r = client.get_market_history(market)
             txs = r["result"]
             f = lambda x: models.conv_tx(x, exchange, market)
             txs = list(map(f,txs))
@@ -142,7 +142,7 @@ class Facade:
 
 
     def get_orderbook(self, market, exchange=None):
-        client = clients[exchange]
+        client = self.clients[exchange]
         self.logger.debug("get orderbook %s %i" %(str(market),exchange))
         #market = models.conv_markets_to(market, exchange)
 
@@ -204,7 +204,7 @@ class Facade:
 
     def get_market_summary(self, market, exchange):        
 
-        client = clients[exchange] 
+        client = self.clients[exchange] 
         market = models.conv_markets_to(market, exchange)       
         if exchange==exc.CRYPTOPIA:
             r, err = client.get_market(market)
@@ -229,7 +229,7 @@ class Facade:
 
     def get_market_summaries(self, exchange=None):
 
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
             r = client.get_markets()
@@ -273,7 +273,7 @@ class Facade:
 
     def get_market_summaries_only(self, exchange=None):
 
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
             r = client.get_markets()[0]
@@ -291,7 +291,7 @@ class Facade:
             return rex_markets
 
     def get_assets(self, exchange):
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange == exc.CRYPTOPIA:
             r,err = client.get_currencies()
@@ -307,7 +307,7 @@ class Facade:
 
     def market_id_map(self, exchange):
         #cryptocopia
-        client = clients[exchange]
+        client = self.clients[exchange]
         m = client.get_markets()
         d = {}
         for z in m:
@@ -318,7 +318,7 @@ class Facade:
         return d
 
     def get_candles_daily(self, market, exchange):
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange == exc.CRYPTOPIA:
             d = self.market_id_map(exchange)
@@ -329,7 +329,7 @@ class Facade:
         elif exchange==exc.BITTREX: 
             market = models.conv_markets_to(market, exchange)  
             #hack second client for candles
-            r = clients[rex_API_v2].get_candles(market,"day")
+            r = self.clients[rex_API_v2].get_candles(market,"day")
             r = r['result']
             candles = models.conv_candle(r, exchange)
             return candles
@@ -351,13 +351,13 @@ class Facade:
             return models.conv_candle(klines,exchange)
 
     def get_candles_hourly(self, market, exchange):
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange == exc.CRYPTOPIA:
             pass            
         elif exchange==exc.BITTREX:   
             market = models.conv_markets_to(market, exchange)
-            r = clients[rex_API_v2].get_candles(market,"hour")
+            r = self.clients[rex_API_v2].get_candles(market,"hour")
             r = r['result']
             candles = models.conv_candle(r, exchange)
             return candles
@@ -373,7 +373,7 @@ class Facade:
 
 
     def get_candles_minute(self, market, exchange):
-        client = clients[exchange]
+        client = self.clients[exchange]
         market = models.conv_markets_to(market, exchange)
         self.logger.debug("get_candles_minute %s %s"%(market, exchange))
 
@@ -381,7 +381,7 @@ class Facade:
             pass            
 
         elif exchange==exc.BITTREX:            
-            r = clients[rex_API_v2].get_candles(market,"oneMin")
+            r = self.clients[rex_API_v2].get_candles(market,"oneMin")
             r = r['result']
             candles = models.conv_candle(r, exchange)
             return candles
@@ -396,7 +396,7 @@ class Facade:
             return candles
 
     def get_candles_minute15(self, market, exchange):
-        client = clients[exchange]
+        client = self.clients[exchange]
         market = models.conv_markets_to(market, exchange)
         self.logger.debug("get_candles_minute15 %s %s"%(market, exchange))
 
@@ -432,7 +432,7 @@ class Facade:
     def balance_all(self, exchange=None):
         self.logger.debug("get balance %i"%exchange)
 
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
             b, error = client.get_balance_all()        
@@ -480,13 +480,13 @@ class Facade:
         self.logger.info("balance_currency " + currency + " " + str(exchange))
 
         if exchange==exc.CRYPTOPIA:
-            currency, err = clients[exc.CRYPTOPIA].get_balance(currency)        
+            currency, err = self.clients[exc.CRYPTOPIA].get_balance(currency)        
             return currency['Total']
 
         elif exchange==exc.BITTREX:
             #{'Currency': 'BTC', 'Balance': 0.0, 'Available': 0.0, 'Pending': 0.0, 
             try:
-                return_arg = clients[exc.BITTREX].get_balance(currency)        
+                return_arg = self.clients[exc.BITTREX].get_balance(currency)        
                 result = return_arg['result']['Balance']
                 return result
             except:
@@ -495,7 +495,7 @@ class Facade:
     def get_total_balance(self, currency='USD',exchange=None):
         """Get total balance in your currency, USD by default"""
 
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
             allb = self.balance_all(exchange)
@@ -534,7 +534,7 @@ class Facade:
     def trade_history(self, market, exchange=None):
         """ personal trades """
 
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
             txs, _ = client.get_tradehistory(market)
@@ -565,7 +565,7 @@ class Facade:
             
     def get_tradehistory_all(self, exchange=None):
 
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
             txs, err = client.get_tradehistory_all()
@@ -614,15 +614,15 @@ class Facade:
         oo = None
         symbol = models.conv_markets_to(symbol, exchange)
         if exchange==exc.CRYPTOPIA:
-            oo, _ = clients[exc.CRYPTOPIA].get_openorders_all()    
+            oo, _ = self.clients[exc.CRYPTOPIA].get_openorders_all()    
 
         elif exchange==exc.BITTREX:
-            oo = clients[exc.BITTREX].get_open_orders()["result"]
+            oo = self.clients[exc.BITTREX].get_open_orders()["result"]
             f = lambda x: models.conv_openorder(x,exchange)
             oo = list(map(f,oo))  
 
         elif exchange==exc.KUCOIN:
-            oo = clients[exc.KUCOIN].get_active_orders(symbol, kv_format=True)
+            oo = self.clients[exc.KUCOIN].get_active_orders(symbol, kv_format=True)
             if len(oo) > 0:
                 b = oo['BUY']
                 a = oo['SELL']
@@ -642,7 +642,7 @@ class Facade:
         #self.logger.info("get open orders " + str(exchange))
 
         oo = None
-        client = clients[exchange]
+        client = self.clients[exchange]
         if exchange==exc.CRYPTOPIA:
             oo, _ = client.get_openorders_all()    
             f = lambda x: models.conv_openorder(x,exchange)
@@ -670,7 +670,7 @@ class Facade:
             oo = list(map(f,oo))            
 
         elif exchange==exc.BINANCE:
-            oo = clients[exc.BINANCE].get_open_orders()            
+            oo = self.clients[exc.BINANCE].get_open_orders()            
             f = lambda x: models.conv_openorder(x,exchange)
             oo = list(map(f,oo))
 
@@ -681,7 +681,7 @@ class Facade:
                 oo = client.open_orders(symbol=symbol)
                 self.logger.debug("open orders %s"%str(oo))
             except Exception as e:
-                self.logger.error("error %s"%str(e))
+                self.logger.error("bitmex error %s"%str(e))
         n = exc.NAMES[exchange]
         #self.logger.info("open orders " + str(n) + " " + str(oo))
         return oo    
@@ -695,7 +695,7 @@ class Facade:
         self.logger.info("submit order " + str(exchange) + " " + str(order))
         market,ttype,order_price,qty = order        
         market = models.conv_markets_to(market, exchange)
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         orderD = {"market":market,"type":ttype,"price":order_price,"quantity":qty,"status": ORDERSTATUS_SUBMITTED}
 
@@ -704,7 +704,7 @@ class Facade:
         self.orders.append(orderD)
 
         if exchange==exc.CRYPTOPIA:                        
-            order_result, err = clients[exc.CRYPTOPIA].submit_trade(market, ttype, order_price, qty)
+            order_result, err = self.clients[exc.CRYPTOPIA].submit_trade(market, ttype, order_price, qty)
             if err:
                 self.logger.error("! error with order " + str(order) + " " + str(err))                
             else:
@@ -712,17 +712,17 @@ class Facade:
 
         elif exchange==exc.BITTREX:
             if ttype == ORDER_SIDE_BUY:
-                order_result = clients[exc.BITTREX].buy_limit(market, qty, order_price)                
+                order_result = self.clients[exc.BITTREX].buy_limit(market, qty, order_price)                
                 #TODO check status
                 order_success = True
             elif ttype == ORDER_SIDE_SELL:
-                order_result = clients[exc.BITTREX].sell_limit(market, qty, order_price)
+                order_result = self.clients[exc.BITTREX].sell_limit(market, qty, order_price)
                 #TODO check status
                 order_success = True
                 
 
         elif exchange==exc.KUCOIN:
-            c = clients[exc.KUCOIN]
+            c = self.clients[exc.KUCOIN]
             if ttype == ORDER_SIDE_BUY:
                 order_result = c.create_buy_order(market, order_price, qty)  
                 order_success = True              
@@ -810,7 +810,7 @@ class Facade:
         #self.logger.info("cancel " + str(order)) 
         self.logger.info("cancel " + str(oid) + " " + str(e) + " " + str(otype) + " " + str(market))
         
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange==exc.CRYPTOPIA:            
             result,err = client.cancel_trade_id(oid)
@@ -849,28 +849,28 @@ class Facade:
             
         self.logger.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype))
         result = None
-        client = clients[exchange]
+        client = self.clients[exchange]
         if exchange==exc.CRYPTOPIA:            
             result,err = client.cancel_trade_id(oid)
             self.canceled_orders +=1
             
         elif exchange==exc.BITTREX:
-            result = clients[exc.BITTREX].cancel(oid)
+            result = self.clients[exc.BITTREX].cancel(oid)
             self.canceled_orders +=1
             
         elif exchange==exc.KUCOIN:
             order_type = otype
             market = models.conv_markets_from(market, exchange)
             self.logger.info("cancel! " + str(oid) + " " + str(exchange) + " " + str(otype) + " " + str(market))            
-            result = clients[exc.KUCOIN].cancel_order(oid,order_type,market)
+            result = self.clients[exc.KUCOIN].cancel_order(oid,order_type,market)
             self.canceled_orders +=1
         
         elif exchange==exc.HITBTC:
-            result = clients[exchange].cancel_order(oid)
+            result = self.clients[exchange].cancel_order(oid)
             self.canceled_orders +=1
 
         elif exchange == exc.BINANCE:
-            result = clients[exchange].cancel_order(symbol=market,orderId=oid)
+            result = self.clients[exchange].cancel_order(symbol=market,orderId=oid)
             self.canceled_orders +=1
 
         elif exchange==exc.BITMEX:
@@ -884,7 +884,7 @@ class Facade:
 
     def get_deposits(self, exchange=None):
 
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
             deposit_txs, _ = client.get_transactions("Deposit")
@@ -896,7 +896,7 @@ class Facade:
 
     def get_funding(self, exchange=None):
 
-        client = clients[exchange]
+        client = self.clients[exchange]
 
         if exchange==exc.CRYPTOPIA:
             deposit_txs, _ = client.get_transactions("Deposit")

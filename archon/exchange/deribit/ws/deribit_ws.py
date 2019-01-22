@@ -7,13 +7,14 @@ import logging
 from archon.custom_logger import setup_logger
 
 class DeribitWebsocket():
+
     def __init__(self):
         self.client = RestClient('', '')
         self.table = {}
         #self.logger = logging.getLogger('root')
         self.__reset()
 
-        setup_logger(__name__, 'strategy.log')
+        setup_logger(__name__, 'DeribitWebsocket.log')
         self.logger = logging.getLogger(__name__)        
 
         # disable all loggers from different files
@@ -21,6 +22,10 @@ class DeribitWebsocket():
         logging.getLogger('asyncio.coroutines').setLevel(logging.ERROR)
         logging.getLogger('websockets.server').setLevel(logging.ERROR)
         logging.getLogger('websockets.protocol').setLevel(logging.ERROR)
+        logging.getLogger('websocket-client').setLevel(logging.ERROR)
+
+        requests_log = logging.getLogger("requests.packages.urllib3")
+        requests_log.setLevel(logging.WARNING)
 
     def on_message(self, ws, message):
         message = json.loads(message)
@@ -37,6 +42,8 @@ class DeribitWebsocket():
         return self.table[symbol]
 
     def on_open(self, ws):
+        self.logger.info("ws on_open")        
+        """
         data = {
             "id": 5533,
             "action": "/api/v1/private/subscribe",
@@ -48,6 +55,7 @@ class DeribitWebsocket():
         data['sig'] = self.client.generate_signature(data['action'], data['arguments'])
 
         ws.send(json.dumps(data))
+        """
 
     def connect(self):
         websocket.enableTrace(True)
@@ -61,7 +69,8 @@ class DeribitWebsocket():
         self.wst.daemon = True
         self.wst.start()
         self.logger.info("Started thread")
-        self.ws.on_open = self.on_open
+        #TOOD subscribe later
+        self.ws.on_open = self.on_open(self.ws)
         #self.ws.run_forever()
 
     def __reset(self):

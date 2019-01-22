@@ -15,9 +15,9 @@ a = broker.Broker()
 a.set_keys_exchange_file()
 client = a.afacade.get_client(exc.BINANCE)
 
-market = models.market_from("RVN","BTC")
+market = models.market_from("LTC","BTC")
 
-x = a.afacade.get_candles_hourly(market,exc.BINANCE)
+x = a.afacade.get_candles_minute(market,exc.BINANCE)
 
 for z in x[-10:]:
     ts = z[0]

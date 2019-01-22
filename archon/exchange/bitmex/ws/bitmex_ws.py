@@ -126,7 +126,6 @@ class BitMEXWebsocket:
     def get_instrument(self):
         '''Get the raw instrument data for this symbol.'''
         # Turn the 'tickSize' into 'tickLog' for use in rounding
-        print ("?? ",instrument)
         instrument = self.data['instrument'][0]
         #instrument['tickLog'] = int(math.fabs(math.log10(instrument['tickSize'])))
         return instrument

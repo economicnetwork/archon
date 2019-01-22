@@ -25,7 +25,7 @@ class Broker:
     def __init__(self,setAuto=True):
 
         setup_logger(logger_name="broker", log_file='broker.log')
-        self.logger = logging.getLogger("Strategy")
+        self.logger = logging.getLogger("broker")
         
         self.afacade = facade.Facade()
         #in memory data
@@ -55,14 +55,9 @@ class Broker:
 
         self.starttime = datetime.datetime.utcnow()
 
-        for key in logging.Logger.manager.loggerDict:
-            #print("log key ",key)
-            logging.getLogger(key).setLevel(logging.WARNING)
-
-
         #workaround for urllib logger verbosity
-        logging.getLogger("urllib3").setLevel(logging.WARNING)
-        logging.getLogger("requests").setLevel(logging.WARNING)
+        #logging.getLogger("urllib3").setLevel(logging.WARNING)
+        #logging.getLogger("requests").setLevel(logging.WARNING)
 
         
     def set_mongo(self, uri):        

@@ -1,11 +1,9 @@
 import logging
 import colorlog
 
-
 #format="%(asctime)s [%(threadName)-12.12s] [%(filename)-18s] [%(name)s] [%(levelname)-5.5s]  %(message)s",        
 
-def setup_logger(logger_name, log_file, level=logging.INFO):
-    #print ("setup ",logger_name)
+def setup_logger(logger_name, log_file, level=logging.DEBUG):
     l = logging.getLogger(logger_name)
 
     formatter = logging.Formatter('[%(name)s] %(asctime)s : %(message)s')
@@ -13,18 +11,19 @@ def setup_logger(logger_name, log_file, level=logging.INFO):
     fileHandler = logging.FileHandler("./log/" + log_file, mode='w')
     fileHandler.setFormatter(formatter)
 
-    #streamHandler = logging.StreamHandler()
-    #streamHandler.setFormatter(formatter)
-
     l.setLevel(level)
     l.addHandler(fileHandler)
-    #l.addHandler(streamHandler) 
 
     handler = colorlog.StreamHandler()
-    colorformat = colorlog.ColoredFormatter('%(log_color)s[%(name)s] %(levelname)s %(asctime)s - %(message)s')
+    colorformat = colorlog.ColoredFormatter('%(log_color)s[%(name)s] %(message)s - (%(asctime)s)')
     handler.setFormatter(colorformat)
 
-    #logger = colorlog.getLogger('example')
     l.addHandler(handler)
 
+
+def remove_loggers():
+    verbose_loggers = ["urllib3.util.retry", "urllib3.util", "urllib3", "urllib3.connection", "urllib3.response", "urllib3.connectionpool", "urllib3.poolmanager", "urllib3.contrib.pyopenssl", "urllib3.contrib", "socks", "requests", "websocket", "matplotlib", "matplotlib.ticker", "matplotlib.dates", "asyncio", "asyncio.coroutines", "websockets.server", "websockets", "websockets.protocol", "websocket-client", "requests.packages.urllib3", "requests.packages"]
+    ##for key in logging.Logger.manager.loggerDict:
+    for key in verbose_loggers:
+        logging.getLogger(key).setLevel(logging.WARNING)
 

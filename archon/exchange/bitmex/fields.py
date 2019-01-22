@@ -56,5 +56,5 @@ position_description = {
     "liquidationPrice" :  "Once markPrice reaches this price, this position will be liquidated",
     "bankruptPrice" :  "Once markPrice reaches this price, this position will have no equity",
 ####
-"prevUnrealisedPnl" : "??"
+"prevUnrealisedPnl" : "..."
 }

@@ -27,14 +27,17 @@ class DeribitWrapper(object):
         else:
             self.url = "https://www.deribit.com"
 
-    def _deri_request(self, action, data):
-        response = None
+        requests_log = logging.getLogger("requests.packages.urllib3")
+        requests_log.setLevel(logging.WARNING)            
 
+    def _deri_request(self, action, data):
+        response = None        
         if action.startswith("/api/v1/private/"):
             if self.key is None or self.secret is None:
                 raise Exception("Key or secret empty")
 
             signature = self.generate_signature(action, data)
+            
             response = self.session.post(self.url + action, data=data, headers={'x-deribit-sig': signature},
                                          verify=True)
         else:
