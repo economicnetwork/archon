@@ -13,9 +13,10 @@ import uuid
 from .accessTokenAuth import AccessTokenAuth
 from .apiKeyAuthWithExpires import APIKeyAuthWithExpires
 
-from loguru import logger
+from archon.custom_logger import setup_logger
 import datetime
 from datetime import timedelta
+import logging
 
 API_BASE = 'https://www.bitmex.com/api/v1/'
 # https://www.bitmex.com/api/explorer/
@@ -34,8 +35,8 @@ class BitMEX(object):
     def __init__(self, base_url=API_BASE, symbol=None, login=None, password=None, otpToken=None,
                  apiKey=None, apiSecret=None, orderIDPrefix='mm_bitmex_'):
 
-        logger.start("log/bitmex.log", rotation="500 MB")
-        logger.debug("init bitmex")                 
+        setup_logger(logger_name=__name__, log_file='bitmex.log')
+        self.logger = logging.getLogger(__name__)
         self.base_url = base_url
         self.symbol = symbol
         self.token = None

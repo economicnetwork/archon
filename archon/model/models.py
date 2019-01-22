@@ -6,9 +6,6 @@ import datetime
 import pytz
 from archon.util import *
 
-from loguru import logger
-
-
 COL_OPEN = 1
 COL_HIGH = 2
 COL_LOW = 3
@@ -470,7 +467,7 @@ def conv_openorder(order, exchange):
             d = {'exchange':n,'oid':oid,'market':market,'quantity':quantity,'price':price,'otype':ty}
             return d
         except Exception as e:
-            log.error(e)
+            #log.error(e)
             return None
 
     elif exchange==exc.BINANCE: 
@@ -670,7 +667,7 @@ def conv_summary(m,exchange):
             d = {'exchange':n,'pair':market,'nom':nom,'denom':denom,'bid':bid,'ask':ask,'volume':volume,'high':high,'low':low,'last':last,'change':change}
             return d
         except Exception as err:
-            log.error(err)
+            #log.error(err)
             return None
             
     elif exchange==exc.HITBTC:
@@ -794,7 +791,8 @@ def conv_balance(b,exchange):
                     d['amount'] = av+r
                     newl.append(d)
             except Exception as e:
-                log.error("issue converting balance %s"%(str(x)))
+                #log.error("issue converting balance %s"%(str(x)))
+                print (e)
         return newl
 
 def conv_candle(history, exchange):

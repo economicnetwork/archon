@@ -5,7 +5,7 @@ from time import sleep
 import json
 import urllib
 import math
-from archon.custom_logger import archon_setup_logger
+from archon.custom_logger import setup_logger
 from archon.exchange.bitmex.ws.api_util import generate_nonce, generate_signature
 from archon.exchange.bitmex.ws.bitmex_topics import *
 #from loguru import logger
@@ -32,7 +32,7 @@ class BitMEXWebsocket:
 
     def __init__(self, symbol, api_key=None, api_secret=None, endpoint=endpoint_V1):
         '''Connect to the websocket and initialize data stores.'''        
-        archon_setup_logger(__name__, 'strategy.log')
+        setup_logger(__name__, 'strategy.log')
         self.logger = logging.getLogger(__name__)        
         self.logger.debug("bitmex - initializing WebSocket.")
 

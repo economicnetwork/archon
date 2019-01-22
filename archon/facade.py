@@ -19,6 +19,7 @@ import archon.exchange.binance as binance
 from archon.exchange.bitmex import bitmex
 from archon.exchange.deribit.Wrapper import DeribitWrapper
 from archon.exchange.kraken import KrakenAPI
+from archon.custom_logger import setup_logger
 
 
 import time
@@ -26,6 +27,7 @@ import sys
 import time
 import random
 import json
+import logging
 
 from archon.orders import *
 
@@ -34,7 +36,6 @@ clients = {}
 
 rex_API_v2= "rex_API_v2"
 
-from loguru import logger
 
 #ORDERSTATUS_COL = 5
 ORDERSTATUS = "ORDERSTATUS"
@@ -53,8 +54,8 @@ class Facade:
 
     def __init__(self):
         #log = logging.getLogger("broker."+__name__)
-        logger.start("log/facade.log", rotation="500 MB")
-        logger.debug("init facade")
+        setup_logger(logger_name=__name__, log_file='broker.log')
+        self.logger = logging.getLogger(__name__)
 
         self.submitted_orders = 0
         self.canceled_orders = 0
@@ -65,7 +66,7 @@ class Facade:
 
     def set_api_keys(self, exchange, key, secret):
         """ set clients, assumes conf file present """
-        logger.info("set api " + str(exchange))
+        self.logger.info("set api " + str(exchange))
         if exchange==exc.CRYPTOPIA:
             clients[exchange] = CryptopiaAPI(key, secret)
         elif exchange==exc.BITTREX:
@@ -134,7 +135,7 @@ class Facade:
                 trades = client.recent_trades(market)
                 return trades
             except Exception as e:
-                logger.info("get trades failed %s"%str(e))
+                self.logger.info("get trades failed %s"%str(e))
 
 
         #TODO
@@ -142,13 +143,13 @@ class Facade:
 
     def get_orderbook(self, market, exchange=None):
         client = clients[exchange]
-        logger.debug("get orderbook %s %i" %(str(market),exchange))
+        self.logger.debug("get orderbook %s %i" %(str(market),exchange))
         #market = models.conv_markets_to(market, exchange)
 
         if exchange==exc.CRYPTOPIA:
             book, err = client.get_orders(market)
             if err:
-                logger.error ("error " + str(err))
+                self.logger.error ("error " + str(err))
             else:
                 book = models.conv_orderbook(book, exchange)
                 return book
@@ -158,7 +159,7 @@ class Facade:
                 book = models.conv_orderbook(book, exchange)
                 return book
             except:
-                logger.error("error fetching orderbook",exchange)
+                self.logger.error("error fetching orderbook",exchange)
         elif exchange==exc.KUCOIN:
             try:
                 ob = client.get_order_book(market,limit=20)
@@ -173,7 +174,7 @@ class Facade:
                 book = models.conv_orderbook(ob, exchange)
                 return book
             except:
-                logger.error("error fetching orderbook",exchange)
+                self.logger.error("error fetching orderbook",exchange)
 
         elif exchange==exc.KRAKEN:
             r = client.get_orderbook(market)
@@ -184,7 +185,7 @@ class Facade:
             try:
                 ob = client.get_orderbook_symbol(market)
                 book = models.conv_orderbook(ob, exchange)
-                #logger.debug("book %s"%book)
+                #self.logger.debug("book %s"%book)
                 return book
             except Exception:
                  raise Exception
@@ -192,7 +193,7 @@ class Facade:
         elif exchange==exc.BITMEX:
             bookdepth = 20
             ob = client.market_depth(market,depth=bookdepth)
-            #logger.debug("book %s"%ob)
+            #self.logger.debug("book %s"%ob)
             book = models.conv_orderbook(ob, exchange)
             return book
 
@@ -374,7 +375,7 @@ class Facade:
     def get_candles_minute(self, market, exchange):
         client = clients[exchange]
         market = models.conv_markets_to(market, exchange)
-        logger.debug("get_candles_minute %s %s"%(market, exchange))
+        self.logger.debug("get_candles_minute %s %s"%(market, exchange))
 
         if exchange == exc.CRYPTOPIA:
             pass            
@@ -397,7 +398,7 @@ class Facade:
     def get_candles_minute15(self, market, exchange):
         client = clients[exchange]
         market = models.conv_markets_to(market, exchange)
-        logger.debug("get_candles_minute15 %s %s"%(market, exchange))
+        self.logger.debug("get_candles_minute15 %s %s"%(market, exchange))
 
         if exchange == exc.CRYPTOPIA:
             pass            
@@ -429,7 +430,7 @@ class Facade:
     # --- trading info ---
 
     def balance_all(self, exchange=None):
-        logger.debug("get balance %i"%exchange)
+        self.logger.debug("get balance %i"%exchange)
 
         client = clients[exchange]
 
@@ -476,7 +477,7 @@ class Facade:
 
     def balance_currency(self, currency, exchange=None):
         """ Deprecated: use balance all """
-        logger.info("balance_currency " + currency + " " + str(exchange))
+        self.logger.info("balance_currency " + currency + " " + str(exchange))
 
         if exchange==exc.CRYPTOPIA:
             currency, err = clients[exc.CRYPTOPIA].get_balance(currency)        
@@ -555,9 +556,9 @@ class Facade:
             pass
 
         elif exchange==exc.BINANCE:
-            logger.info("trade history %s"%(str(market)))
+            self.logger.info("trade history %s"%(str(market)))
             tx = client.get_my_trades(symbol=market)
-            logger.info("trade history %s"%(str(tx)))
+            self.logger.info("trade history %s"%(str(tx)))
             f = lambda x: models.conv_usertx(x,exchange)
             r = list(map(f,tx))
             return r
@@ -587,7 +588,7 @@ class Facade:
         elif exchange==exc.HITBTC:
             #TODO
             r = client.get_transactions()
-            logger.debug(r)
+            self.logger.debug(r)
             return r
 
         elif exchange==exc.BINANCE:
@@ -600,10 +601,10 @@ class Facade:
                 tx = client.get_my_trades(symbol=m)
                 #NEED to brute force symbol because binance is stupid
                 #https://www.reddit.com/r/CryptoMarkets/comments/7qjvxr/binance_api_method_to_retrieve_users_order_trade/
-                logger.info("trade history %s"%(str(tx)))
+                self.logger.info("trade history %s"%(str(tx)))
                 f = lambda x: models.conv_usertx(x,exchange)
                 r = list(map(f,tx))
-                logger.info("trade history %s"%(str(r)))
+                self.logger.info("trade history %s"%(str(r)))
                 alltx +=r 
             return alltx
             
@@ -632,13 +633,13 @@ class Facade:
             else:
                 oo = []
         n = exc.NAMES[exchange]
-        #logger.info("open orders: " + str(n) + " " + str(oo))
+        #self.logger.info("open orders: " + str(n) + " " + str(oo))
         return oo
 
     def open_orders(self, exchange=None):
         """ fetch open orders from exchanges """
 
-        #logger.info("get open orders " + str(exchange))
+        #self.logger.info("get open orders " + str(exchange))
 
         oo = None
         client = clients[exchange]
@@ -678,11 +679,11 @@ class Facade:
             try:
                 symbol = "XBTUSD"
                 oo = client.open_orders(symbol=symbol)
-                logger.debug("open orders %s"%str(oo))
+                self.logger.debug("open orders %s"%str(oo))
             except Exception as e:
-                logger.error("error %s"%str(e))
+                self.logger.error("error %s"%str(e))
         n = exc.NAMES[exchange]
-        #logger.info("open orders " + str(n) + " " + str(oo))
+        #self.logger.info("open orders " + str(n) + " " + str(oo))
         return oo    
 
     # --- actions ---
@@ -691,7 +692,7 @@ class Facade:
         """ submit order which is array [type,order,qty] """
         # ("order " + str(order))         
 
-        logger.info("submit order " + str(exchange) + " " + str(order))
+        self.logger.info("submit order " + str(exchange) + " " + str(order))
         market,ttype,order_price,qty = order        
         market = models.conv_markets_to(market, exchange)
         client = clients[exchange]
@@ -705,7 +706,7 @@ class Facade:
         if exchange==exc.CRYPTOPIA:                        
             order_result, err = clients[exc.CRYPTOPIA].submit_trade(market, ttype, order_price, qty)
             if err:
-                logger.error("! error with order " + str(order) + " " + str(err))                
+                self.logger.error("! error with order " + str(order) + " " + str(err))                
             else:
                 order_success = True
 
@@ -734,8 +735,8 @@ class Facade:
             
             ra = int(random.random()*10000)
             oid = str(12341235+ra)
-            #logger.info("submit %s %s"%(str(oid),str(market)))
-            logger.info("submit " + str(oid) + " " + str(market))
+            #self.logger.info("submit %s %s"%(str(oid),str(market)))
+            self.logger.info("submit " + str(oid) + " " + str(market))
             if ttype==ORDER_SIDE_BUY: 
                 ttype="buy"
             else:
@@ -746,11 +747,11 @@ class Facade:
             
 
         elif exchange==exc.BINANCE:
-            logger.info("submit %s"%order)
+            self.logger.info("submit %s"%order)
             if ttype==ORDER_SIDE_BUY:
                 try:
                     order_result = client.submit_order_buy(market, qty, order_price)
-                    logger.info("order result: %s"%str(order_result))
+                    self.logger.info("order result: %s"%str(order_result))
                     order_success = False
                     #{'symbol': 'MDABTC', 'orderId': 34475311, 'clientOrderId': 'zecKIFc7bLHY6W1oAqwAXi',
                     #  'transactTime': 1545021630023, 
@@ -767,7 +768,7 @@ class Facade:
             else:
                 try:
                     order_result = client.submit_order_sell(market, qty, order_price)                
-                    logger.info("order result: %s"%str(order_result))
+                    self.logger.info("order result: %s"%str(order_result))
                     order_success = False
                     if order_result['status'] =='FILLED':
                         order_success = True
@@ -785,7 +786,7 @@ class Facade:
         if order_success:
             self.submitted_orders +=1
             #TODO log submitted order separately
-        logger.info("order result: %s"%str(order_result))
+        self.logger.info("order result: %s"%str(order_result))
         return [order_result,order_success]
 
 
@@ -806,8 +807,8 @@ class Facade:
         oid = order['oid']
         market = order['market']
         otype = order['otype']       
-        #logger.info("cancel " + str(order)) 
-        logger.info("cancel " + str(oid) + " " + str(e) + " " + str(otype) + " " + str(market))
+        #self.logger.info("cancel " + str(order)) 
+        self.logger.info("cancel " + str(oid) + " " + str(e) + " " + str(otype) + " " + str(market))
         
         client = clients[exchange]
 
@@ -816,7 +817,7 @@ class Facade:
             
         elif exchange==exc.BITTREX:
             result = client.cancel(oid)
-            logger.info("bitrex " + str(result))
+            self.logger.info("bitrex " + str(result))
 
         elif exchange==exc.KUCOIN:
             symbol = models.conv_markets_to(market, exchange)
@@ -824,7 +825,7 @@ class Facade:
                 f = "BUY"
             else:
                 f = "SELL"   
-            logger.info("cancel ",symbol,oid,f)
+            self.logger.info("cancel ",symbol,oid,f)
             result = client.cancel_order(oid,f,symbol)      
             self.canceled_orders +=1
             return result                  
@@ -834,19 +835,19 @@ class Facade:
             self.canceled_orders +=1
 
         elif exchange==exc.BINANCE:
-            logger.error("not implemented. cancel by id")
+            self.logger.error("not implemented. cancel by id")
 
         elif exchange==exc.BITMEX:
             result = client.cancel_order(oid)
         
                     
-        logger.debug("result " + str(result))
+        self.logger.debug("result " + str(result))
         return result
 
     def cancel_id(self, oid, otype=None, market=None, exchange=None):
         """ cancel by id """
             
-        logger.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype))
+        self.logger.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype))
         result = None
         client = clients[exchange]
         if exchange==exc.CRYPTOPIA:            
@@ -860,7 +861,7 @@ class Facade:
         elif exchange==exc.KUCOIN:
             order_type = otype
             market = models.conv_markets_from(market, exchange)
-            logger.info("cancel! " + str(oid) + " " + str(exchange) + " " + str(otype) + " " + str(market))            
+            self.logger.info("cancel! " + str(oid) + " " + str(exchange) + " " + str(otype) + " " + str(market))            
             result = clients[exc.KUCOIN].cancel_order(oid,order_type,market)
             self.canceled_orders +=1
         
@@ -876,9 +877,9 @@ class Facade:
             result = client.cancel(oid)
 
         else:
-            logger.error("no exchange provided")
+            self.logger.error("no exchange provided")
 
-        logger.info("result " + str(result))
+        self.logger.info("result " + str(result))
         return result
 
     def get_deposits(self, exchange=None):

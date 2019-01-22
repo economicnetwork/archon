@@ -4,8 +4,7 @@ import colorlog
 
 #format="%(asctime)s [%(threadName)-12.12s] [%(filename)-18s] [%(name)s] [%(levelname)-5.5s]  %(message)s",        
 
-
-def archon_setup_logger(logger_name, log_file, level=logging.INFO):
+def setup_logger(logger_name, log_file, level=logging.INFO):
     #print ("setup ",logger_name)
     l = logging.getLogger(logger_name)
 

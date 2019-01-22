@@ -50,23 +50,6 @@ def get_module_logger(mod_name):
     return logger
 
 
-def setup_logger(logpath, name, log_file, level=logging.INFO):    
-    if not os.path.exists(logpath):
-        os.mkdir(logpath)
-    
-    #logPath = "./"
-    logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s,%(pathname)s,%(message)s (%(lineno)d)",
-    handlers=[
-        logging.FileHandler("{0}/{1}.log".format(logpath, log_file)),
-        logging.StreamHandler()
-    ])
-    formatter = logging.Formatter('%(asctime)s,%(message)s')
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-    return logger
-
 def ask_user(question):
     check = str(input(question + " (Y/N): ")).lower().strip()
     try:
