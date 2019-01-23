@@ -3,7 +3,7 @@ import time
 from pymongo import MongoClient
 import pymongo
 import logging
-from loguru import logger
+
 
 from archon.config import *
 import archon.facade as facade
@@ -57,6 +57,9 @@ class SyncThread(object):
         self.broker = broker
         self.interval = interval
 
+        setup_logger(logger_name=__name__, log_file=__name__ + '.log')
+        self.logger = logging.getLogger(__name__)
+
         #thread = threading.Thread(target=self.run, args=())
         #thread.daemon = True                            # Daemonize thread
         #thread.start()                                  # Start the execution
@@ -72,7 +75,7 @@ class SyncThread(object):
         col = db.orderbooks #['bitmex_orderbook']
 
         #i = 0    
-        logger.debug('sync in the background')
+        self.logger.debug('sync in the background')
         #while True:
         market = m.market_from("XBT","USD")
         smarket = models.conv_markets_to(market, exc.BITMEX)  

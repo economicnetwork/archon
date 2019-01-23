@@ -8,7 +8,6 @@ import archon.orders as orders
 import archon.broker as broker
 import archon.exchange.exchanges as exc
 import datetime
-from loguru import logger
 
 abroker = broker.Broker()
 abroker.set_active_exchanges([exc.BITMEX])

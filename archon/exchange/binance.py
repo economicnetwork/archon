@@ -6,14 +6,15 @@ import requests
 import time
 from operator import itemgetter
 from archon.util import *
-from loguru import logger
+from archon.custom_logger import setup_logger
 
 
 class BinanceAPIException(Exception):
 
     def __init__(self, response):
-        logger.start("log/binance.log", rotation="500 MB")
-        logger.debug("init binance")
+        setup_logger(logger_name=__name__, log_file=__name__ + '.log')
+        self.logger = logging.getLogger(__name__)
+        self.self.loggerdebug("init binance")
 
         self.code = 0
         try:
@@ -703,7 +704,7 @@ class Client(object):
             return r
         except Exception as err:
             #archon.exchange.binance.BinanceAPIException: APIError(code=-1013): Filter failure: MIN_NOTIONAL
-            logger.error(err)
+            self.loggererror(err)
             return None
 
     def submit_order_sell(self, market, quantity, price):
@@ -713,7 +714,7 @@ class Client(object):
             return r
         except Exception as err:
             #archon.exchange.binance.BinanceAPIException: APIError(code=-1013): Filter failure: MIN_NOTIONAL
-            logger.error(err)
+            self.loggererror(err)
             return err            
         
 
@@ -823,7 +824,7 @@ class Client(object):
     def get_my_trades(self, **params):
         """Get trades for a specific symbol."""
         r = self._get('myTrades', True, data=params)
-        logger.info("trades ",r)
+        self.loggerinfo("trades ",r)
         return r
 
     def get_system_status(self):

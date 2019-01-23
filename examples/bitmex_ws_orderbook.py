@@ -7,7 +7,6 @@ import datetime
 import json
 import toml
 import time
-from loguru import logger
 import archon.broker as broker
 import archon.exchange.exchanges as exc
 
@@ -41,7 +40,7 @@ def run():
 
     
     #logger.info("Instrument data: %s" % ws.get_instrument())
-    logger.info("\n\n\n\n************\n\n\n")
+    #logger.info("\n\n\n\n************\n\n\n")
     time.sleep(1)
     while(abroker.bitmexws.ws.sock.connected):
         print (".")

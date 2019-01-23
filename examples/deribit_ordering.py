@@ -13,8 +13,6 @@ import archon.exchange.bitmex.timeseries as timeseries
 import archon.facade as facade
 import archon.model.models as models
 import archon.exchange.deribit.Wrapper as deribit
-
-
 from archon.util import *
 
 import pandas as pd
@@ -24,13 +22,11 @@ import redis
 import time
 import json
 
-
 abroker = broker.Broker(setAuto=True)
 abroker.set_keys_exchange_file(exchanges=[exc.DERIBIT]) 
 client = abroker.afacade.get_client(exc.DERIBIT)
 
 sym = 'BTC-PERPETUAL'
-
 
 def order():
     summary = client.getsummary(sym)

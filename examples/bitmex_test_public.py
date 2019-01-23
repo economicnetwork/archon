@@ -2,12 +2,13 @@
 from bitmex_websocket import BitMEXWebsocket
 import logging
 from time import sleep
-from loguru import logger
+from archon.custom_logger import setup_logger
 
 
 # Basic use of websocket.
 def run():
-    logger = setup_logger()
+    setup_logger(logger_name="test", log_file='test.log')
+    logger = logging.getLogger("test")
 
     # Instantiating the WS will make it connect. Be sure to add your api_key/api_secret.
     ws = BitMEXWebsocket(endpoint="https://testnet.bitmex.com/api/v1", symbol="XBTUSD",

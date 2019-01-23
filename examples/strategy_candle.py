@@ -10,6 +10,7 @@ import archon.facade as facade
 import archon.broker as broker
 import archon.model.models as models
 from archon.agent import *
+from archon.custom_logger import setup_logger
 
 from util import *
 
@@ -20,19 +21,20 @@ import time
 
 
 import traceback
-from loguru import logger
 import pdb
 
 
 class Candletrategy(Agent):
 
     def __init__(self, arch):
+        setup_logger(logger_name=__name__, log_file=__name__ + '.log')
+        self.logger = logging.getLogger(__name__)
         super().__init__(arch, exc.BINANCE)
         
     def show_balance(self,ETH_BTC,EOS_BTC):
         b = self.balances()
         btc_b = list(filter(lambda x: x["symbol"] == "BTC", b))[0]["amount"]
-        logger.info("BTC %.5f"%btc_b)
+        self.logger.info("BTC %.5f"%btc_b)
         
     def showcandles(self, candles):    
         for z in candles[-10:]:

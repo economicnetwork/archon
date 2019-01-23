@@ -8,7 +8,6 @@ import math
 from archon.custom_logger import setup_logger
 from archon.exchange.bitmex.ws.api_util import generate_nonce, generate_signature
 from archon.exchange.bitmex.ws.bitmex_topics import *
-#from loguru import logger
 import pdb
 import logging
 import colorlog

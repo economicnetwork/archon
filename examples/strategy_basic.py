@@ -18,11 +18,12 @@ import time
 from agent import Agent
 
 import traceback
-from loguru import logger
 
 class BasicStrategy(Agent):
 
     def __init__(self, arch):
+        setup_logger(logger_name=__name__, log_file=__name__ + '.log')
+        self.logger = logging.getLogger(__name__)
         super().__init__(arch)
         
     def show_balance(self):
@@ -42,7 +43,7 @@ class BasicStrategy(Agent):
             print (ts,c)
 
         if lastprice > firstprice:
-            logger.info("%s %s %.5f %i"%(market,ts,c))
+            self.logger.info("%s %s %.5f %i"%(market,ts,c))
         
 
     def sync_all_candles(self, markets):
@@ -53,7 +54,7 @@ class BasicStrategy(Agent):
                 self.broker.sync_candle_minute(market,exc.BINANCE)
                 
                 x = self.broker.db.candles.find_one()
-                logger.info(x["time_insert"])
+                self.logger.info(x["time_insert"])
                 time.sleep(0.05)
             except Exception as err:
                 logger.error("pair error %s"%err) 
@@ -65,7 +66,7 @@ class BasicStrategy(Agent):
             self.candle_signal(c,x["market"])
 
     def run(self):
-        logger.info("starting basic strategy")
+        self.logger.info("starting basic strategy")
         series = list()
 
         markets = self.broker.fetch_global_markets(denom='BTC')
@@ -76,23 +77,23 @@ class BasicStrategy(Agent):
             try:
                 self.sync_openorders()     
                 oo = self.openorders                
-                logger.info("open orders %s"%str(oo))
+                self.logger.info("open orders %s"%str(oo))
 
                 self.broker.db.candles.drop()
                 self.sync_all_candles(markets)
 
                 if len(oo) > 0:
-                    logger.info("cancel all")
+                    self.logger.info("cancel all")
                     #self.cancel_all()
 
                 else:
-                    logger.info("scan number of markets %i"%len(markets))
+                    self.logger.info("scan number of markets %i"%len(markets))
 
                     self.show_candles()
                     
             except Exception as err:
                 #traceback.print_exc()
-                logger.error("error %s"%err)
+                self.logger.error("error %s"%err)
 
             time.sleep(5.0)
 

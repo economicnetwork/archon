@@ -9,7 +9,6 @@ import archon.broker as broker
 import archon.exchange.exchanges as exc
 import archon.exchange.bitmex.bitmex as mex
 import datetime
-from loguru import logger
 
 from arctic import Arctic
 import quandl

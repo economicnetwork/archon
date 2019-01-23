@@ -1,5 +1,3 @@
-from loguru import logger
-
 CRYPTOPIA = 0
 BITTREX = 1
 KUCOIN = 2
@@ -18,5 +16,5 @@ def get_id(name):
         v = list(NAMES.values())
         return v.index(name)
     except:
-        logger.error("exchange does not exist %s"%name)
+        raise Exception("exchange does not exist %s"%name)
 

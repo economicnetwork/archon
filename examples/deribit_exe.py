@@ -20,8 +20,5 @@ for x in th:
     p = x['price']
     s = x['side']
 
-    # if you encounter a "year is out of range" error the timestamp
-    # may be in milliseconds, try `ts /= 1000` in that case
     print(tsf,q,p,s)
-    #print (x)
     
