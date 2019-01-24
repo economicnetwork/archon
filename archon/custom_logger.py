@@ -15,7 +15,7 @@ def setup_logger(logger_name, log_file, level=logging.DEBUG):
     l.addHandler(fileHandler)
 
     handler = colorlog.StreamHandler()
-    colorformat = colorlog.ColoredFormatter('%(log_color)s[%(name)s] %(message)s - (%(asctime)s)')
+    colorformat = colorlog.ColoredFormatter('%(log_color)s[%(name)s] %(message)s - (%(asctime)s) %(lineno)d')
     handler.setFormatter(colorformat)
 
     l.addHandler(handler)
