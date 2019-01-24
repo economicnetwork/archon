@@ -28,6 +28,8 @@ candle_1h = '1h'
 candle_1d = '1d'
 
 instrument_btc_perp = "XBTUSD"
+instrument_btc_mar19 = "XBTH19"
+instrument_btc_jun19 = "XBTM19"
 
 class BitMEX(object):
 

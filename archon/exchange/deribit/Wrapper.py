@@ -1,3 +1,16 @@
+"""
+deribit wrapper
+
+fees
+Perpetual Contracts
+Maker Rebate: 0.025%
+Taker Fee: 0.075%
+
+Futures
+Maker Rebate: 0.02%
+Taker Fee: 0.05%
+"""
+
 import time, hashlib, base64, sys
 from collections import OrderedDict
 from archon.exchange.deribit.ws.deribit_ws import DeribitWebsocket
@@ -12,6 +25,7 @@ instrument_btc_march = "BTC-29MAR19"
 
 base_public_api = "/api/v1/public/"
 base_private_api = "/api/v1/private/"
+
 
 class DeribitWrapper(object):
 
