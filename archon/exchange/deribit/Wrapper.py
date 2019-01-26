@@ -17,6 +17,7 @@ from archon.exchange.deribit.ws.deribit_ws import DeribitWebsocket
 import logging
 
 import requests
+from archon.custom_logger import setup_logger
 
 instrument_btc_perp = "BTC-PERPETUAL"
 instrument_btc_june ="BTC-28JUN19"
@@ -30,6 +31,8 @@ base_private_api = "/api/v1/private/"
 class DeribitWrapper(object):
 
     def __init__(self, key=None, secret=None, url=None):
+        setup_logger(logger_name="DeribitWrapper", log_file='DeribitWrapper.log')
+        self.logger = logging.getLogger("DeribitWrapper")
         self.key = key
         self.secret = secret
         self.session = requests.Session()
@@ -45,32 +48,35 @@ class DeribitWrapper(object):
         requests_log.setLevel(logging.WARNING)            
 
     def _deri_request(self, action, data):
-        response = None        
-        if action.startswith("/api/v1/private/"):
-            if self.key is None or self.secret is None:
-                raise Exception("Key or secret empty")
+        try:
+            response = None        
+            if action.startswith("/api/v1/private/"):
+                if self.key is None or self.secret is None:
+                    raise Exception("Key or secret empty")
 
-            signature = self.generate_signature(action, data)
-            
-            response = self.session.post(self.url + action, data=data, headers={'x-deribit-sig': signature},
-                                         verify=True)
-        else:
-            response = self.session.get(self.url + action, params=data, verify=True)
+                signature = self.generate_signature(action, data)
+                
+                response = self.session.post(self.url + action, data=data, headers={'x-deribit-sig': signature},
+                                            verify=True)
+            else:
+                response = self.session.get(self.url + action, params=data, verify=True)
 
-        if response.status_code != 200:
-            raise Exception("Wrong response code: {0}".format(response.status_code))
+            if response.status_code != 200:
+                raise Exception("Wrong response code: {0}".format(response.status_code))
 
-        json = response.json()
+            json = response.json()
 
-        if json["success"] == False:
-            raise Exception("Failed: " + json["message"])
+            if json["success"] == False:
+                raise Exception("Failed: " + json["message"])
 
-        if "result" in json:
-            return json["result"]
-        elif "message" in json:
-            return json["message"]
-        else:
-            return "Ok"
+            if "result" in json:
+                return json["result"]
+            elif "message" in json:
+                return json["message"]
+            else:
+                return "Ok"
+        except Exception as err:
+            self.logger.error(err)
 
     def generate_signature(self, action, data):
         tstamp = int(time.time() * 1000)

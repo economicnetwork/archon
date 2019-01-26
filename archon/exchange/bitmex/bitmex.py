@@ -40,6 +40,7 @@ class BitMEX(object):
 
         setup_logger(logger_name=__name__, log_file='bitmex.log')
         self.logger = logging.getLogger(__name__)
+        self.logger.info("init bitmex")
         self.base_url = base_url
         self.symbol = symbol
         self.token = None
@@ -345,9 +346,10 @@ class BitMEX(object):
 
 
     def _query_bitmex(self, path, query=None, postdict=None, timeout=3, verb=None):
-        """Send a request to BitMEX Servers."""
+        """Send a request to BitMEX Servers."""                
         # Handle URL
         url = self.base_url + path
+        self.logger.info("query %s"%str(url))
 
         # Default to POST if data is attached, GET otherwise
         if not verb:
@@ -397,7 +399,7 @@ class BitMEX(object):
             else:
                 self.logger.error("Unhandled Error: %s %s"%(str(e), str(response.text)))
                 self.logger.error("Endpoint was: %s %s" % (verb, path))
-                raise Exception("bitmex connection")
+                raise Exception("bitmex connection error")
 
         except requests.exceptions.Timeout as e:
             # Timeout, re-run this request
