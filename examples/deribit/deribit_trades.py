@@ -17,8 +17,8 @@ dt = datetime(2019, 1, 10)
 ts = int(dt.replace(tzinfo=timezone.utc).timestamp())
 print(ts)
 
-ts = 1548475974312
-z = client.getlasttrades(sym,count=100,since=ts)
+start=1537078400000
+z = client.getlasttrades(sym,start=start,end=start+10**8)
 for x in z:
     ts = x['timeStamp']
     print (ts)

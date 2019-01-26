@@ -149,24 +149,21 @@ class DeribitWrapper(object):
     def getcurrencies(self):
         return self._deri_request(base_public_api + "getcurrencies", {})
 
-    def getlasttrades(self, instrument, count=None, since=None):
+    def getlasttrades(self, instrument, start, end, count=None):
         options = {
             'instrument': instrument,
             'includeOld': 'true'
         }
 
-        #since = 1418148659276
-        #since = 1547078400000
-        #if since:
-        #    options['since'] = since
-
-        start = 1537078400000
+        
         options['startTimestamp'] = start
-        options['endTimestamp'] = start + 10**8
+        options['endTimestamp'] = end
         
 
         if count:
             options['count'] = count
+        else:
+            options['count'] = 100
 
         r = self._deri_request(base_public_api + "getlasttrades", options)
         print ("?? ",r)
