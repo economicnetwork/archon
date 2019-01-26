@@ -151,16 +151,26 @@ class DeribitWrapper(object):
 
     def getlasttrades(self, instrument, count=None, since=None):
         options = {
-            'instrument': instrument
+            'instrument': instrument,
+            'includeOld': 'true'
         }
 
-        if since:
-            options['since'] = since
+        #since = 1418148659276
+        #since = 1547078400000
+        #if since:
+        #    options['since'] = since
+
+        start = 1537078400000
+        options['startTimestamp'] = start
+        options['endTimestamp'] = start + 10**8
+        
 
         if count:
             options['count'] = count
 
-        return self._deri_request(base_public_api + "getlasttrades", options)
+        r = self._deri_request(base_public_api + "getlasttrades", options)
+        print ("?? ",r)
+        return r
 
     def getsummary(self, instrument):
         return self._deri_request(base_public_api + "getsummary", {"instrument": instrument})
