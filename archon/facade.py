@@ -87,12 +87,6 @@ class Facade:
             print ("set deri",self.clients[exchange])
 
 
-    def set_mail_config(self, apikey, domain, email_from, email_to):
-        """ mailgun config """
-        self.mail_api_key = apikey
-        self.mail_domain = domain
-        self.email_from = email_from
-        self.email_to = email_to
 
     def get_client(self, EXC):
         """ directly get a client """

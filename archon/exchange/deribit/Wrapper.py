@@ -149,25 +149,29 @@ class DeribitWrapper(object):
     def getcurrencies(self):
         return self._deri_request(base_public_api + "getcurrencies", {})
 
-    def getlasttrades(self, instrument, start, end, count=None):
+    def getlasttrades(self, instrument, start, end, count=100):
         options = {
             'instrument': instrument,
-            'includeOld': 'true'
-        }
-
-        
-        options['startTimestamp'] = start
-        options['endTimestamp'] = end
-        
-
-        if count:
-            options['count'] = count
-        else:
-            options['count'] = 100
+            'includeOld': 'true',
+            'startTimestamp':start,
+            'endTimestamp': end,
+            'count':count
+        }        
 
         r = self._deri_request(base_public_api + "getlasttrades", options)
-        print ("?? ",r)
         return r
+
+    def getlasttrades_seq(self, instrument, startSeq, endSeq, count=100):
+        options = {
+            'instrument': instrument,
+            'includeOld': 'true',
+            'startSeq':startSeq,
+            'endSeq': endSeq,
+            'count':count
+        }        
+
+        r = self._deri_request(base_public_api + "getlasttrades", options)
+        return r        
 
     def getsummary(self, instrument):
         return self._deri_request(base_public_api + "getsummary", {"instrument": instrument})
@@ -191,6 +195,7 @@ class DeribitWrapper(object):
         if label:
             options["label"] = label
 
+        #BUG doesn't work??
         if postOnly:
             options["postOnly"] = postOnly
 

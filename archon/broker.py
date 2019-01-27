@@ -13,6 +13,7 @@ from archon.util import *
 import archon.exchange.bitmex.fields as bitmexfields
 from archon.exchange.bitmex.ws.bitmex_ws import BitMEXWebsocket
 from archon.custom_logger import setup_logger
+import archon.exchange.bitmex.bitmex as mex
 
 standard_apikeys_file = "apikeys.toml"
 
@@ -128,12 +129,19 @@ class Broker:
         x = list(filter(lambda x: x['oid'] == oid, self.openorders))
         return x[0]
 
+    def set_mail_config(self, apikey, domain):
+        """ mailgun config """
+        self.mail_api_key = apikey
+        self.mail_domain = domain
+        #self.email_from = email_from
+        #self.email_to = email_to        
+
     # --- WS specific ---
 
-    def init_bitmex_ws(self):  
+    def init_bitmex_ws(self, symbol=mex.instrument_btc_perp):  
         apikeys = parse_toml(standard_apikeys_file)  
         k,s = apikeys["BITMEX"]["public_key"],apikeys["BITMEX"]["secret"]
-        symbol = "XBTUSD"
+        #symbol = "XBTUSD"
         #only xbt for now
         self.bitmexws = BitMEXWebsocket(symbol=symbol, api_key=k, api_secret=s)
         

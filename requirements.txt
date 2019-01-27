@@ -13,3 +13,4 @@ tasktiger
 apscheduler
 arctic
 flask
+colorlog
