@@ -394,7 +394,16 @@ class BitMEX(object):
             elif response.status_code == 503:
                 self.logger.error("Unable to contact the BitMEX API (503), retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
                 sleep(1)
-                return self._query_bitmex(path, query, postdict, timeout, verb)
+                return self._query_bitmex(path, query, postdict, timeout, verb)            
+            elif response.status_code == 429:
+                 #Unhandled Error: 429 Client Error: Too Many Requests for url... {"error":{"message":"Rate limit exceeded, retry in 1 seconds.","name":"RateLimitError"}}
+                 self.logger.error("429 Too Many Requests for url. Request: %s \n %s" % (url, json.dumps(postdict)))
+                 #print (response.headers)                 
+                 h = response.headers
+                 retry = int(h["Retry-After"])
+                 self.logger.error("sleep for ",retry)
+                 time.sleep(retry)
+                 return self._query_bitmex(path, query, postdict, timeout, verb)
             # Unknown Error
             else:
                 self.logger.error("Unhandled Error: %s %s"%(str(e), str(response.text)))

@@ -22,6 +22,8 @@ for x in candles[-10:]:
     t,c = x['timestamp'],x['close']
     print (t,c)
 
+time.sleep(1)
+
 candles = client.trades_candle("XBTUSD", mex.candle_1m)
 candles.reverse()
 
