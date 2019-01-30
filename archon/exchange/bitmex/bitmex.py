@@ -370,13 +370,13 @@ class BitMEX(object):
         # Auth: Use Access Token by default, API Key/Secret if provided
         auth = AccessTokenAuth(self.token)
         if self.apiKey:
-            self.logger.debug("got api key")
+            #self.logger.debug("got api key")
             auth = APIKeyAuthWithExpires(self.apiKey, self.apiSecret)
 
         # Make the request
         try:
-            self.logger.debug("query verb %s url %s data %s query %s"%(str(verb),str(url),str(postdict),str(query)))
-            self.logger.debug("auth %s"%str(auth))
+            #self.logger.debug("query verb %s url %s data %s query %s"%(str(verb),str(url),str(postdict),str(query)))
+            #self.logger.debug("auth %s"%str(auth))
             req = requests.Request(verb, url, data=postdict, auth=auth, params=query)
             prepped = self.session.prepare_request(req)
             response = self.session.send(prepped, timeout=timeout)

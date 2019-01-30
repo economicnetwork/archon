@@ -28,36 +28,46 @@ class DeribitWebsocket():
         requests_log.setLevel(logging.WARNING)
 
     def on_message(self, ws, message):
+        print ("message ",message)
         message = json.loads(message)
         if 'notifications' in message:
             self.table[message['notifications'][0]['result']['instrument']] = message['notifications'][0]['result']
 
     def on_error(self, ws, error):
-        print(error)
+        self.logger.error("error %s"%str(error))
+        print (str(error))
 
     def on_close(self, ws):
-        print("### closed ###")
+        self.logger.info("### closed ###")
 
     def market_depth(self, symbol):
         return self.table[symbol]
 
     def on_open(self, ws):
-        self.logger.info("ws on_open")        
-        """
+        self.logger.info("ws on_open")   
+        self.logger.info(ws.sock.connected) 
+        
         data = {
             "id": 5533,
             "action": "/api/v1/private/subscribe",
             "arguments": {
-                "instrument": ["all"],
+                #"instrument": ["all"],
+                #"instrument": ["BTC-29DEC17"],
+                "instrument": ["BTC-PERPETUAL"],
                 "event": ["order_book"]
             }
         }
-        data['sig'] = self.client.generate_signature(data['action'], data['arguments'])
 
-        ws.send(json.dumps(data))
-        """
+        data['sig'] = self.client.generate_signature(data['action'], data['arguments'])
+        self.logger.info("subscribe")     
+
+        #ws.send(json.dumps(data))
+        print (dir(ws))
+        print (ws.sock.connected)
+        
 
     def connect(self):
+        self.logger.info("connect ws")
         websocket.enableTrace(True)
         self.ws = websocket.WebSocketApp("wss://www.deribit.com/ws/api/v1/",
                                   on_message = self.on_message,

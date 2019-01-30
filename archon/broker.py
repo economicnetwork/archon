@@ -1,3 +1,7 @@
+"""
+broker without middleware
+"""
+
 import datetime
 import time
 from pymongo import MongoClient
@@ -56,11 +60,6 @@ class Broker:
 
         self.starttime = datetime.datetime.utcnow()
         
-
-        #workaround for urllib logger verbosity
-        #logging.getLogger("urllib3").setLevel(logging.WARNING)
-        #logging.getLogger("requests").setLevel(logging.WARNING)
-
         
     def set_mongo(self, uri):        
         self.logger.debug("using mongo %s"%str(uri))
