@@ -1,7 +1,9 @@
-"""BitMEX API Connector
+"""
+BitMEX API Connector
 
-originally from
-https://github.com/BitMEX/easy-data-scripts/
+originally from https://github.com/BitMEX/easy-data-scripts/
+* added time-out handling
+* candle request methods
 
 """
 import requests
@@ -373,7 +375,7 @@ class BitMEX(object):
 
         # Make the request
         try:
-            self.logger.debug("query verb %s url %s data %s query %s"%(str(verb),str(url),str(data),str(query)))
+            self.logger.debug("query verb %s url %s data %s query %s"%(str(verb),str(url),str(postdict),str(query)))
             self.logger.debug("auth %s"%str(auth))
             req = requests.Request(verb, url, data=postdict, auth=auth, params=query)
             prepped = self.session.prepare_request(req)
@@ -411,12 +413,6 @@ class BitMEX(object):
                     return
                 self.logger.error("Unable to contact the BitMEX API (404). Request: %s \n %s" % (url, json.dumps(postdict)))
                 raise ConnectionError("bitmex error. order canceled does not exist.")
-
-            # 503 - BitMEX temporary downtime, likely due to a deploy. Try again
-            elif response.status_code == 503:
-                self.logger.error("Unable to contact the BitMEX API (503), retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
-                sleep(1)
-                return self._query_bitmex(path, query, postdict, timeout, verb)            
             elif response.status_code == 429:
                  #Unhandled Error: 429 Client Error: Too Many Requests for url... {"error":{"message":"Rate limit exceeded, retry in 1 seconds.","name":"RateLimitError"}}
                  self.logger.error("429 Too Many Requests for url. Request: %s \n %s" % (url, json.dumps(postdict)))
@@ -426,6 +422,11 @@ class BitMEX(object):
                  self.logger.error("sleep for %i"%retry)
                  time.sleep(retry*2)
                  return self._query_bitmex(path, query, postdict, timeout, verb)
+            # 503 - BitMEX temporary downtime, likely due to a deploy. Try again
+            elif response.status_code == 503:
+                self.logger.error("Unable to contact the BitMEX API (503), retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
+                sleep(1)
+                return self._query_bitmex(path, query, postdict, timeout, verb)            
             # Unknown Error
             #TODO Timeouts?
             else:
