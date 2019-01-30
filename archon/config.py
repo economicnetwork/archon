@@ -6,7 +6,7 @@ def toml_file(fs):
             r = f.read() 
             return r           
     except Exception as e:
-        print ("file not found %s"%str(e))
+        raise Exception("toml file not found %s"%str(fs))
 
 def parse_toml(filename):
     toml_string = toml_file(filename)

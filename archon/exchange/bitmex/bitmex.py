@@ -31,6 +31,15 @@ instrument_btc_perp = "XBTUSD"
 instrument_btc_mar19 = "XBTH19"
 instrument_btc_jun19 = "XBTM19"
 
+class ConnectionError(Exception):
+    def __init__(self, message): #, errors):
+
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)
+
+        # custom code...
+        #self.errors = errors
+
 class BitMEX(object):
 
     """BitMEX REST API"""
@@ -240,12 +249,13 @@ class BitMEX(object):
 
     @authentication_required
     def buy(self, symbol, quantity, price):
-        """Place a buy order.
-        Returns order object. ID: orderID
-        """
+        """Place a buy order. 
+        Returns order object. ID: orderID"""
         #selling is encoded as positive quantities
         directional_quantity = +quantity
-        return self.place_order(symbol, directional_quantity, price)
+        result = self.place_order(symbol, directional_quantity, price)
+        self.logger.debug("order result %s"%str(result))
+        return result
 
     @authentication_required
     def buy_post(self, symbol, quantity, price):
@@ -381,6 +391,15 @@ class BitMEX(object):
                 sleep(1)
                 self.authenticate()
                 return self._query_bitmex(path, query, postdict, timeout, verb)
+            elif response.status_code == 403:
+                self.logger.error("403 error")
+                h = response.headers
+                self.logger.error("Unhandled Error: %s %s"%(str(e), str(response.text)))
+                self.logger.error("Endpoint was: %s %s" % (verb, path))
+                self.logger.error("headers %s"%(str(h)))
+                #raise Exception("bitmex connection error")
+                raise ConnectionError("bitmex error")
+
 
             # 404, can be thrown if order canceled does not exist.
             elif response.status_code == 404:
@@ -388,7 +407,7 @@ class BitMEX(object):
                     self.logger.error("Order not found: %s" % postdict['orderID'])
                     return
                 self.logger.error("Unable to contact the BitMEX API (404). Request: %s \n %s" % (url, json.dumps(postdict)))
-                raise Exception("bitmex connection")
+                raise ConnectionError("bitmex error. order canceled does not exist.")
 
             # 503 - BitMEX temporary downtime, likely due to a deploy. Try again
             elif response.status_code == 503:
@@ -398,17 +417,19 @@ class BitMEX(object):
             elif response.status_code == 429:
                  #Unhandled Error: 429 Client Error: Too Many Requests for url... {"error":{"message":"Rate limit exceeded, retry in 1 seconds.","name":"RateLimitError"}}
                  self.logger.error("429 Too Many Requests for url. Request: %s \n %s" % (url, json.dumps(postdict)))
-                 #print (response.headers)                 
                  h = response.headers
+                 #print (h)
                  retry = int(h["Retry-After"])
-                 self.logger.error("sleep for ",retry)
-                 time.sleep(retry)
+                 self.logger.error("sleep for %i"%retry)
+                 time.sleep(retry*2)
                  return self._query_bitmex(path, query, postdict, timeout, verb)
             # Unknown Error
+            #TODO Timeouts?
             else:
                 self.logger.error("Unhandled Error: %s %s"%(str(e), str(response.text)))
                 self.logger.error("Endpoint was: %s %s" % (verb, path))
-                raise Exception("bitmex connection error")
+                #raise Exception("bitmex connection error")
+                raise ConnectionError("bitmex error")
 
         except requests.exceptions.Timeout as e:
             # Timeout, re-run this request

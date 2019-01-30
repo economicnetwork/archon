@@ -4,11 +4,13 @@ import archon.exchange.exchanges as exc
 import archon.model.models as models
 import archon.exchange.deribit.Wrapper as deribit
 from datetime import datetime
+from archon.custom_logger import setup_logger, remove_loggers, remove_all_loggers
 
-abroker = broker.Broker(setAuto=True)
+abroker = broker.Broker(setAuto=True, setMongo=False)
 abroker.set_keys_exchange_file(exchanges=[exc.DERIBIT]) 
 client = abroker.afacade.get_client(exc.DERIBIT)
-
+remove_all_loggers()
+#remove_loggers()
 sym = 'BTC-PERPETUAL'
 
 th = client.tradehistory()

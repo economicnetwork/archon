@@ -84,7 +84,7 @@ class Facade:
             self.clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
         elif exchange==exc.DERIBIT:
             self.clients[exchange] = DeribitWrapper(key=key,secret=secret)
-            print ("set deri",self.clients[exchange])
+            self.logger.debug("set deri %s"%str(self.clients[exchange]))
 
 
 
@@ -687,13 +687,15 @@ class Facade:
         # ("order " + str(order))         
 
         self.logger.info("submit order " + str(exchange) + " " + str(order))
-        market,ttype,order_price,qty = order        
-        market = models.conv_markets_to(market, exchange)
+        market,ttype,order_price,qty = order 
+        #TODO       
+        #market = models.conv_markets_to(market, exchange)
         client = self.clients[exchange]
 
         orderD = {"market":market,"type":ttype,"price":order_price,"quantity":qty,"status": ORDERSTATUS_SUBMITTED}
 
         order_success = False
+        order_result = "unkown"
         #order[ORDERSTATUS] = ORDERSTATUS_SUBMITTED
         self.orders.append(orderD)
 
@@ -782,6 +784,24 @@ class Facade:
             #TODO log submitted order separately
         self.logger.info("order result: %s"%str(order_result))
         return [order_result,order_success]
+
+    def submit_order_post(self, order, exchange=None):
+        self.logger.info("submit order " + str(exchange) + " " + str(order))
+        market,ttype,order_price,qty = order 
+        #TODO       
+        #market = models.conv_markets_to(market, exchange)
+        client = self.clients[exchange]
+        if exchange==exc.BITMEX:
+            if ttype==ORDER_SIDE_BUY:
+                order_result = client.buy_post(quantity=qty, price=order_price, symbol=market)
+                order_success = True
+            elif ttype==ORDER_SIDE_SELL:
+                order_result = client.sell_post(quantity=qty, price=order_price, symbol=market)
+                order_success = True
+        
+        self.logger.info("order result: %s"%str(order_result))
+        return [order_result,order_success]                
+
 
 
     def submit_order_check(self, order):
@@ -873,7 +893,7 @@ class Facade:
         else:
             self.logger.error("no exchange provided")
 
-        self.logger.info("result " + str(result))
+        self.logger.debug("cancel result " + str(result))
         return result
 
     def get_deposits(self, exchange=None):

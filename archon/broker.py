@@ -12,7 +12,7 @@ from archon.feeds import cryptocompare
 from archon.util import *
 import archon.exchange.bitmex.fields as bitmexfields
 from archon.exchange.bitmex.ws.bitmex_ws import BitMEXWebsocket
-from archon.custom_logger import setup_logger
+from archon.custom_logger import setup_logger, remove_loggers
 import archon.exchange.bitmex.bitmex as mex
 
 standard_apikeys_file = "apikeys.toml"
@@ -23,7 +23,7 @@ class Broker:
     keeps datastructures in memory
     """
 
-    def __init__(self,setAuto=True):
+    def __init__(self,setAuto=True,setMongo=True):
 
         setup_logger(logger_name="broker", log_file='broker.log')
         self.logger = logging.getLogger("broker")
@@ -38,23 +38,24 @@ class Broker:
 
         if setAuto:
             self.set_keys_exchange_file()
-
-        try:
-            all_conf = parse_toml("conf.toml")
-        except:
-            self.logger.error("no conf.toml file")
-                
-        try:
-            mongo_conf = all_conf["MONGO"]
-            uri = mongo_conf["uri"]  
-            self.set_mongo(uri)
-            self.using_mongo = True
-        except:
-            self.using_mongo = False
-            self.logger.error("could not set mongo")
+                        
+        if setMongo:
+            try:
+                all_conf = parse_toml("conf.toml")
+            except:
+                self.logger.error("no conf.toml file")
+            try:
+                mongo_conf = all_conf["MONGO"]
+                uri = mongo_conf["uri"]  
+                self.set_mongo(uri)
+                self.using_mongo = True
+            except:
+                self.using_mongo = False
+                self.logger.error("could not set mongo")
         
 
         self.starttime = datetime.datetime.utcnow()
+        
 
         #workaround for urllib logger verbosity
         #logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -275,6 +276,28 @@ class Broker:
             self.logger.info("order result %s"%order_result)
 
         return [order_result,order_success]
+
+    def submit_order_post(self, order, exchange=None):
+
+        if exchange!=exc.BITMEX:
+            self.logger.error("post not supported")
+            """
+            
+            #TODO check balance before submit
+            #market,ttype,order_price,qty = order
+            self.log_submit_order(order)
+            
+            self.submitted_orders.append(order)
+            [order_result,order_success] = self.afacade.submit_order(order, exchange)
+            self.logger.info("order result %s"%order_result)
+            """
+        elif exchange==exc.DERIBIT:
+            self.logger.error("post not working")
+        elif exchange==exc.BITMEX:
+            [order_result,order_success] = self.afacade.submit_order_post(order, exchange)
+            self.logger.info("order result %s"%order_result)
+
+        return [order_result,order_success]        
 
 
     def __old_cancel_order(self, oid): 
