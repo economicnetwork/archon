@@ -6,6 +6,21 @@ import threading
 import logging
 from archon.custom_logger import setup_logger
 
+def on_open(ws):
+    """
+    def run(*args):
+        for i in range(3):
+            time.sleep(1)
+            ws.send("Hello %d" % i)
+        time.sleep(1)
+        ws.close()
+        print "thread terminating..."
+    thread.start_new_thread(run, ())
+    """
+    print ("open")
+    print (ws.sock.connected)
+
+
 class DeribitWebsocket():
 
     def __init__(self):
@@ -45,7 +60,7 @@ class DeribitWebsocket():
 
     def on_open(self, ws):
         self.logger.info("ws on_open")   
-        self.logger.info(ws.sock.connected) 
+        self.logger.info("connected %s" %str(ws.sock.connected))
         
         data = {
             "id": 5533,
@@ -59,19 +74,22 @@ class DeribitWebsocket():
         }
 
         data['sig'] = self.client.generate_signature(data['action'], data['arguments'])
-        self.logger.info("subscribe")     
+        self.logger.info("subscribe")
+        print (data)
 
-        #ws.send(json.dumps(data))
-        print (dir(ws))
-        print (ws.sock.connected)
+        ws.send(json.dumps(data))
+        #print (dir(ws))
+        #print (ws.sock.connected)
         
 
     def connect(self):
         self.logger.info("connect ws")
         websocket.enableTrace(True)
         self.ws = websocket.WebSocketApp("wss://www.deribit.com/ws/api/v1/",
-                                  on_message = self.on_message,
-                                  on_error = self.on_error,
+                                  on_message = lambda ws,msg: self.on_message(ws, msg),
+                                  on_error   = lambda ws,msg: self.on_error(ws, msg),
+                                  on_open    = lambda ws:  self.on_open(ws),
+                                  #on_open = self.on_open,                                  
                                   on_close = self.on_close)
         ssl_defaults = ssl.get_default_verify_paths()
         sslopt_ca_certs = {'ca_certs': ssl_defaults.cafile}
@@ -80,7 +98,6 @@ class DeribitWebsocket():
         self.wst.start()
         self.logger.info("Started thread")
         #TOOD subscribe later
-        self.ws.on_open = self.on_open(self.ws)
         #self.ws.run_forever()
 
     def __reset(self):

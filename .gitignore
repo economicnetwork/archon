@@ -8,3 +8,4 @@ dist/
 .vscode
 *.sh
 *.pyc
+*.toml
