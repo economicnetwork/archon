@@ -382,6 +382,11 @@ class BitMEX(object):
             response = self.session.send(prepped, timeout=timeout)
             # Make non-200s throw
             response.raise_for_status()
+            h = response.headers
+            self.logger.info("header %s"%str(h))
+            remain = int(h['X-RateLimit-Remaining'])
+            self.logger.info("remain %i"%remain)
+            if remain < 100: time.sleep(0.2)
 
         except requests.exceptions.HTTPError as e:
             # 401 - Auth error. Re-auth and re-run this request.
@@ -417,10 +422,16 @@ class BitMEX(object):
                  #Unhandled Error: 429 Client Error: Too Many Requests for url... {"error":{"message":"Rate limit exceeded, retry in 1 seconds.","name":"RateLimitError"}}
                  self.logger.error("429 Too Many Requests for url. Request: %s \n %s" % (url, json.dumps(postdict)))
                  h = response.headers
-                 #print (h)
+                 
+                 self.logger.error("headers %s"%str(h))
                  retry = int(h["Retry-After"])
-                 self.logger.error("sleep for %i"%retry)
-                 time.sleep(retry*2)
+                 remain = int(h["X-RateLimit-Remaining"])
+                 #'X-RateLimit-Remaining': '0', 
+                 reset = int(h['X-RateLimit-Reset'])
+                 nt =  int(time.time())
+                 wait_for = reset - nt
+                 time.sleep(wait_for)
+                 self.logger.error("wait for %i"%wait_for)
                  return self._query_bitmex(path, query, postdict, timeout, verb)
             # 503 - BitMEX temporary downtime, likely due to a deploy. Try again
             elif response.status_code == 503:

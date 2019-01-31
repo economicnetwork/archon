@@ -36,8 +36,9 @@ class DeribitWrapper(object):
         self.key = key
         self.secret = secret
         self.session = requests.Session()
-        self.ws = DeribitWebsocket()
-        self.ws.connect()
+        #connect ws?
+        #self.ws = DeribitWebsocket()
+        #self.ws.connect()
         
         if url:
             self.url = url

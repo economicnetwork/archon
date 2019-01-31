@@ -3,7 +3,7 @@ from deribit_api import RestClient
 import websocket
 import json
 import archon.config as config
-
+from datetime import datetime
 apikeys = config.parse_toml("apikeys.toml")
 
 k = apikeys["DERIBIT"]["public_key"]
@@ -11,22 +11,27 @@ s = apikeys["DERIBIT"]["secret"]
 #w = DeribitWrapper(key=k,secret=s)
 
 def main():
+    start = datetime.now()
+    mtype_count = {}
     client = RestClient(k, s)
 
     def on_message(ws, message):
+        cur = datetime.now()
+        since = cur - start
+        #print (since)
         m = message
         j = json.loads(m)
-        #print (type(j))
         if "notifications" in j.keys():
             n = j["notifications"][0]
-            #print (n)
             mtype = n["message"]
             r = n["result"]
-            print (mtype)
-            print (r["instrument"])
-        #n = m["notifications"]
-        #print (m) #[0]["message"])
-        #print(message)
+            instr = (r["instrument"])
+            if instr not in mtype_count.keys():
+                mtype_count[instr] = 0
+            mtype_count[instr] += 1
+
+            print (instr," ",mtype_count[instr]," ",since)
+            print (n)
 
     def on_error(ws, error):
         print(error)
@@ -39,9 +44,9 @@ def main():
             "id": 5533, 
             "action": "/api/v1/private/subscribe",  
             "arguments": {
-                "instrument": ["all"],
+                #"instrument": ["all"],
                 #"instrument": ["BTC-PERPETUAL","BTC-28JUN19-13000-C"],
-                #"instrument": ["BTC-28JUN19-13000-C"],
+                "instrument": ["BTC-29MAR19-3000-C"],
                 "event": ["order_book"] 
             }
         }

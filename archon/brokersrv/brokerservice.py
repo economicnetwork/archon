@@ -10,6 +10,7 @@ import redis
 
 from archon.config import *
 import archon.facade as facade
+import archon.facader as facader
 import archon.exchange.exchanges as exc
 from archon.model import models
 import archon.orderbooks as orderbooks
@@ -33,7 +34,7 @@ class BrokerService:
         setup_logger(logger_name="brokerservice", log_file='brokerservice.log')
         self.logger = logging.getLogger("brokerservice")
         
-        self.afacade = facade.Facade()
+        self.afacade = facader.FacadeRaw()
         #TODO 
         #in memory data
         self.balances = None
@@ -109,12 +110,11 @@ class BrokerService:
                     if eid >= 0:
                         try:
                             self.set_keys_exchange(eid, apikeys[k])
-                            self.active_exchanges.append(eid)
                         except Exception as err:
                             self.logger.error("could not set %s"%err)
                     else:
                         self.logger.error ("exchange not supported or not set")
-                self.logger.info("active exchanges %s"%self.active_exchanges)
+                #self.logger.info("active exchanges %s"%self.active_exchanges)
                     
             except Exception as err: 
                 self.logger.error("error parsing apikeys file %s"%(err))
@@ -149,40 +149,60 @@ class BrokerService:
 
     def openorders(self, e):
         if e==exc.BITMEX:
+            #print (REP_TOPIC_ORDERS_BITMEX)
             raw = self.redis_client.get(REP_TOPIC_ORDERS_BITMEX)
-            oo = json.loads(raw.decode('utf-8'))            
+            raw = raw.decode('utf-8')
+            oo = json.loads(raw)
             return oo        
 
     def orderbook(self, e):
         if e==exc.BITMEX:
             raw = self.redis_client.get(REP_TOPIC_MARKET_BOOK_BITMEX)
-            book = json.loads(raw.decode('utf-8'))
+            raw = raw.decode('utf-8')
+            raw = raw.replace("\'", "\"")
+            book = json.loads(raw)["data"]
             return book
+
+        elif e==exc.DERIBIT:
+            raw = self.redis_client.get(REP_TOPIC_MARKET_BOOK_DERIBIT)
+            raw = raw.decode('utf-8')
+            raw = raw.replace("\'", "\"")
+            book = json.loads(raw)
+            return book
+
 
     def position(self, e):
         if e==exc.BITMEX:
             raw = self.redis_client.get(REP_TOPIC_POS_BITMEX)
-            pos = json.loads(raw.decode('utf-8'))
+            raw = raw.decode('utf-8')
+            #print (">> ",type(raw))
+            pos = raw.replace("\'", "\"")
+            try:
+                #print (pos)
+                pos = json.loads(pos)["data"]["position"]
+            except Exception as e:
+                self.logger.error("convert error ",e)
             return pos
 
     def submit_order_post(self, order, exchange=None):
-        if exchange!=exc.BITMEX:
-            self.logger.error("post not supported")
-            """
-            
-            #TODO check balance before submit
-            #market,ttype,order_price,qty = order
-            self.log_submit_order(order)
-            
-            self.submitted_orders.append(order)
-            [order_result,order_success] = self.afacade.submit_order(order, exchange)
-            self.logger.info("order result %s"%order_result)
-            """
-        elif exchange==exc.DERIBIT:
+        self.logger.error("post not supported")
+        """
+        
+        #TODO check balance before submit
+        #market,ttype,order_price,qty = order
+        self.log_submit_order(order)
+        
+        self.submitted_orders.append(order)
+        [order_result,order_success] = self.afacade.submit_order(order, exchange)
+        self.logger.info("order result %s"%order_result)
+        """
+        if exchange==exc.DERIBIT:
             self.logger.error("post not working")
         elif exchange==exc.BITMEX:
             [order_result,order_success] = self.afacade.submit_order_post(order, exchange)
             self.logger.info("order result %s"%order_result)
+        else:
+            self.logger.error("not supportec")
 
         return [order_result,order_success]        
 

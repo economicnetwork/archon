@@ -7,6 +7,7 @@ from datetime import datetime
 import archon.broker as broker
 import archon.exchange.exchanges as exc
 import archon.exchange.bitmex.bitmex as mex
+import archon.exchange.deribit.Wrapper as deri
 import archon.facade as facade
 import archon.model.models as models
 from archon.custom_logger import setup_logger, remove_loggers
@@ -26,6 +27,8 @@ import redis
 from .topics import *
 
 
+#default_symbols = {exc.BITMEX:mex.instrument_btc_perp}
+
 class Feeder(threading.Thread):
     
     def __init__(self, abroker):
@@ -37,50 +40,63 @@ class Feeder(threading.Thread):
         #r = redis.Redis(host='localhost', port=6379, db=0)
         self.redisclient = redis.StrictRedis(host='localhost', port=6379)  
 
+        #TODO in config
         mex_sym = mex.instrument_btc_perp
         self.mex_sym = mex_sym
 
-    def get_book(self):        
-        book = self.abroker.afacade.get_orderbook(self.mex_sym, exc.BITMEX)
-        return book
-
-    def mex_position(self):
-        mex_client = self.abroker.afacade.get_client(exc.BITMEX)
-        pos = mex_client.position()
-        return pos        
-
-    def open_orders(self, e):
-        if e==exc.BITMEX:
-            oo = self.abroker.afacade.open_orders(exc.BITMEX)
-            return oo     
 
     def pub_set(self, topic, data):
         """ publish and set """        
         #self.redisclient.publish(SUB_TOPIC_MARKET_BOOK_BITMEX, json.dumps({"topic":SUB_TOPIC_MARKET_BOOK_BITMEX,"data":book}))
-        jdata = json.dumps({"topic":topic,"data":data})
+        d = {"topic":topic,"data":data}
+        jdata = json.dumps(d)
         self.redisclient.publish(topic, jdata)
         t = rep + topic[4:]
-        self.redisclient.set(t, data)
+        self.redisclient.set(t, jdata)
+
+        db = self.abroker.get_db()
+        tt = topic[4:]
+        print (tt)
+        db[tt].insert_one(d)
+
+    def publish_bitmex(self):
+        wait = 0.1 # bitmex rate limit 300 per 300 seconds
+        pos = self.abroker.afacade.position(exc.BITMEX)
+        pos = {"position": pos}
+        time.sleep(wait)
+        #print ("pos ",data)
+        #print ("position ",pos)
+        #if pos == []: pos = {}
+        
+        self.pub_set(SUB_TOPIC_POS_BITMEX, pos)
+
+        oo = self.abroker.afacade.openorders(exc.BITMEX, mex.instrument_btc_perp)
+        time.sleep(wait)
+        self.pub_set(SUB_TOPIC_ORDERS_BITMEX, oo)
+
+        book = self.abroker.afacade.orderbook(self.mex_sym, exc.BITMEX) 
+        time.sleep(wait)
+        self.pub_set(SUB_TOPIC_MARKET_BOOK_BITMEX, book)
+
+    def publish_deribit(self):
+        pos = self.abroker.afacade.position(exc.DERIBIT)
+        if pos == None or pos == []: pos = {}
+        self.pub_set(SUB_TOPIC_POS_DERIBIT, pos)
+
+        oo = self.abroker.afacade.openorders(exc.DERIBIT, deri.instrument_btc_perp)
+        if oo == None or oo == []: oo = {}
+        self.pub_set(SUB_TOPIC_ORDERS_DERIBIT, oo)
+        data = self.abroker.afacade.orderbook(deri.instrument_btc_perp, exc.DERIBIT) 
+        self.pub_set(SUB_TOPIC_MARKET_BOOK_DERIBIT, data)
+
 
     def run(self):
         while True:
-            print ("feeder loop")
+            self.log.info("feeder loop")
             #TODO openorders
             #TODO position
 
-            data = self.mex_position()
-            print ("pos ",data)
-            if data == []: data = "No position"
-            
-            self.pub_set(SUB_TOPIC_POS_BITMEX, data)
+            self.publish_bitmex()
+            self.publish_deribit()
 
-            oo = self.open_orders(exc.BITMEX)
-            self.pub_set(SUB_TOPIC_ORDERS_BITMEX, oo)
-
-            #self.redisclient.publish(SUB_TOPIC_ORDERS_BITMEX, json.dumps({"topic":SUB_TOPIC_ORDERS_BITMEX,"data":oo}))
-            book = self.get_book()            
-            self.pub_set(SUB_TOPIC_MARKET_BOOK_BITMEX, book)
-
-            #book_util.display_book(self.book)
-
-            time.sleep(5)
+            time.sleep(0.5)

@@ -86,8 +86,6 @@ class Facade:
             self.clients[exchange] = DeribitWrapper(key=key,secret=secret)
             self.logger.debug("set deri %s"%str(self.clients[exchange]))
 
-
-
     def get_client(self, EXC):
         """ directly get a client """
         return self.clients[EXC]
@@ -626,6 +624,18 @@ class Facade:
                 oo = l
             else:
                 oo = []
+        elif exchange==exc.BITMEX:
+            #TODO
+            try:
+                #symbol = "XBTUSD"
+                oo = client.open_orders(symbol=symbol)
+                self.logger.debug("open orders %s"%str(oo))
+            except Exception as e:
+                self.logger.error("bitmex error %s"%str(e))
+
+        elif exchange==exc.DERIBIT:
+                oo = client.getopenorders(symbol)
+                
         n = exc.NAMES[exchange]
         #self.logger.info("open orders: " + str(n) + " " + str(oo))
         return oo
@@ -668,6 +678,7 @@ class Facade:
             f = lambda x: models.conv_openorder(x,exchange)
             oo = list(map(f,oo))
 
+        """
         elif exchange==exc.BITMEX:
             #TODO
             try:
@@ -676,6 +687,11 @@ class Facade:
                 self.logger.debug("open orders %s"%str(oo))
             except Exception as e:
                 self.logger.error("bitmex error %s"%str(e))
+
+        elif exchange==exc.DERIBIT:
+                oo = deri_client.getopenorders(deri_sym)
+        """
+
         n = exc.NAMES[exchange]
         #self.logger.info("open orders " + str(n) + " " + str(oo))
         return oo    
