@@ -135,17 +135,7 @@ class Broker:
         self.mail_domain = domain
         #self.email_from = email_from
         #self.email_to = email_to        
-
-    # --- WS specific ---
-
-    def init_bitmex_ws(self, symbol=mex.instrument_btc_perp):  
-        apikeys = parse_toml(standard_apikeys_file)  
-        k,s = apikeys["BITMEX"]["public_key"],apikeys["BITMEX"]["secret"]
-        #symbol = "XBTUSD"
-        #only xbt for now
-        self.bitmexws = BitMEXWebsocket(symbol=symbol, api_key=k, api_secret=s)
         
-
     # --- bitmex specfic ---
      
     def margin_balance(self, e):

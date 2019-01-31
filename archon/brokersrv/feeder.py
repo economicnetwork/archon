@@ -37,7 +37,6 @@ class Feeder(threading.Thread):
         self.log = logging.getLogger("Feeder")
         self.abroker = abroker
         self.log.info("init feeder")
-        #r = redis.Redis(host='localhost', port=6379, db=0)
         self.redisclient = redis.StrictRedis(host='localhost', port=6379)  
 
         #TODO in config
@@ -47,7 +46,6 @@ class Feeder(threading.Thread):
 
     def pub_set(self, topic, data):
         """ publish and set """        
-        #self.redisclient.publish(SUB_TOPIC_MARKET_BOOK_BITMEX, json.dumps({"topic":SUB_TOPIC_MARKET_BOOK_BITMEX,"data":book}))
         d = {"topic":topic,"data":data}
         jdata = json.dumps(d)
         self.redisclient.publish(topic, jdata)
@@ -56,7 +54,7 @@ class Feeder(threading.Thread):
 
         db = self.abroker.get_db()
         tt = topic[4:]
-        print (tt)
+        #store
         db[tt].insert_one(d)
 
     def publish_bitmex(self):

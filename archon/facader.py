@@ -102,3 +102,19 @@ class FacadeRaw:
             book = client.getorderbook(market)
             #book = models.conv_orderbook(ob, exchange)
             return book            
+
+    def cancel_id(self, oid, otype=None, market=None, exchange=None):
+        """ cancel by id """
+            
+        self.logger.info("cancel " + str(oid) + " " + str(exchange) + " " + str(otype))
+        result = None
+        client = self.clients[exchange]
+        if exchange==exc.BITMEX:
+            result = client.cancel(oid)
+        elif exchange==exc.DERIBIT:
+            result = client.cancel(oid)
+        else:
+            self.logger.error("no exchange provided")
+
+        self.logger.debug("cancel result " + str(result))
+        return result

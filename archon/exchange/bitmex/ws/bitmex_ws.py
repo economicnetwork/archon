@@ -29,7 +29,7 @@ class BitMEXWebsocket:
     # Don't grow a table larger than this amount. Helps cap memory usage.
     MAX_TABLE_LEN = 200
 
-    def __init__(self, symbol, api_key=None, api_secret=None, endpoint=endpoint_V1):
+    def __init__(self, redis_client, symbol, api_key=None, api_secret=None, endpoint=endpoint_V1):
         '''Connect to the websocket and initialize data stores.'''        
         setup_logger(__name__, 'strategy.log')
         self.logger = logging.getLogger(__name__)        
@@ -47,6 +47,8 @@ class BitMEXWebsocket:
         
         self.api_key = api_key
         self.api_secret = api_secret
+
+        self.redis_client = redis_client
 
         self.data = {}
         self.keys = {}
@@ -68,9 +70,10 @@ class BitMEXWebsocket:
         #2 wait for subscription success
         #3 handle update (could e.g. ignore updates)        
 
-        #self.symbolSubs = [TOPIC_orderBookL2_25]
-        #self.symbolSubs = [TOPIC_instrument, TOPIC_orderBook10, TOPIC_quote, TOPIC_trade]
-        self.symbolSubs = [TOPIC_instrument, TOPIC_orderBookL2_25, TOPIC_quote, TOPIC_trade]
+        #self.symbolSubs = [TOPIC_orderBookL2_25]       
+        # #orderBookL2 
+        #self.symbolSubs = [TOPIC_instrument, TOPIC_orderBookL2_25, TOPIC_quote, TOPIC_trade]
+        self.symbolSubs = [TOPIC_instrument, TOPIC_orderBook10, TOPIC_quote, TOPIC_trade]
         self.genericSubs = [TOPIC_margin]
 
         symbol_subscriptions = [sub + ':' + self.symbol for sub in self.symbolSubs]
@@ -90,7 +93,7 @@ class BitMEXWebsocket:
 
         # Connected. Wait for partials
 
-        self.subscribe_topic(TOPIC_orderBook10)
+        #self.subscribe_topic(TOPIC_orderBook10)
         
         self.logger.info('Wait for initial data')
 
@@ -313,6 +316,7 @@ class BitMEXWebsocket:
         asks = data['asks']
         self.orderbook["bids"] = bids
         self.orderbook["asks"] = asks
+        print (self.orderbook)
 
     def handle_update(self, table, message):
         #self.logger.debug('%s: updating %s' % (table, message['data']))
@@ -342,7 +346,7 @@ class BitMEXWebsocket:
 
     def handle_message(self, message):
         msg = json.dumps(message)
-        self.logger.debug(msg)
+        self.logger.debug("message %s"%str(msg))
         #pdb.set_trace()
         #self.logger.debug("got msg. %s %s"%str(self.got_init_data),set(self.data))
         #self.missing_topics()

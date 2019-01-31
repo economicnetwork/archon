@@ -145,6 +145,15 @@ class BrokerService:
         #self.email_to = email_to  
         # 
 
+    # --- WS specific ---
+
+    def init_bitmex_ws(self, symbol=mex.instrument_btc_perp):  
+        apikeys = parse_toml(standard_apikeys_file)  
+        k,s = apikeys["BITMEX"]["public_key"],apikeys["BITMEX"]["secret"]
+        #symbol = "XBTUSD"
+        #only xbt for now
+        self.bitmexws = BitMEXWebsocket(symbol=symbol, api_key=k, api_secret=s)
+
     # ----------------------    
 
     def openorders(self, e):
@@ -152,8 +161,14 @@ class BrokerService:
             #print (REP_TOPIC_ORDERS_BITMEX)
             raw = self.redis_client.get(REP_TOPIC_ORDERS_BITMEX)
             raw = raw.decode('utf-8')
-            oo = json.loads(raw)
-            return oo        
+            oo = json.loads(raw)["data"]
+            return oo   
+        elif e==exc.DERIBIT:
+            raw = self.redis_client.get(REP_TOPIC_ORDERS_DERIBIT)
+            raw = raw.decode('utf-8')
+            oo = json.loads(raw)["data"]
+            return oo   
+
 
     def orderbook(self, e):
         if e==exc.BITMEX:
@@ -167,7 +182,7 @@ class BrokerService:
             raw = self.redis_client.get(REP_TOPIC_MARKET_BOOK_DERIBIT)
             raw = raw.decode('utf-8')
             raw = raw.replace("\'", "\"")
-            book = json.loads(raw)
+            book = json.loads(raw)["data"]
             return book
 
 
@@ -197,7 +212,8 @@ class BrokerService:
         self.logger.info("order result %s"%order_result)
         """
         if exchange==exc.DERIBIT:
-            self.logger.error("post not working")
+            #self.logger.error("post not working")
+            [order_result,order_success] = self.afacade.submit_order_post(order, exchange)
         elif exchange==exc.BITMEX:
             [order_result,order_success] = self.afacade.submit_order_post(order, exchange)
             self.logger.info("order result %s"%order_result)

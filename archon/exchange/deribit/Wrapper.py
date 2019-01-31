@@ -150,6 +150,16 @@ class DeribitWrapper(object):
     def getcurrencies(self):
         return self._deri_request(base_public_api + "getcurrencies", {})
 
+    def getlasttrades_recent(self, instrument,count=100):
+        options = {
+            'instrument': instrument,
+            'includeOld': 'true',
+            'count':count
+        }        
+
+        r = self._deri_request(base_public_api + "getlasttrades", options)
+        return r
+
     def getlasttrades(self, instrument, start, end, count=100):
         options = {
             'instrument': instrument,
