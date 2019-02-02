@@ -1,3 +1,7 @@
+from archon.custom_logger import setup_logger
+from archon.exchange.bitmex.ws.api_util import generate_nonce, generate_signature
+from archon.exchange.bitmex.ws.bitmex_topics import *
+from archon.brokersrv.topics import *
 import websocket
 import threading
 import traceback
@@ -5,9 +9,6 @@ from time import sleep
 import json
 import urllib
 import math
-from archon.custom_logger import setup_logger
-from archon.exchange.bitmex.ws.api_util import generate_nonce, generate_signature
-from archon.exchange.bitmex.ws.bitmex_topics import *
 import pdb
 import logging
 import colorlog
@@ -317,6 +318,15 @@ class BitMEXWebsocket:
         self.orderbook["bids"] = bids
         self.orderbook["asks"] = asks
         print (self.orderbook)
+        
+        #self.redis_client.set()
+        topic = SUB_TOPIC_MARKET_BOOK_BITMEX
+        t = rep + topic[4:]
+        d = {"topic":topic,"data":data}
+        jdata = json.dumps(d)
+        self.redis_client.publish(topic, jdata)
+        self.redis_client.set(t, jdata)
+
 
     def handle_update(self, table, message):
         #self.logger.debug('%s: updating %s' % (table, message['data']))

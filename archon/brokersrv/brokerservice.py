@@ -65,6 +65,8 @@ class BrokerService:
         #TODO conf
         self.redis_client = redis.Redis(host='localhost', port=6379)
 
+        self.init_bitmex_ws(self.redis_client)
+
         if initFeeder:
             f = Feeder(self)
             f.start()
@@ -147,12 +149,10 @@ class BrokerService:
 
     # --- WS specific ---
 
-    def init_bitmex_ws(self, symbol=mex.instrument_btc_perp):  
+    def init_bitmex_ws(self, redis_client, symbol=mex.instrument_btc_perp):  
         apikeys = parse_toml(standard_apikeys_file)  
         k,s = apikeys["BITMEX"]["public_key"],apikeys["BITMEX"]["secret"]
-        #symbol = "XBTUSD"
-        #only xbt for now
-        self.bitmexws = BitMEXWebsocket(symbol=symbol, api_key=k, api_secret=s)
+        self.bitmexws = BitMEXWebsocket(redis_client, symbol=symbol, api_key=k, api_secret=s)
 
     # ----------------------    
 
