@@ -14,9 +14,14 @@ from datetime import datetime
 a = broker.Broker()
 a.set_keys_exchange_file()
 client = a.afacade.get_client(exc.BINANCE)
-market = models.get_market("RVN","BTC",exc.BINANCE)
-x = client.get_orderbook_symbol(market)
-time.sleep(0.5)
-m = models.market_from("RVN","BTC")
-[bids,asks] = a.afacade.get_orderbook(m,exc.BINANCE)
+market = models.get_market("REP","ETH",exc.BINANCE)
+[bids,asks] = a.afacade.get_orderbook(market,exc.BINANCE)
 print (bids[0],asks[0])
+
+"""
+#print (market)
+m = models.market_from("REP","ETH")
+print (m)
+#x = client.get_orderbook_symbol(market)
+#print (x)
+"""

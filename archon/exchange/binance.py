@@ -14,7 +14,7 @@ class BinanceAPIException(Exception):
     def __init__(self, response):
         setup_logger(logger_name=__name__, log_file=__name__ + '.log')
         self.logger = logging.getLogger(__name__)
-        self.self.loggerdebug("init binance")
+        self.logger.debug("init binance")
 
         self.code = 0
         try:
