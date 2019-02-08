@@ -59,6 +59,10 @@ see [install doc](docs/install.md)
 
 API keys - recommended is to limit the keys to disallow withdraws
 
+## Whitepaper
+
+https://docs.google.com/document/d/1FWQLGnzlZllC51M86iJbp5lcOvtQzisMInrTKHAeE2c/edit?usp=sharing
+
 ## Telegram group
 
 https://t.me/joinchat/Dzif7RALfRB98BocX72Z3Q
