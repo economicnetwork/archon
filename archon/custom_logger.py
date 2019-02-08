@@ -1,5 +1,6 @@
 import logging
 import colorlog
+import os
 
 #format="%(asctime)s [%(threadName)-12.12s] [%(filename)-18s] [%(name)s] [%(levelname)-5.5s]  %(message)s",        
 
@@ -9,7 +10,10 @@ def setup_logger(logger_name, log_file, level=logging.DEBUG):
 
     formatter = logging.Formatter('[%(name)s] %(asctime)s : %(message)s')
 
-    fileHandler = logging.FileHandler("./log/" + log_file, mode='w')
+    logdir = "./log"
+    if not os.path.exists(logdir):
+        os.makedirs(logdir)
+    fileHandler = logging.FileHandler(logdir + log_file, mode='w')
     fileHandler.setFormatter(formatter)
 
     l.setLevel(level)

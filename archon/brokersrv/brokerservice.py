@@ -72,17 +72,19 @@ class BrokerService:
 
         #init feeder stream
         if setRedis:
+            self.logger.info(all_conf)
             try:
                 redis_conf = all_conf["REDIS"]       
-                host = redis_conf["HOST"]     
-                port = redis_conf["PORT"]
+                host = redis_conf["host"]     
+                port = redis_conf["port"]
                 self.redis_client = redis.Redis(host=host, port=port)
             except:
-                self.logger.error("could not set redis")
+                self.logger.error("could not set redis %s %s"%(str(host),str(port)))
 
 
         #self.init_bitmex_ws(self.redis_client)
 
+        #init feeder thread
         if initFeeder:
             f = Feeder(self)
             f.start()

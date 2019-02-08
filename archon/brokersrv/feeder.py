@@ -37,12 +37,11 @@ class Feeder(threading.Thread):
         self.log = logging.getLogger("Feeder")
         self.abroker = abroker
         self.log.info("init feeder")
-        self.redisclient = redis.StrictRedis(host='localhost', port=6379)  
+        self.redisclient = abroker.get_redis()
 
         #TODO in config
         mex_sym = mex.instrument_btc_perp
         self.mex_sym = mex_sym
-
 
     def pub_set(self, topic, data):
         """ publish and set """        
@@ -76,6 +75,9 @@ class Feeder(threading.Thread):
         time.sleep(wait)
         self.pub_set(SUB_TOPIC_MARKET_BOOK_BITMEX, book)
 
+    def publish_facil(self):
+        pass
+
     def publish_deribit(self):
         pos = self.abroker.afacade.position(exc.DERIBIT)
         if pos == None or pos == []: pos = {}
@@ -95,6 +97,6 @@ class Feeder(threading.Thread):
             #TODO position
 
             self.publish_bitmex()
-            self.publish_deribit()
+            #self.publish_deribit()
 
             time.sleep(0.5)

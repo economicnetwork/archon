@@ -6,6 +6,7 @@ import datetime
 import time
 from pymongo import MongoClient
 import logging
+import os
 
 from archon.config import *
 import archon.facade as facade
@@ -26,7 +27,7 @@ class Broker:
     """
 
     def __init__(self,setAuto=True,setMongo=True):
-
+        
         setup_logger(logger_name="broker", log_file='broker.log')
         self.logger = logging.getLogger("broker")
         
