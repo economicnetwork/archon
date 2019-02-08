@@ -14,3 +14,4 @@ apscheduler
 arctic
 flask
 colorlog
+redis

@@ -1,24 +1,3 @@
-# Crypto Facilities Ltd REST API v3
-
-# Copyright (c) 2018 Crypto Facilities
-
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the "Software"),
-# to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
-# and/or sell copies of the Software, and to permit persons to whom the
-# Software is furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included
-# in all copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
-# IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 import time
 import base64
 import hashlib
@@ -27,33 +6,36 @@ import json
 import urllib.request as urllib2
 import ssl
 
+instrument_btc_perp_inv = "pi_xbtusd"
 
 class cfApiMethods(object):
-    def __init__(self, apiPath, apiPublicKey="", apiPrivateKey="", timeout=10, checkCertificate=True):
-        self.apiPath = apiPath
+    def __init__(self, apiPublicKey="", apiPrivateKey="", timeout=10, checkCertificate=True):
+        self.apiPath = "https://www.cryptofacilities.com/derivatives"
         self.apiPublicKey = apiPublicKey
         self.apiPrivateKey = apiPrivateKey
         self.timeout = timeout
         self.nonce = 0
-        self.checkCertificate = checkCertificate
+        self.checkCertificate = True  # when using the test environment, this must be set to "False"
+        #self.checkCertificate = checkCertificate
+
 
     ##### public endpoints #####
 
     # returns all instruments with specifications
     def get_instruments(self):
         endpoint = "/api/v3/instruments"
-        return self.make_request("GET", endpoint)
+        return self._make_request("GET", endpoint)
 
     # returns market data for all instruments
     def get_tickers(self):
         endpoint = "/api/v3/tickers"
-        return self.make_request("GET", endpoint)
+        return self._make_request("GET", endpoint)
 
     # returns the entire order book of a futures
     def get_orderbook(self, symbol):
         endpoint = "/api/v3/orderbook"
         postUrl = "symbol=%s" % symbol
-        return self.make_request("GET", endpoint, postUrl=postUrl)
+        return self._make_request("GET", endpoint, postUrl=postUrl)
 
     # returns historical data for futures and indices
     def get_history(self, symbol, lastTime=""):
@@ -62,7 +44,7 @@ class cfApiMethods(object):
             postUrl = "symbol=%s&lastTime=%s" % (symbol, lastTime)
         else:
             postUrl = "symbol=%s" % symbol
-        return self.make_request("GET", endpoint, postUrl=postUrl)
+        return self._make_request("GET", endpoint, postUrl=postUrl)
 
     ##### private endpoints #####
 
@@ -71,12 +53,12 @@ class cfApiMethods(object):
     # Use get_accounts instead
     def get_account(self):
         endpoint = "/api/v3/account"
-        return self.make_request("GET", endpoint)
+        return self._make_request("GET", endpoint)
 
     # returns key account information
     def get_accounts(self):
         endpoint = "/api/v3/accounts"
-        return self.make_request("GET", endpoint)
+        return self._make_request("GET", endpoint)
 
     # places an order
     def send_order(self, orderType, symbol, side, size, limitPrice, stopPrice=None, clientOrderId=None):
@@ -89,7 +71,7 @@ class cfApiMethods(object):
         if clientOrderId is not None:
             postBody += "&cliOrdId=%s" % clientOrderId
 
-        return self.make_request("POST", endpoint, postBody=postBody)
+        return self._make_request("POST", endpoint, postBody=postBody)
 
     # cancels an order
     def cancel_order(self, order_id=None, cli_ord_id=None):
@@ -100,7 +82,7 @@ class cfApiMethods(object):
         else:
             postBody = "order_id=%s" % order_id
 
-        return self.make_request("POST", endpoint, postBody=postBody)
+        return self._make_request("POST", endpoint, postBody=postBody)
 
     # cancel all orders
     def cancel_all_orders(selfs, symbol=None):
@@ -110,7 +92,7 @@ class cfApiMethods(object):
         else:
             postbody = ""
 
-        return selfs.make_request("POST", endpoint, postBody=postbody)
+        return selfs._make_request("POST", endpoint, postBody=postbody)
 
 
     # cancel all orders after
@@ -118,18 +100,18 @@ class cfApiMethods(object):
         endpoint = "/api/v3/cancelallordersafter"
         postbody = "timeout=%s" % timeoutInSeconds
 
-        return selfs.make_request("POST", endpoint, postBody=postbody)
+        return selfs._make_request("POST", endpoint, postBody=postbody)
 
     # places or cancels orders in batch
     def send_batchorder(self, jsonElement):
         endpoint = "/api/v3/batchorder"
         postBody = "json=%s" % jsonElement
-        return self.make_request("POST", endpoint, postBody=postBody)
+        return self._make_request("POST", endpoint, postBody=postBody)
 
     # returns all open orders
     def get_openorders(self):
         endpoint = "/api/v3/openorders"
-        return self.make_request("GET", endpoint)
+        return self._make_request("GET", endpoint)
 
     # returns filled orders
     def get_fills(self, lastFillTime=""):
@@ -138,18 +120,18 @@ class cfApiMethods(object):
             postUrl = "lastFillTime=%s" % lastFillTime
         else:
             postUrl = ""
-        return self.make_request("GET", endpoint, postUrl=postUrl)
+        return self._make_request("GET", endpoint, postUrl=postUrl)
 
     # returns all open positions
     def get_openpositions(self):
         endpoint = "/api/v3/openpositions"
-        return self.make_request("GET", endpoint)
+        return self._make_request("GET", endpoint)
 
     # sends an xbt withdrawal request
     def send_withdrawal(self, targetAddress, currency, amount):
         endpoint = "/api/v3/withdrawal"
         postBody = "targetAddress=%s&currency=%s&amount=%s" % (targetAddress, currency, amount)
-        return self.make_request("POST", endpoint, postBody=postBody)
+        return self._make_request("POST", endpoint, postBody=postBody)
 
     # returns xbt transfers
     def get_transfers(self, lastTransferTime=""):
@@ -158,21 +140,22 @@ class cfApiMethods(object):
             postUrl = "lastTransferTime=%s" % lastTransferTime
         else:
             postUrl = ""
-        return self.make_request("GET", endpoint, postUrl=postUrl)
+        return self._make_request("GET", endpoint, postUrl=postUrl)
 
     # returns all notifications
     def get_notifications(self):
         endpoint = "/api/v3/notifications"
-        return self.make_request("GET", endpoint)
+        return self._make_request("GET", endpoint)
 
     # makes an internal transfer
     def transfer(self, fromAccount, toAccount, unit, amount):
         endpoint = "/api/v3/transfer"
         postBody = "fromAccount=%s&toAccount=%s&unit=%s&amount=%s" % (fromAccount, toAccount, unit, amount)
-        return self.make_request("POST", endpoint, postBody=postBody)
+        return self._make_request("POST", endpoint, postBody=postBody)
+
 
     # signs a message
-    def sign_message(self, endpoint, nonce, postData):
+    def _sign_message(self, endpoint, nonce, postData):
         # step 1: concatenate postData, nonce + endpoint                
         message = postData + nonce + endpoint
 
@@ -191,16 +174,16 @@ class cfApiMethods(object):
         return base64.b64encode(hmac_digest)
 
     # creates a unique nonce
-    def get_nonce(self):
+    def _get_nonce(self):
         self.nonce += 1
         return str(int(time.time() * 1000)) + str(self.nonce).zfill(4)
 
     # sends an HTTP request
-    def make_request(self, requestType, endpoint, postUrl="", postBody=""):
+    def _make_request(self, requestType, endpoint, postUrl="", postBody=""):
         # create authentication headers
-        nonce = self.get_nonce()
+        nonce = self._get_nonce()
         postData = postUrl + postBody
-        signature = self.sign_message(endpoint, nonce, postData)
+        signature = self._sign_message(endpoint, nonce, postData)
         authentHeaders = {"APIKey": self.apiPublicKey, "Nonce": nonce, "Authent": signature}
 
         # create request
