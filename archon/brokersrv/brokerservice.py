@@ -63,9 +63,11 @@ class BrokerService:
 
         self.starttime = datetime.datetime.utcnow()        
         #TODO conf
+
+        #init feeder stream
         self.redis_client = redis.Redis(host='localhost', port=6379)
 
-        self.init_bitmex_ws(self.redis_client)
+        #self.init_bitmex_ws(self.redis_client)
 
         if initFeeder:
             f = Feeder(self)
