@@ -5,7 +5,8 @@ email_from = ""
 email_to = ""
 
 [MONGO]
+uri = "mongodb://localhost:27017"
+
+[REDIS]
 host = "localhost"
-port = 27107
-db = "arch"
-url = "mongodb://localhost:27017"
+port = 6379

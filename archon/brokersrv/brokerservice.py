@@ -23,13 +23,14 @@ import archon.exchange.bitmex.bitmex as mex
 from .feeder import Feeder
 from .topics import *
 import json
+import os
 
 standard_apikeys_file = "apikeys.toml"
 
 
 class BrokerService:
 
-    def __init__(self,setAuto=True,setMongo=True,initFeeder=True):
+    def __init__(self,setAuto=True,setMongo=True,setRedis=True,initFeeder=True):
 
         setup_logger(logger_name="brokerservice", log_file='brokerservice.log')
         self.logger = logging.getLogger("brokerservice")
@@ -43,29 +44,42 @@ class BrokerService:
         #self.active_exchanges = list()
         #self.selected_exchange = None
 
+        confFile = "conf.toml"
         if setAuto:
             self.set_keys_exchange_file()
                         
-        if setMongo:
+        if not os.path.exists(confFile): 
+            self.logger.error("no conf.toml file")
+        else:
             try:
-                all_conf = parse_toml("conf.toml")
+                all_conf = parse_toml(confFile)
             except:
-                self.logger.error("no conf.toml file")
+                self.logger.error("config file %s not properly formatted"%str(confFile))
+
+        if setMongo:
             try:
                 mongo_conf = all_conf["MONGO"]
                 uri = mongo_conf["uri"]  
                 self.set_mongo(uri)
                 self.using_mongo = True
             except:
-                self.using_mongo = False
-                self.logger.error("could not set mongo")
-        
+                self.using_mongo = False                    
+                self.logger.error("could not set mongo. wrong configuration on config file")
+    
 
         self.starttime = datetime.datetime.utcnow()        
         #TODO conf
 
         #init feeder stream
-        self.redis_client = redis.Redis(host='localhost', port=6379)
+        if setRedis:
+            try:
+                redis_conf = all_conf["REDIS"]       
+                host = redis_conf["HOST"]     
+                port = redis_conf["PORT"]
+                self.redis_client = redis.Redis(host=host, port=port)
+            except:
+                self.logger.error("could not set redis")
+
 
         #self.init_bitmex_ws(self.redis_client)
 
