@@ -9,3 +9,4 @@ dist/
 *.sh
 *.pyc
 *.toml
+dumb.rdb
