@@ -27,6 +27,7 @@ import os
 from pathlib import Path
                 
 standard_apikeys_file = "apikeys.toml"
+standard_conf_file = "config.toml"
 
 
 class BrokerService:
@@ -49,12 +50,13 @@ class BrokerService:
         
         wdir = self.get_workingdir()
 
+        keys_filename = standard_conf_file
         path_file_conf = wdir + "/" + keys_filename
         if setAuto:
             self.set_keys_exchange_file()
                         
         if not os.path.exists(path_file_conf): 
-            self.logger.error("no conf.toml file. expected path %s"%str(path_file_conf))
+            self.logger.error("no toml file. expected path %s"%str(path_file_conf))
         else:
             try:
                 all_conf = parse_toml(path_file_conf)
@@ -64,12 +66,14 @@ class BrokerService:
         if setMongo:
             try:
                 mongo_conf = all_conf["MONGO"]
+                self.logger.info("mongo conf %s"%str(mongo_conf))
                 uri = mongo_conf["uri"]  
                 self.set_mongo(uri)
                 self.using_mongo = True
-            except:
+            except Exception as e:
                 self.using_mongo = False                    
-                self.logger.error("could not set mongo. wrong configuration on config file")
+                self.logger.error("could not set mongo. wrong configuration or config file")
+                self.logger.error(str(e))
     
 
         self.starttime = datetime.datetime.utcnow()        
@@ -83,8 +87,9 @@ class BrokerService:
                 host = redis_conf["host"]     
                 port = redis_conf["port"]
                 self.redis_client = redis.Redis(host=host, port=port)
-            except:
+            except Exception as e:
                 self.logger.error("could not set redis %s %s"%(str(host),str(port)))
+                self.logger.error(str(e))
 
 
         #self.init_bitmex_ws(self.redis_client)
@@ -128,7 +133,7 @@ class BrokerService:
 
     def set_keys_exchange_file(self,keys_filename=standard_apikeys_file,exchanges=None):
         wdir = self.get_workingdir()
-        path_file_apikeys = wdir + keys_filename
+        path_file_apikeys = wdir + "/" + keys_filename
         if not os.path.exists(path_file_apikeys): 
             self.logger.error("no %s file. expected path %s"%(keys_filename,str(path_file_apikeys)))
         apikeys = parse_toml(path_file_apikeys)
