@@ -24,7 +24,8 @@ from .feeder import Feeder
 from .topics import *
 import json
 import os
-
+from pathlib import Path
+                
 standard_apikeys_file = "apikeys.toml"
 
 
@@ -44,17 +45,21 @@ class BrokerService:
         #self.active_exchanges = list()
         #self.selected_exchange = None
 
-        confFile = "conf.toml"
+        conf_file = "conf.toml"
+        
+        wdir = self.get_workingdir()
+
+        path_file_conf = wdir + "/" + keys_filename
         if setAuto:
             self.set_keys_exchange_file()
                         
-        if not os.path.exists(confFile): 
-            self.logger.error("no conf.toml file")
+        if not os.path.exists(path_file_conf): 
+            self.logger.error("no conf.toml file. expected path %s"%str(path_file_conf))
         else:
             try:
-                all_conf = parse_toml(confFile)
+                all_conf = parse_toml(path_file_conf)
             except:
-                self.logger.error("config file %s not properly formatted"%str(confFile))
+                self.logger.error("config file %s not properly formatted"%str(conf_file))
 
         if setMongo:
             try:
@@ -90,6 +95,15 @@ class BrokerService:
             f.start()
             f.join()
 
+    def get_workingdir(self):
+        home = str(Path.home())
+        wdir = home + "/.archon" 
+
+        if not os.path.exists(wdir):
+            os.makedirs(wdir)
+
+        return wdir          
+
     def set_mongo(self, uri):        
         self.logger.debug("using mongo %s"%str(uri))
         mongoclient = MongoClient(uri)
@@ -113,7 +127,11 @@ class BrokerService:
         self.active_exchanges = ne
 
     def set_keys_exchange_file(self,keys_filename=standard_apikeys_file,exchanges=None):
-        apikeys = parse_toml(keys_filename)
+        wdir = self.get_workingdir()
+        path_file_apikeys = wdir + keys_filename
+        if not os.path.exists(path_file_apikeys): 
+            self.logger.error("no %s file. expected path %s"%(keys_filename,str(path_file_apikeys)))
+        apikeys = parse_toml(path_file_apikeys)
         self.logger.info("set keys %s"%apikeys.keys())
         if exchanges:
             for e in exchanges:

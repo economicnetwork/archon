@@ -10,7 +10,7 @@ def setup_logger(logger_name, log_file, level=logging.DEBUG):
 
     formatter = logging.Formatter('[%(name)s] %(asctime)s : %(message)s')
 
-    logdir = "./log"
+    logdir = "./log/"
     if not os.path.exists(logdir):
         os.makedirs(logdir)
     fileHandler = logging.FileHandler(logdir + log_file, mode='w')
