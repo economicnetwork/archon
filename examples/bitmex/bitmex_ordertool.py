@@ -37,7 +37,7 @@ def submit_buy():
     #print (mid)
     print (book)
     ttype = orders.ORDER_SIDE_BUY
-    p = 0.01
+    p = 0.02
     order_price = round(mid * (1 - p),0)
     qty = 1
     market = m.market_from("XBT","USD")

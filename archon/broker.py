@@ -128,6 +128,11 @@ class Broker:
         self.logger.info ("set keys %i %s"%(exchange,keys['public_key']))
         #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.afacade.set_api_keys(exchange, pubkey, secret)
+
+    def set_keys_exchange_detail(self, exchange, pubkey, secret):        
+        self.logger.info ("set keys %i %s"%(exchange,pubkey))
+        #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
+        self.afacade.set_api_keys(exchange, pubkey, secret)        
         
     def get_active_exchanges(self):
         return self.active_exchanges

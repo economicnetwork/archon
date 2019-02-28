@@ -27,7 +27,7 @@ class DeltaRestClient:
 
 
     # Check if payload and query are working
-    def request(self, method, path, payload=None, query=None, auth=False):
+    def _request(self, method, path, payload=None, query=None, auth=False):
         url = '%s/%s' % (self.base_url, path)
         if auth:
             if self.api_key is None or self.api_secret is None:
@@ -46,22 +46,26 @@ class DeltaRestClient:
         else:
             req_headers = {'User-Agent': 'rest-client'}
 
-        res = requests.request(
-            method, url, data=body_string(payload), params=query, timeout=(3, 27), headers=req_headers
-        )
+        try:
+            res = requests.request(
+                method, url, data=body_string(payload), params=query, timeout=(3, 27), headers=req_headers
+            )
 
-        res.raise_for_status()
-        return res
+            res.raise_for_status()
+            return res
+        except Exception as e:
+            print ("error ",e)
+
 
     def get_product(self, product_id):
-        response = self.request("GET", "products")
+        response = self._request("GET", "products")
         response = response.json()
         products = list(
             filter(lambda x: x['id'] == product_id, response))
         return products[0] if len(products) > 0 else None
 
     def batch_create(self, product_id, orders):
-        response = self.request(
+        response = self._request(
             "POST",
             "orders/batch",
             {'product_id': product_id, 'orders': orders},
@@ -69,11 +73,27 @@ class DeltaRestClient:
         return response
 
     def create_order(self, order):
-        response = self.request('POST', "orders", order, auth=True)
+        response = self._request('POST', "orders", order, auth=True)
+        return response.json()
+
+    def cancel(self, order):
+        print (order)
+        try:
+            response = self._request(
+                "DELETE",
+                "orders",
+                #{'product_id': order["product_id"], 'orders': orders},
+                {'product_id': order["product_id"], 'id': order["id"]},
+                auth=True)
+        except Exception as e:
+            print (e)
+        print (response)
+        print (response.text)
         return response.json()
 
     def batch_cancel(self, product_id, orders):
-        response = self.request(
+        print (orders)
+        response = self._request(
             "DELETE",
             "orders/batch",
             {'product_id': product_id, 'orders': orders},
@@ -81,7 +101,7 @@ class DeltaRestClient:
         return response.json()
 
     def batch_edit(self, product_id, orders):
-        response = self.request(
+        response = self._request(
             "PUT",
             "orders/batch",
             {'product_id': product_id, 'orders': orders},
@@ -90,15 +110,17 @@ class DeltaRestClient:
         return response.json()
 
     def get_orders(self, query=None):
-        response = self.request(
+        response = self._request(
             "GET",
             "orders",
             query=query,
             auth=True)
-        return response.json()
+        orders = response.json()
+        orders = list(filter(lambda o: o["state"] == "open",orders))
+        return orders
 
     def get_L2_orders(self, product_id):
-        response = self.request("GET", "orderbook/%s/l2" % product_id)
+        response = self._request("GET", "orderbook/%s/l2" % product_id)
         return response.json()
 
     def get_ticker(self, product_id):
@@ -110,9 +132,19 @@ class DeltaRestClient:
         return (best_buy_price, best_sell_price)
 
     def get_wallet(self, asset_id):
-        response = self.request("GET", "wallet/balance",
+        response = self._request("GET", "wallet/balance",
                                 query={'asset_id': asset_id}, auth=True)
         return response.json()
+
+
+    def trade_history(self):
+        query = {
+            'page_num' : 1,
+            'page_size' : 100
+        }
+        response = self._request("GET","orders/history",query=query)
+        return response.json()
+
 
     def get_price_history(self, symbol, duration=5, resolution=1):
         if duration/resolution >= 500:
@@ -127,11 +159,11 @@ class DeltaRestClient:
             'resolution': resolution
         }
 
-        response = self.request("GET", "chart/history", query=query)
+        response = self._request("GET", "chart/history", query=query)
         return response.json()
 
     def get_mark_price(self, product_id):
-        response = self.request(
+        response = self._request(
             "GET",
             "orderbook/%s/l2" % product_id)
         response = response.json()
@@ -141,7 +173,7 @@ class DeltaRestClient:
         raise Exception('Method not implemented')
 
     def close_position(self, product_id):
-        response = self.request(
+        response = self._request(
             "POST",
             "positions/close",
             {'product_id': product_id},
@@ -149,7 +181,7 @@ class DeltaRestClient:
         return response.json()
 
     def get_position(self, product_id):
-        response = self.request(
+        response = self._request(
             "GET",
             "positions",
             auth=True)
@@ -162,7 +194,7 @@ class DeltaRestClient:
             return None
 
     def set_leverage(self, product_id, leverage):
-        response = self.request(
+        response = self._request(
             "POST",
             "orders/leverage",
             {
@@ -173,7 +205,7 @@ class DeltaRestClient:
         return response.json()
 
     def change_position_margin(self, product_id, delta_margin):
-        response = self.request(
+        response = self._request(
             'POST',
             'positions/change_margin',
             {
@@ -195,6 +227,26 @@ def create_order_format(price, size, side, product_id, post_only='false'):
     }
 
     return order
+
+def create_order_format_post(price, size, side, product_id, post_only='true'):
+    order = {
+        'product_id': product_id,
+        'limit_price': str(price),
+        'size': int(size),
+        'side': side,
+        'order_type': 'limit_order',
+        'post_only': post_only
+    }
+
+    return order   
+
+def create_order_format_post_buy(price, size, product_id):
+    order = create_order_format_post(price, size, "buy", product_id)
+    return order
+
+def create_order_format_post_sell(price, size, product_id):
+    order = create_order_format_post(price, size, "sell", product_id)
+    return order    
 
 
 def cancel_order_format(x):

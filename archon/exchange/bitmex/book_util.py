@@ -86,3 +86,18 @@ def display_book(book,name="orderbook"):
         bv = b['quantity']
         print ("%.2f  %.0f   %.2f  %.0f" % (bp,bv,ap,av))
         i+=1
+
+def display_top_book(book,name="orderbook"):
+    bids,asks = book['bids'],book['asks']
+    #TODO bitmex
+    #asks.reverse()
+    print ("** bid **       %s     ** ask **"%(name))
+    i = 0
+    for b in bids[:1]:
+        ask = asks[i]  
+        bp = b['price']
+        ap = ask['price']
+        av = ask['quantity']
+        bv = b['quantity']
+        print ("%.2f  %.0f   %.2f  %.0f" % (bp,bv,ap,av))
+        i+=1        

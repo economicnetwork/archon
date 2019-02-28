@@ -1,12 +1,15 @@
 # Requirements
 
-* mongo
-* redis
-* python 3.5+
+* python3
+* pip3
+* mongo (optional)
+* redis (optional)
+
 
 # Install
 
-needs python3 
+git clone https://github.com/economicnetwork/archon.git && cd archon
+
 pip3 install -r requirements.txt
 
 # configuration files
