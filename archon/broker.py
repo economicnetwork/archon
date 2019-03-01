@@ -4,34 +4,34 @@ broker without middleware
 
 import datetime
 import time
-from pymongo import MongoClient
 import logging
 import os
+from pathlib import Path
+from pymongo import MongoClient
 
-from archon.config import *
 import archon.facade as facade
 import archon.exchange.exchanges as exc
-from archon.model import models
 import archon.orderbooks as orderbooks
+from archon.config import parse_toml
 from archon.feeds import cryptocompare
+from archon.model import models
 from archon.util import *
 import archon.exchange.bitmex.fields as bitmexfields
 from archon.custom_logger import setup_logger, remove_loggers
-from pathlib import Path
 
 standard_apikeys_file = "apikeys.toml"
 
 class Broker:
-    """ 
+    """
     communicate with exchanges via facade
     keeps datastructures in memory
     """
 
     def __init__(self,setAuto=True,setMongo=True):
-        
+
         setup_logger(logger_name="broker", log_file='broker.log')
         self.logger = logging.getLogger("broker")
-        
+
         self.afacade = facade.Facade()
         #in memory data
         self.balances = None
@@ -42,7 +42,7 @@ class Broker:
 
         if setAuto:
             self.set_keys_exchange_file()
-                        
+
         if setMongo:
             try:
                 all_conf = parse_toml("conf.toml")
@@ -50,26 +50,26 @@ class Broker:
                 self.logger.error("no conf.toml file")
             try:
                 mongo_conf = all_conf["MONGO"]
-                uri = mongo_conf["uri"]  
+                uri = mongo_conf["uri"]
                 self.set_mongo(uri)
                 self.using_mongo = True
             except:
                 self.using_mongo = False
                 self.logger.error("could not set mongo")
-        
+
 
         self.starttime = datetime.datetime.utcnow()
-        
+
     def get_workingdir(self):
         home = str(Path.home())
-        wdir = home + "/.archon" 
+        wdir = home + "/.archon"
 
         if not os.path.exists(wdir):
             os.makedirs(wdir)
 
-        return wdir  
+        return wdir
 
-    def set_mongo(self, uri):        
+    def set_mongo(self, uri):
         self.logger.debug("using mongo %s"%str(uri))
         mongoclient = MongoClient(uri)
         self.db = mongoclient["broker-db"]
@@ -79,7 +79,7 @@ class Broker:
 
     def set_active_exchanges(self, exchanges):
         self.logger.debug("set active exchanges %s"%exchanges)
-        self.active_exchanges = exchanges  
+        self.active_exchanges = exchanges
 
     def set_active_exchanges_name(self, exchanges_names):
         ne = list()
@@ -101,9 +101,9 @@ class Broker:
                     self.set_keys_exchange(e, apikeys[name])
                 except Exception as err:
                     self.logger.error("could not set %s"%err)
-        else:            
-            try:            
-                if not self.active_exchanges:                
+        else:
+            try:
+                if not self.active_exchanges:
                     for k,v in apikeys.items():
                         eid = exc.get_id(k)
                         if eid >= 0:
@@ -117,10 +117,10 @@ class Broker:
                     self.logger.info("active exchanges %s"%self.active_exchanges)
                 else:
                     self.logger.error("active exchanages already set")
-                    
-            except Exception as err: 
+
+            except Exception as err:
                 self.logger.error("error parsing apikeys file %s"%(err))
-            
+
 
     def set_keys_exchange(self, exchange, keys):
         pubkey = keys["public_key"]
@@ -129,17 +129,17 @@ class Broker:
         #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.afacade.set_api_keys(exchange, pubkey, secret)
 
-    def set_keys_exchange_detail(self, exchange, pubkey, secret):        
+    def set_keys_exchange_detail(self, exchange, pubkey, secret):
         self.logger.info ("set keys %i %s"%(exchange,pubkey))
         #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
-        self.afacade.set_api_keys(exchange, pubkey, secret)        
-        
+        self.afacade.set_api_keys(exchange, pubkey, secret)
+
     def get_active_exchanges(self):
         return self.active_exchanges
 
     def get_apikeys_all(self):
         return list(self.db.apikeys.find())
-    
+
     def get_by_id(self, oid):
         x = list(filter(lambda x: x['oid'] == oid, self.openorders))
         return x[0]
@@ -149,13 +149,13 @@ class Broker:
         self.mail_api_key = apikey
         self.mail_domain = domain
         #self.email_from = email_from
-        #self.email_to = email_to        
-        
+        #self.email_to = email_to
+
     # --- bitmex specfic ---
-     
+
     def margin_balance(self, e):
-        if e == exc.BITMEX:             
-            n = exc.NAMES[e]            
+        if e == exc.BITMEX:
+            n = exc.NAMES[e]
             client = self.afacade.get_client(exc.BITMEX)
             r = client.funds()
             mbal = r[bitmexfields.marginBalance]
@@ -163,7 +163,7 @@ class Broker:
             return mbal
 
 
-    # --- broker data ---    
+    # --- broker data ---
 
     def global_openorders(self):
         oo = list()
@@ -171,14 +171,14 @@ class Broker:
             n = exc.NAMES[e]
             self.logger.info("%i %s"%(e,n))
             z = self.afacade.open_orders(e)
-            if z:                                
+            if z:
                 if len(z) > 0:
                     for x in z:
                         x['exchange'] = n
                         oo.append(x)
-            
+
         self.logger.debug("all open orders " + str(oo))
-        return oo  
+        return oo
 
     def sync_orders(self):
         oo = self.global_openorders()
@@ -187,7 +187,7 @@ class Broker:
 
 
     """
-    def all_balance(self):        
+    def all_balance(self):
         bl = list()
         for e in self.active_exchanges:
             self.logger.debug("get balance ",e)
@@ -199,7 +199,7 @@ class Broker:
                 bl.append(x)
         self.logger.debug("balance all %s"%(str(bl)))
         return bl
-    """        
+    """
 
     def global_balances(self):
         """ a list of balances by currency and exchange """
@@ -209,7 +209,7 @@ class Broker:
             if e != exc.BITMEX:
                 n = exc.NAMES[e]
                 b = self.afacade.balance_all(exchange=e)
-                if b == None: 
+                if b == None:
                     self.logger.error("could not fetch balances from %s"%n)
                 for x in b:
                     x['exchange'] = n
@@ -224,9 +224,9 @@ class Broker:
         bl = self.global_balances()
         for x in bl:
             s = x['symbol']
-            usd_price = cryptocompare.get_usd(s)    
-            x['USDprice'] = usd_price        
-            x['USDvalue'] = round(t*usd_price,2)            
+            usd_price = cryptocompare.get_usd(s)
+            x['USDprice'] = usd_price
+            x['USDvalue'] = round(t*usd_price,2)
         return bl
 
     def global_tradehistory(self):
@@ -242,10 +242,10 @@ class Broker:
                     if s == 'BTC': continue
                     if s == 'USDT': continue
                     ms = models.get_market(m['symbol'],"BTC",exc.BINANCE)
-                    
+
                     tx = self.afacade.trade_history(market=ms,exchange=e)
                     alltx += tx
-                txlist += alltx                    
+                txlist += alltx
             else:
                 n = exc.NAMES[e]
                 self.logger.info("get %s"%n)
@@ -264,14 +264,14 @@ class Broker:
         with open ('cancel_orders.csv','a') as f:
                 f.write(str(orderid) + '\n')
 
-        
+
     def submit_order(self, order, exchange=None):
         if exchange is None: exchange=self.selected_exchange
         if exchange!=exc.BITMEX:
             #TODO check balance before submit
             #market,ttype,order_price,qty = order
             self.log_submit_order(order)
-            
+
             self.submitted_orders.append(order)
             [order_result,order_success] = self.afacade.submit_order(order, exchange)
             self.logger.info("order result %s"%order_result)
@@ -286,11 +286,11 @@ class Broker:
         if exchange!=exc.BITMEX:
             self.logger.error("post not supported")
             """
-            
+
             #TODO check balance before submit
             #market,ttype,order_price,qty = order
             self.log_submit_order(order)
-            
+
             self.submitted_orders.append(order)
             [order_result,order_success] = self.afacade.submit_order(order, exchange)
             self.logger.info("order result %s"%order_result)
@@ -301,22 +301,22 @@ class Broker:
             [order_result,order_success] = self.afacade.submit_order_post(order, exchange)
             self.logger.info("order result %s"%order_result)
 
-        return [order_result,order_success]        
+        return [order_result,order_success]
 
 
-    def __old_cancel_order(self, oid): 
+    def __old_cancel_order(self, oid):
         self.logger.debug("cancel %s"%str(oid))
-        #TODO check order exists             
+        #TODO check order exists
         order = self.get_by_id(oid)
         #oid, otype=None,exchange=None,symbol=None):
         oid, otype,exchange, market = order['oid'],order['otype'],order['exchange'],order['market']
         exchange = exc.get_id(exchange)
         self.afacade.cancel_id(oid, otype, market, exchange)
 
-    def cancel_order(self, oid, exchange): 
+    def cancel_order(self, oid, exchange):
         self.logger.debug("cancel %s"%str(oid))
         self.log_cancel_order(oid)
-        result = self.afacade.cancel_id(oid, exchange=exchange)        
+        result = self.afacade.cancel_id(oid, exchange=exchange)
         return result
 
     def cancel_all(self, exchange=None):
@@ -326,7 +326,7 @@ class Broker:
         for o in self.openorders:
             self.logger.info("cancel " + str(o))
             self.cancel_order(o['oid'])
-        
+
     def fetch_global_markets(self,denom=None):
         #temporary workaround for broken binance symbols
         binance_blocked = ['HSR','VEN']
@@ -337,14 +337,14 @@ class Broker:
             m = self.afacade.get_market_summaries(e)
             for x in m:
                 x['exchange'] = n
-            
+
             if denom:
                 filtered = list()
                 f = lambda x: x['denom']=='BTC'
-                m = list(filter(f, m))            
+                m = list(filter(f, m))
 
                 f = lambda x: x['nom'] not in binance_blocked
-                m = list(filter(f, m))            
+                m = list(filter(f, m))
                 allmarkets += m
             else:
                 allmarkets += m
@@ -356,9 +356,9 @@ class Broker:
         allbids = list()
         allasks = list()
         ts = None
-        for e in self.active_exchanges:            
+        for e in self.active_exchanges:
             n = exc.NAMES[e]
-            x = self.db.orderbooks.find({'market':market,'exchange':n})            
+            x = self.db.orderbooks.find({'market':market,'exchange':n})
             for z in x:
                 b = z['bids']
                 for xb in b: xb['exchange'] = n
@@ -370,13 +370,13 @@ class Broker:
                 ts = z['timestamp']
 
         allbids = sorted(allbids, key=lambda k: k['price'])
-        allbids.reverse()        
+        allbids.reverse()
         allasks = sorted(allasks, key=lambda k: k['price'])
         return [allbids,allasks,ts]
 
     def global_txhistory(self, market):
         tx_all = list()
-        for e in self.active_exchanges:            
+        for e in self.active_exchanges:
             n = exc.NAMES[e]
             txs = a.afacade.market_history(market,e)
             for tx in txs:
@@ -402,23 +402,23 @@ class Broker:
 
     def get_candle(self, market):
         self.logger.debug("get candle " + market)
-        result = self.db.candles.find_one({'market': market})        
+        result = self.db.candles.find_one({'market': market})
         return result
 
     # --- sync functions ---
 
     def sync_orderbook(self, market, exchange):
-        #smarket = models.conv_markets_to(market, exchange)  
-        self.logger.debug("sync %s %i"%(market,exchange))   
-        #TODO check if symbol is supported by exchange   
+        #smarket = models.conv_markets_to(market, exchange)
+        self.logger.debug("sync %s %i"%(market,exchange))
+        #TODO check if symbol is supported by exchange
         try:
             n = exc.NAMES[exchange]
-            
+
             book = self.afacade.get_orderbook(market,exchange)
             dt = datetime.datetime.utcnow()
             #x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
             book['exchange'] = n
-            
+
             self.logger.debug("sync %s"%str(dt))
             #TODO don't remove
             #self.db.orderbooks.remove({'market':market,'exchange':n})
@@ -436,10 +436,10 @@ class Broker:
             except Exception as e:
                 self.logger.info("sync trades failed %s"%str(e))
 
-    def sync_orderbook_all(self, market):   
-        self.db.orderbooks.drop()     
-        for e in self.active_exchanges:            
-            self.sync_orderbook(market, e) 
+    def sync_orderbook_all(self, market):
+        self.db.orderbooks.drop()
+        for e in self.active_exchanges:
+            self.sync_orderbook(market, e)
 
     def sync_balances(self):
         balances = self.global_balances()
@@ -458,9 +458,9 @@ class Broker:
         for e in self.active_exchanges:
             n = exc.NAMES[e]
             self.logger.info("global orderbook %s %s"%(n,market))
-            #smarket = models.conv_markets_to(market, e)  
+            #smarket = models.conv_markets_to(market, e)
             try:
-                
+
                 [bids,asks] = self.afacade.get_orderbook(market,e)
                 dt = datetime.datetime.utcnow()
                 n = exc.NAMES[e]
@@ -475,28 +475,28 @@ class Broker:
         return [bids,asks,ts]
 
     def sync_tx(self, market, exchange):
-        try:            
-            smarket = models.conv_markets_to(market, exchange)  
+        try:
+            smarket = models.conv_markets_to(market, exchange)
             txs = self.afacade.market_history(smarket,exchange)
             n = exc.NAMES[exchange]
             smarket = models.conv_markets_to(market, exchange)
             dt = datetime.datetime.utcnow()
             x = {'market': market, 'exchange': n, 'tx':txs,'timestamp':dt}
             self.db.txs.remove({'market':market,'exchange':n})
-            self.db.txs.insert(x)     
+            self.db.txs.insert(x)
             self.db.txs_history.insert(x)
         except:
             self.logger.error("symbol not supported")
 
-    def sync_tx_all(self, market):              
+    def sync_tx_all(self, market):
         for e in self.active_exchanges:
             self.db.txs.remove({'market':market,'exchange':e})
-            self.sync_tx(market, e)   
+            self.sync_tx(market, e)
 
     def sync_markets_all(self):
         self.db.markets.drop()
         ms = self.fetch_global_markets()
-        dt = datetime.datetime.utcnow()        
+        dt = datetime.datetime.utcnow()
         nm = list()
         for x in ms:
             try:
@@ -504,7 +504,7 @@ class Broker:
                 x['timestamp'] = dts
                 n,d = x['pair'].split('_')
                 x['nom'] = n
-                x['denom'] = d   
+                x['denom'] = d
                 self.db.markets.insert(x)
                 self.db.markets_history.insert(x)
             except:
@@ -529,22 +529,22 @@ class Broker:
         candles = self.afacade.get_candles_timeframe(market, exchange,self.acafade.TIMEFRAME_1MINUTE)
         n = exc.NAMES[exchange]
         [nom,denom] = models.market_parts(market)
-        dt = datetime.datetime.utcnow()        
-        dts = dt.strftime('%H:%M:%S')        
+        dt = datetime.datetime.utcnow()
+        dts = dt.strftime('%H:%M:%S')
         self.db.candles.insert({"exchange":n,"market":market,"nom":n,"denom":d,"candles":candles,"interval": "1m", "time_insert":dts})
-        
+
     def sync_candle_minute15(self, market, exchange):
         self.logger.debug("get candles %s %s "%(market, str(exchange)))
         candles = self.afacade.get_candles_timeframe(market, exchange,self.acafade.TIMEFRAME_15MINUTE)
         n = exc.NAMES[exchange]
         [nom,denom] = models.market_parts(market)
-        dt = datetime.datetime.utcnow()        
-        dts = dt.strftime('%H:%M:%S')        
+        dt = datetime.datetime.utcnow()
+        dts = dt.strftime('%H:%M:%S')
         self.db.candles.insert({"exchange":n,"market":market,"nom":n,"denom":d,"candles":candles,"interval": "1m", "time_insert":dts})
 
     def sync_candles_all(self, market):
-        for e in self.active_exchanges:            
-            self.sync_candle_daily(market, e)   
+        for e in self.active_exchanges:
+            self.sync_candle_daily(market, e)
 
     def sync_candle_daily_all(self):
         ms = self.fetch_global_markets()
@@ -561,24 +561,24 @@ class Broker:
                 pass
 
 
-        #for e in self.active_exchanges:            
-        #    #self.sync_candle_daily(market, e)   
+        #for e in self.active_exchanges:
+        #    #self.sync_candle_daily(market, e)
 
     def sync_book_work(self, market, exchange):
         while True:
-            self.sync_orderbook(market, exchange)    
+            self.sync_orderbook(market, exchange)
             time.sleep(10)
 
     def sync_book_thread(self, market, exchange):
         start_new_thread(self.sync_book_work(market, exchange))
-        
+
     def transaction_queue(self,exchange):
         now = datetime.datetime.utcnow()
         #delta = now - self.starttime
         txs = self.afacade.get_tradehistory_all(exchange)
         for tx in txs[:]:
-            ts = tx['timestamp'][:19]   
-            dt = datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')        
+            ts = tx['timestamp'][:19]
+            dt = datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')
             if dt > self.starttime:
                 self.logger.info("new tx")
-            
+
