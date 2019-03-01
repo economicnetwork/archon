@@ -7,7 +7,7 @@ import archon.facade as facade
 import archon.model.models as models
 from archon.brokersrv.brokerservice import BrokerService
 
-from archon.custom_logger import setup_logger, remove_loggers
+from archon.util.custom_logger import setup_logger, remove_loggers
 
 from archon.util import *   
 

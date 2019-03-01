@@ -15,7 +15,7 @@ import uuid
 from .accessTokenAuth import AccessTokenAuth
 from .apiKeyAuthWithExpires import APIKeyAuthWithExpires
 
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
 import datetime
 from datetime import timedelta
 import logging

@@ -15,7 +15,7 @@ import time
 import datetime
 import toml
 import archon.model.models as models
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
 import logging
 
 from util import *

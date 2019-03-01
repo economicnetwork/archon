@@ -19,7 +19,7 @@ import archon.exchange.binance as binance
 from archon.exchange.bitmex import bitmex
 from archon.exchange.deribit.Wrapper import DeribitWrapper
 from archon.exchange.kraken import KrakenAPI
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
 
 
 import time

@@ -2,7 +2,7 @@
 from bitmex_websocket import BitMEXWebsocket
 import logging
 from time import sleep
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
 
 
 # Basic use of websocket.

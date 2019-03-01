@@ -2,6 +2,8 @@
 broker with redis middleware
 """
 
+import json
+import os
 import datetime
 import time
 from pymongo import MongoClient
@@ -9,8 +11,7 @@ import logging
 import redis
 
 from archon.config import *
-import archon.facade as facade
-import archon.facader as facader
+import archon.brokersrv.facader as facader
 import archon.exchange.exchanges as exc
 from archon.model import models
 import archon.orderbooks as orderbooks
@@ -18,21 +19,18 @@ from archon.feeds import cryptocompare
 from archon.util import *
 import archon.exchange.bitmex.fields as bitmexfields
 from archon.exchange.bitmex.ws.bitmex_ws import BitMEXWebsocket
-from archon.custom_logger import setup_logger, remove_loggers
+from archon.util.custom_logger import setup_logger, remove_loggers
 import archon.exchange.bitmex.bitmex as mex
 from .feeder import Feeder
 from .topics import *
-import json
-import os
 from pathlib import Path
                 
 standard_apikeys_file = "apikeys.toml"
 standard_conf_file = "config.toml"
 
-
 class BrokerService:
 
-    def __init__(self,setAuto=True,setMongo=True,setRedis=True,initFeeder=True):
+    def __init__(self, setAuto=True, setMongo=True, setRedis=True, initFeeder=True):
 
         setup_logger(logger_name="brokerservice", log_file='brokerservice.log')
         self.logger = logging.getLogger("brokerservice")
