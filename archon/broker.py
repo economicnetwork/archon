@@ -15,9 +15,8 @@ import archon.orderbooks as orderbooks
 from archon.config import parse_toml
 from archon.feeds import cryptocompare
 from archon.model import models
-from archon.util import *
 import archon.exchange.bitmex.fields as bitmexfields
-from archon.custom_logger import setup_logger, remove_loggers
+from archon.custom_logger import setup_logger
 
 standard_apikeys_file = "apikeys.toml"
 
@@ -213,8 +212,6 @@ class Broker:
                     self.logger.error("could not fetch balances from %s"%n)
                 for x in b:
                     x['exchange'] = n
-                    s = x['symbol']
-                    t = float(x['amount'])
                     bl.append(x)
             else:
                 self.logger.error("bitmex does not support balance call")
@@ -239,8 +236,10 @@ class Broker:
                 alltx = list()
                 for m in b:
                     s = m['symbol']
-                    if s == 'BTC': continue
-                    if s == 'USDT': continue
+                    if s == 'BTC': 
+                        continue
+                    if s == 'USDT': 
+                        continue
                     ms = models.get_market(m['symbol'],"BTC",exc.BINANCE)
 
                     tx = self.afacade.trade_history(market=ms,exchange=e)
@@ -258,12 +257,12 @@ class Broker:
 
     def log_submit_order(self, order):
         with open ('submit_orders.csv','a') as f:
-                f.write(str(order) + '\n')
+            f.write(str(order) + '\n')
 
     def log_cancel_order(self, orderid):
+        #TODO Method could be a function (no-self-use)
         with open ('cancel_orders.csv','a') as f:
-                f.write(str(orderid) + '\n')
-
+            f.write(str(orderid) + '\n')
 
     def submit_order(self, order, exchange=None):
         if exchange is None: exchange=self.selected_exchange
@@ -522,7 +521,7 @@ class Broker:
         candles = self.afacade.get_candles_timeframe(market, exchange,self.acafade.TIMEFRAME_DAILY)
         n = exc.NAMES[exchange]
         [nom,denom] = models.market_parts(market)
-        self.db.candles.insert({"exchange":n,"market":market,"nom":nom,"denom":denom,"candles":candles,"interval": "1d"})
+        self.db.candles.insert({"exchange":n, "market":market, "nom":nom, "denom":denom, "candles":candles, "interval": "1d"})
 
     def sync_candle_minute(self, market, exchange):
         self.logger.debug("get candles %s %s "%(market, str(exchange)))
@@ -531,7 +530,7 @@ class Broker:
         [nom,denom] = models.market_parts(market)
         dt = datetime.datetime.utcnow()
         dts = dt.strftime('%H:%M:%S')
-        self.db.candles.insert({"exchange":n,"market":market,"nom":n,"denom":d,"candles":candles,"interval": "1m", "time_insert":dts})
+        self.db.candles.insert({"exchange":n, "market":market, "nom":nom, "denom":denom, "candles":candles, "interval": "1m", "time_insert":dts})
 
     def sync_candle_minute15(self, market, exchange):
         self.logger.debug("get candles %s %s "%(market, str(exchange)))
@@ -540,7 +539,7 @@ class Broker:
         [nom,denom] = models.market_parts(market)
         dt = datetime.datetime.utcnow()
         dts = dt.strftime('%H:%M:%S')
-        self.db.candles.insert({"exchange":n,"market":market,"nom":n,"denom":d,"candles":candles,"interval": "1m", "time_insert":dts})
+        self.db.candles.insert({"exchange":n, "market":market, "nom":nom, "denom":denom, "candles":candles, "interval": "1m", "time_insert":dts})
 
     def sync_candles_all(self, market):
         for e in self.active_exchanges:

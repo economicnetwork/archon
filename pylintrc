@@ -44,6 +44,7 @@ suggestion-mode=yes
 # active Python interpreter and may run arbitrary code.
 unsafe-load-any-extension=no
 
+init-hook='import sys; sys.path.append("./")'
 
 [MESSAGES CONTROL]
 
@@ -144,7 +145,8 @@ disable=print-statement,
         too-many-instance-attributes,
         too-many-arguments,
         missing-docstring,
-        logging-not-lazy
+        logging-not-lazy,
+        no-name-in-module #https://github.com/PyCQA/pylint/issues/1524
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
