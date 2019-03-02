@@ -267,14 +267,17 @@ class BrokerService:
         """
         if exchange==exc.DERIBIT:
             #self.logger.error("post not working")
-            [order_result,order_success] = self.afacade.submit_order_post(order, exchange)
+            #[order_result,order_success] = 
+            result = self.afacade.submit_order_post(order, exchange)
         elif exchange==exc.BITMEX:
-            [order_result,order_success] = self.afacade.submit_order_post(order, exchange)
-            self.logger.info("order result %s"%order_result)
+            #[order_result,order_success] = self.afacade.submit_order_post(order, exchange)
+            result = self.afacade.submit_order_post(order, exchange)
+            self.logger.info("order result %s"%result)
         else:
             self.logger.error("not supportec")
 
-        return [order_result,order_success]        
+        #return [order_result,order_success]        
+        return result
 
     def cancel_order(self, oid, exchange): 
         self.logger.debug("cancel %s"%str(oid))

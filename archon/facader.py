@@ -119,3 +119,47 @@ class FacadeRaw:
 
         self.logger.debug("cancel result " + str(result))
         return result
+
+    def submit_order(self, order, exchange=None):
+        """ submit order """
+
+        self.logger.info("submit order " + str(exchange) + " " + str(order))
+        market,ttype,order_price,qty = order 
+        client = self.clients[exchange]
+
+        #orderD = {"market":market,"type":ttype,"price":order_price,"quantity":qty,"status": ORDERSTATUS_SUBMITTED}
+
+        order_success = False
+        order_result = "unkown"
+        #order[ORDERSTATUS] = ORDERSTATUS_SUBMITTED
+        #self.orders.append(orderD)
+
+        if exchange==exc.BITMEX:
+            if ttype==ORDER_SIDE_BUY:
+                order_result = client.buy(quantity=qty, price=order_price, symbol=market)
+            elif ttype==ORDER_SIDE_SELL:
+                order_result = client.sell(quantity=qty, price=order_price, symbol=market)
+
+    def submit_order_post(self, order, exchange=None):
+        """ submit order """
+
+        self.logger.info("submit order " + str(exchange) + " " + str(order))
+        market,ttype,order_price,qty = order 
+        client = self.clients[exchange]
+
+        #orderD = {"market":market,"type":ttype,"price":order_price,"quantity":qty,"status": ORDERSTATUS_SUBMITTED}
+
+        order_success = False
+        order_result = "unkown"
+        #order[ORDERSTATUS] = ORDERSTATUS_SUBMITTED
+        #self.orders.append(orderD)
+
+        if exchange==exc.BITMEX:
+            if ttype==ORDER_SIDE_BUY:
+                order_result = client.buy_post(quantity=qty, price=order_price, symbol=market)
+            elif ttype==ORDER_SIDE_SELL:
+                order_result = client.sell_post(quantity=qty, price=order_price, symbol=market)                        
+                
+        return order_result
+
+
