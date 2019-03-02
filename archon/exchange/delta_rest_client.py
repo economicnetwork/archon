@@ -186,7 +186,6 @@ class DeltaRestClient:
             "GET",
             "positions",
             auth=True)
-        print ("response ", response)
         response = response.json()
         if response:
             current_position = list(
