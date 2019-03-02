@@ -80,6 +80,7 @@ class BrokerService:
         #TODO conf
 
         #init feeder stream
+        self.logger.info("Init feeder stream")
         if setRedis:
             self.logger.info(all_conf)
             try:
@@ -201,30 +202,42 @@ class BrokerService:
         if e==exc.BITMEX:
             #print (REP_TOPIC_ORDERS_BITMEX)
             raw = self.redis_client.get(REP_TOPIC_ORDERS_BITMEX)
-            raw = raw.decode('utf-8')
-            oo = json.loads(raw)["data"]
+            try:
+                raw = raw.decode('utf-8')
+                oo = json.loads(raw)["data"]
+            except:
+                oo = []
             return oo   
         elif e==exc.DERIBIT:
             raw = self.redis_client.get(REP_TOPIC_ORDERS_DERIBIT)
             raw = raw.decode('utf-8')
-            oo = json.loads(raw)["data"]
+            try:
+                oo = json.loads(raw)["data"]
+            except:
+                oo = []
             return oo   
 
 
     def orderbook(self, e):
         if e==exc.BITMEX:
-            raw = self.redis_client.get(REP_TOPIC_MARKET_BOOK_BITMEX)
-            raw = raw.decode('utf-8')
-            raw = raw.replace("\'", "\"")
-            book = json.loads(raw)["data"]
-            return book
+            try:
+                raw = self.redis_client.get(REP_TOPIC_MARKET_BOOK_BITMEX)
+                raw = raw.decode('utf-8')
+                raw = raw.replace("\'", "\"")
+                book = json.loads(raw)["data"]
+                return book
+            except:
+                raise Exception("orderbook not set")
 
         elif e==exc.DERIBIT:
-            raw = self.redis_client.get(REP_TOPIC_MARKET_BOOK_DERIBIT)
-            raw = raw.decode('utf-8')
-            raw = raw.replace("\'", "\"")
-            book = json.loads(raw)["data"]
-            return book
+            try:
+                raw = self.redis_client.get(REP_TOPIC_MARKET_BOOK_DERIBIT)
+                raw = raw.decode('utf-8')
+                raw = raw.replace("\'", "\"")
+                book = json.loads(raw)["data"]
+                return book
+            except:
+                raise Exception("orderbook not set")
 
 
     def position(self, e):

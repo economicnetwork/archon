@@ -57,11 +57,12 @@ class Feeder(threading.Thread):
         db[tt].insert_one(d)
 
     def publish_bitmex(self):
+        self.log.info("publish_bitmex")
         wait = 0.1 # bitmex rate limit 300 per 300 seconds
         pos = self.abroker.afacade.position(exc.BITMEX)
         pos = {"position": pos}
         time.sleep(wait)
-        #print ("pos ",data)
+        self.log.info("pos %s"%pos)
         #print ("position ",pos)
         #if pos == []: pos = {}
         
@@ -91,6 +92,7 @@ class Feeder(threading.Thread):
 
 
     def run(self):
+        self.log.info("start feeder")
         while True:
             self.log.info("feeder loop")
             #TODO openorders

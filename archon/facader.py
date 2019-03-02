@@ -60,6 +60,7 @@ class FacadeRaw:
 
 
     def position(self, exchange):
+        print (self.clients)
         client = self.clients[exchange]
 
         if exchange==exc.BITMEX:
