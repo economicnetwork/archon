@@ -1,5 +1,7 @@
 """
-BitMEX API Connector
+BitMEX API
+https://www.bitmex.com/app/restAPI
+https://www.bitmex.com/api/explorer/
 
 originally from https://github.com/BitMEX/easy-data-scripts/
 * added time-out handling
@@ -244,6 +246,15 @@ class BitMEX(object):
         result = self._query_bitmex(path=path,query=query)
         return result
 
+    def execution_history_all(self, symbol):
+        datetime.now()
+        from_ts = "2019-01-13T12:00:00.000Z"
+        xx = now.strftime("%Y-%m-%dT12:00:00.000Z")
+        print (xx)
+        #startTime = startday
+        #endTime = startTime + timedelta(hours=12)
+        
+
     @authentication_required
     def position(self):
         """Position : Summary of Open and Closed Positions"""
@@ -383,7 +394,7 @@ class BitMEX(object):
             # Make non-200s throw
             response.raise_for_status()
             h = response.headers
-            self.logger.info("header %s"%str(h))
+            #self.logger.debug("header %s"%str(h))
             remain = int(h['X-RateLimit-Remaining'])
             self.logger.info("remain %i"%remain)
             if remain < 100: time.sleep(0.2)

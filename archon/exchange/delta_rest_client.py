@@ -16,6 +16,7 @@ url_production = 'https://api.delta.exchange'
 class DeltaRestClient:
 
     def __init__(self, base_url=url_production, api_key=None, api_secret=None):
+        print ("init delta %s %s"%(api_key, api_secret))
         self.base_url = base_url
         self.api_key = api_key
         self.api_secret = api_secret
@@ -54,7 +55,7 @@ class DeltaRestClient:
             res.raise_for_status()
             return res
         except Exception as e:
-            print ("error ",e)
+            print ("delta request error: ",e)
 
 
     def get_product(self, product_id):
@@ -136,13 +137,13 @@ class DeltaRestClient:
                                 query={'asset_id': asset_id}, auth=True)
         return response.json()
 
-
     def trade_history(self):
         query = {
             'page_num' : 1,
             'page_size' : 100
         }
-        response = self._request("GET","orders/history",query=query)
+        response = self._request("GET","orders/history",query=query, auth=True)
+        print (response)
         return response.json()
 
 
@@ -185,12 +186,14 @@ class DeltaRestClient:
             "GET",
             "positions",
             auth=True)
+        print ("response ", response)
         response = response.json()
         if response:
             current_position = list(
                 filter(lambda x: x['product']['id'] == product_id, response))
             return current_position[0] if len(current_position) > 0 else None
         else:
+            print ("no response")
             return None
 
     def set_leverage(self, product_id, leverage):
@@ -214,6 +217,22 @@ class DeltaRestClient:
             },
             auth=True)
         return response.json()
+
+    def order_history(self):
+        query = {
+            'page_num' : 1,
+            'page_size' : 100
+        }
+        response = self._request("GET","orders/history",query=query, auth=True)
+        return response
+
+    def fills(self):
+        query = {
+            'page_num' : 1,
+            'page_size' : 100
+        }
+        response = self._request("GET","fills",query=query, auth=True)
+        return response        
 
 
 def create_order_format(price, size, side, product_id, post_only='false'):
