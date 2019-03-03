@@ -11,12 +11,12 @@ from archon.util import *
 from archon.model import models
 
 #Wrappers
+from archon.exchange.bitmex import bitmex
+from archon.exchange.delta.delta_rest_client import DeltaRestClient, create_order_format, cancel_order_format, round_by_tick_size
 import archon.exchange.rex as bittrex
 from archon.exchange.kucoin import KuClient
 import archon.exchange.hitbtc as hitbtc
 import archon.exchange.binance as binance
-from archon.exchange.bitmex import bitmex
-from archon.exchange.delta_rest_client import DeltaRestClient, create_order_format, cancel_order_format, round_by_tick_size
 from archon.exchange.deribit.Wrapper import DeribitWrapper
 from archon.exchange.kraken import KrakenAPI
 from archon.util.custom_logger import setup_logger

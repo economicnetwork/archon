@@ -1,17 +1,34 @@
-import requests
+"""
+Delta.exchange rest cilent
+https://docs.delta.exchange
+"""
 import time
 import datetime
 import hashlib
 import hmac
-import base64
 import json
+from enum import Enum
+import requests
 
 from decimal import Decimal
-__version__ = '0.1.3'
+from .version import __version__ as version
 
 agent = requests.Session()
 
 url_production = 'https://api.delta.exchange'
+
+agent = requests.Session()
+
+
+class OrderType(Enum):
+    MARKET = 'market_order'
+    LIMIT = 'limit_order'
+
+
+class TimeInForce(Enum):
+    FOK = 'fok'
+    IOC = 'ioc'
+    GTC = 'gtc'
 
 class DeltaRestClient:
 
@@ -181,19 +198,23 @@ class DeltaRestClient:
             auth=True)
         return response.json()
 
-    def get_position(self, product_id):
+    def get_positions(self):
+        """ get all positions """
         response = self._request(
             "GET",
             "positions",
             auth=True)
-        response = response.json()
         if response:
-            current_position = list(
-                filter(lambda x: x['product']['id'] == product_id, response))
-            return current_position[0] if len(current_position) > 0 else None
+            response = response.json()            
+            return response
         else:
-            print ("no response")
-            return None
+            return []
+
+    def get_position(self, product_id):
+        """ get position by product_id """
+        position = self.get_positions()
+        current_position = list(filter(lambda x: x['product']['id'] == product_id, position))
+        return current_position[0] if len(current_position) > 0 else []        
 
     def set_leverage(self, product_id, leverage):
         response = self._request(
