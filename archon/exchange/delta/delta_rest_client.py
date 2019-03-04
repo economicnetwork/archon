@@ -95,7 +95,7 @@ class DeltaRestClient:
         return response.json()
 
     def cancel(self, order):
-        print (order)
+        print ("cancel ", order)
         try:
             response = self._request(
                 "DELETE",
@@ -105,8 +105,6 @@ class DeltaRestClient:
                 auth=True)
         except Exception as e:
             print (e)
-        print (response)
-        print (response.text)
         return response.json()
 
     def batch_cancel(self, product_id, orders):
@@ -160,7 +158,6 @@ class DeltaRestClient:
             'page_size' : 100
         }
         response = self._request("GET","orders/history",query=query, auth=True)
-        print (response)
         return response.json()
 
 
@@ -252,7 +249,7 @@ class DeltaRestClient:
             'page_size' : 100
         }
         response = self._request("GET","fills",query=query, auth=True)
-        return response        
+        return response.json()   
 
 
 def create_order_format(price, size, side, product_id, post_only='false'):
