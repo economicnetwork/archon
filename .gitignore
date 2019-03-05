@@ -1,3 +1,4 @@
+archon_env/
 apikeys.toml
 log/
 __pycache__/

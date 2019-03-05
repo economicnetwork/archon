@@ -1,0 +1,13 @@
+export ENV_NAME="./archon_env"
+
+if [[ -d $ENV_NAME ]]; then
+    echo "python environment is already set up in $ENV_NAME"
+else
+    echo "setting up environment $PYDEX_ENV_NAME ..."
+    virtualenv -p python3 ./$ENV_NAME;
+    source $ENV_NAME/bin/activate;
+    pip3 install -r requirements.txt;
+fi;
+
+echo source $ENV_NAME/bin/activate
+source $ENV_NAME/bin/activate
