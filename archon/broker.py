@@ -94,7 +94,6 @@ class Broker:
         self.logger.info("set keys %s"%apikeys.keys())
         if exchanges:
             for e in exchanges:
-                #eid = exc.get_id(e)
                 name = exc.NAMES[e]
                 try:
                     self.set_keys_exchange(e, apikeys[name])
@@ -104,11 +103,10 @@ class Broker:
             try:
                 if not self.active_exchanges:
                     for k,v in apikeys.items():
-                        eid = exc.get_id(k)
-                        if eid >= 0:
+                        if exc.exchange_exists(k):
                             try:
-                                self.set_keys_exchange(eid, apikeys[k])
-                                self.active_exchanges.append(eid)
+                                self.set_keys_exchange(k, apikeys[k])
+                                self.active_exchanges.append(k)
                             except Exception as err:
                                 self.logger.error("could not set %s"%err)
                         else:
@@ -124,7 +122,7 @@ class Broker:
     def set_keys_exchange(self, exchange, keys):
         pubkey = keys["public_key"]
         secret = keys["secret"]
-        self.logger.info ("set keys %i %s"%(exchange,keys['public_key']))
+        self.logger.info ("set keys %s %s"%(exchange,keys['public_key']))
         #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.afacade.set_api_keys(exchange, pubkey, secret)
 

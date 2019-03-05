@@ -9,13 +9,9 @@ import archon.broker as broker
 import archon.exchange.exchanges as exc
 from archon.exchange.bitmex.fields import *
 import archon.model.models as m
-from mexutil import *
 
 abroker = broker.Broker()
 abroker.set_active_exchanges([exc.BITMEX])
-
-
-
 
 def show_desc(pos):    
     #print (pos['currentQty'])
@@ -38,10 +34,7 @@ def show():
         curQty = pos['currentQty']
         print ("unrelasedpnl, avgentry,markprice")
         print (unrelasedpnl, avgentry,curQty)
-        #print (pos)
-        
-        show_desc(pos)
-    
+        #print (pos)            
 
 
 if __name__ == '__main__': 
