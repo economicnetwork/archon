@@ -420,7 +420,8 @@ class BitMEX(object):
                 raise ConnectionError("bitmex error. order canceled does not exist.")
             elif response.status_code == 429:
                  #Unhandled Error: 429 Client Error: Too Many Requests for url... {"error":{"message":"Rate limit exceeded, retry in 1 seconds.","name":"RateLimitError"}}
-                 self.logger.error("429 Too Many Requests for url. Request: %s \n %s" % (url, json.dumps(postdict)))
+                 #self.logger.error("429 Too Many Requests for url. Request: %s \n %s" % (url, json.dumps(postdict)))
+                 self.logger.error("429 Too Many Requests for url. Request: %s" % url)
                  h = response.headers
                  
                  self.logger.error("headers %s"%str(h))
@@ -435,7 +436,8 @@ class BitMEX(object):
                  return self._query_bitmex(path, query, postdict, timeout, verb)
             # 503 - BitMEX temporary downtime, likely due to a deploy. Try again
             elif response.status_code == 503:
-                self.logger.error("Unable to contact the BitMEX API (503), retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
+                #self.logger.error("Unable to contact the BitMEX API (503), retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
+                self.logger.error("Unable to contact the BitMEX API (503), retrying. Request: %s" % url)
                 sleep(1)
                 return self._query_bitmex(path, query, postdict, timeout, verb)            
             # Unknown Error
@@ -453,7 +455,8 @@ class BitMEX(object):
             return self._query_bitmex(path, query, postdict, timeout, verb)
 
         except requests.exceptions.ConnectionError as e:
-            self.logger.error("Unable to contact the BitMEX API (ConnectionError). Please check the URL. Retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
+            #self.logger.error("Unable to contact the BitMEX API (ConnectionError). Please check the URL. Retrying. Request: %s \n %s" % (url, json.dumps(postdict)))
+            self.logger.error("Unable to contact the BitMEX API (ConnectionError). Please check the URL. Retrying. Request: %s" % url)
             sleep(1)
             return self._query_bitmex(path, query, postdict, timeout, verb)
 
