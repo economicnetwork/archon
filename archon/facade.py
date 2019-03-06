@@ -81,6 +81,7 @@ class Facade:
         elif exchange==exc.KRAKEN:        
             self.clients[exchange] = KrakenAPI(key,secret)
         elif exchange==exc.BITMEX:
+            self.logger.info("set bitmex")
             self.clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
         elif exchange==exc.DERIBIT:
             self.clients[exchange] = DeribitWrapper(key=key,secret=secret)
@@ -831,8 +832,8 @@ class Facade:
     def cancel(self, order):
         """ cancel by order """
         #if exchange is None: exchange=self.s_exchange
-        e = order['exchange']
-        exchange = exc.get_id(e)
+        eexchange = order['exchange']
+        #exchange = exc.get_id(e)
         result = None
         oid = order['oid']
         market = order['market']
