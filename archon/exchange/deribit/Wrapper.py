@@ -17,7 +17,7 @@ from archon.exchange.deribit.ws.deribit_ws import DeribitWebsocket
 import logging
 
 import requests
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
 
 instrument_btc_perp = "BTC-PERPETUAL"
 instrument_btc_june ="BTC-28JUN19"

@@ -10,7 +10,7 @@ import archon.exchange.bitmex.bitmex as mex
 import archon.exchange.deribit.Wrapper as deri
 import archon.facade as facade
 import archon.model.models as models
-from archon.custom_logger import setup_logger, remove_loggers
+from archon.util.custom_logger import setup_logger, remove_loggers
 
 from archon.util import *   
 

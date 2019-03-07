@@ -10,7 +10,7 @@ import archon.facade as facade
 import archon.broker as broker
 import archon.model.models as models
 from archon.agent import *
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
 
 from util import *
 

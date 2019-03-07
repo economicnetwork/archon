@@ -4,7 +4,7 @@ import json
 import ssl
 import threading
 import logging
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
 
 def on_open(ws):
     """

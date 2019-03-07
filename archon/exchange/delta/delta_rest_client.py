@@ -1,21 +1,39 @@
-import requests
+"""
+Delta.exchange rest cilent
+https://docs.delta.exchange
+"""
 import time
 import datetime
 import hashlib
 import hmac
-import base64
 import json
+from enum import Enum
+import requests
 
 from decimal import Decimal
-__version__ = '0.1.3'
+from .version import __version__ as version
 
 agent = requests.Session()
 
 url_production = 'https://api.delta.exchange'
 
+agent = requests.Session()
+
+
+class OrderType(Enum):
+    MARKET = 'market_order'
+    LIMIT = 'limit_order'
+
+
+class TimeInForce(Enum):
+    FOK = 'fok'
+    IOC = 'ioc'
+    GTC = 'gtc'
+
 class DeltaRestClient:
 
     def __init__(self, base_url=url_production, api_key=None, api_secret=None):
+        print ("init delta %s %s"%(api_key, api_secret))
         self.base_url = base_url
         self.api_key = api_key
         self.api_secret = api_secret
@@ -54,7 +72,7 @@ class DeltaRestClient:
             res.raise_for_status()
             return res
         except Exception as e:
-            print ("error ",e)
+            print ("delta request error: ",e)
 
 
     def get_product(self, product_id):
@@ -77,7 +95,7 @@ class DeltaRestClient:
         return response.json()
 
     def cancel(self, order):
-        print (order)
+        print ("cancel ", order)
         try:
             response = self._request(
                 "DELETE",
@@ -87,8 +105,6 @@ class DeltaRestClient:
                 auth=True)
         except Exception as e:
             print (e)
-        print (response)
-        print (response.text)
         return response.json()
 
     def batch_cancel(self, product_id, orders):
@@ -136,13 +152,12 @@ class DeltaRestClient:
                                 query={'asset_id': asset_id}, auth=True)
         return response.json()
 
-
     def trade_history(self):
         query = {
             'page_num' : 1,
             'page_size' : 100
         }
-        response = self._request("GET","orders/history",query=query)
+        response = self._request("GET","orders/history",query=query, auth=True)
         return response.json()
 
 
@@ -180,18 +195,23 @@ class DeltaRestClient:
             auth=True)
         return response.json()
 
-    def get_position(self, product_id):
+    def get_positions(self):
+        """ get all positions """
         response = self._request(
             "GET",
             "positions",
             auth=True)
-        response = response.json()
         if response:
-            current_position = list(
-                filter(lambda x: x['product']['id'] == product_id, response))
-            return current_position[0] if len(current_position) > 0 else None
+            response = response.json()            
+            return response
         else:
-            return None
+            return []
+
+    def get_position(self, product_id):
+        """ get position by product_id """
+        position = self.get_positions()
+        current_position = list(filter(lambda x: x['product']['id'] == product_id, position))
+        return current_position[0] if len(current_position) > 0 else []        
 
     def set_leverage(self, product_id, leverage):
         response = self._request(
@@ -214,6 +234,22 @@ class DeltaRestClient:
             },
             auth=True)
         return response.json()
+
+    def order_history(self):
+        query = {
+            'page_num' : 1,
+            'page_size' : 100
+        }
+        response = self._request("GET","orders/history",query=query, auth=True)
+        return response
+
+    def fills(self):
+        query = {
+            'page_num' : 1,
+            'page_size' : 100
+        }
+        response = self._request("GET","fills",query=query, auth=True)
+        return response.json()   
 
 
 def create_order_format(price, size, side, product_id, post_only='false'):

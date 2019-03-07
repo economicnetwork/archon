@@ -9,14 +9,14 @@ import os
 from pathlib import Path
 from pymongo import MongoClient
 
-import archon.facade as facade
+import archon.broker.facade as facade
 import archon.exchange.exchanges as exc
-import archon.orderbooks as orderbooks
-from archon.config import parse_toml
+import archon.util.orderbooks as orderbooks
+from archon.broker.config import parse_toml
 from archon.feeds import cryptocompare
 from archon.model import models
 import archon.exchange.bitmex.fields as bitmexfields
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
 
 standard_apikeys_file = "apikeys.toml"
 
@@ -24,6 +24,7 @@ class Broker:
     """
     communicate with exchanges via facade
     keeps datastructures in memory
+    single user broker
     """
 
     def __init__(self,setAuto=True,setMongo=True):
@@ -87,21 +88,27 @@ class Broker:
             ne.append(eid)
         self.active_exchanges = ne
 
-    def set_keys_exchange_file(self,keys_filename=standard_apikeys_file,exchanges=None):
-        wdir = self.get_workingdir()
-        path_file_apikeys = wdir + "/" + keys_filename
+    def set_keys_exchange_file(self, path_file_apikeys=None, exchanges=None):
+        self.logger.info("set_keys_exchange_file")
+        if path_file_apikeys is None:
+            wdir = self.get_workingdir()
+            #standard_apikeys_file
+            path_file_apikeys = wdir + "/" + standard_apikeys_file
         apikeys = parse_toml(path_file_apikeys)
+        print(apikeys)
         self.logger.info("set keys %s"%apikeys.keys())
         if exchanges:
             for e in exchanges:
                 name = exc.NAMES[e]
                 try:
+                    self.logger.info("set %s %s"%(e, str(apikeys[name])))
                     self.set_keys_exchange(e, apikeys[name])
                 except Exception as err:
                     self.logger.error("could not set %s"%err)
         else:
             try:
                 if not self.active_exchanges:
+                    print ("??? ",apikeys)
                     for k,v in apikeys.items():
                         if exc.exchange_exists(k):
                             try:
@@ -116,7 +123,7 @@ class Broker:
                     self.logger.error("active exchanages already set")
 
             except Exception as err:
-                self.logger.error("error parsing apikeys file %s"%(err))
+                self.logger.error("error parsing apikeys file: %s"%(err))
 
 
     def set_keys_exchange(self, exchange, keys):
@@ -182,22 +189,6 @@ class Broker:
         self.logger.info("sync orders %s"%oo)
         self.openorders = oo
 
-
-    """
-    def all_balance(self):
-        bl = list()
-        for e in self.active_exchanges:
-            self.logger.debug("get balance ",e)
-            z = self.afacade.balance_all(e)
-            self.logger.debug(z,e)
-            n = exc.NAMES[e]
-            for x in z:
-                x['exchange'] = n
-                bl.append(x)
-        self.logger.debug("balance all %s"%(str(bl)))
-        return bl
-    """
-
     def global_balances(self):
         """ a list of balances by currency and exchange """
         bl = list()
@@ -252,15 +243,6 @@ class Broker:
                         x["exchange"] = n
                         txlist.append(x)
         return txlist
-
-    def log_submit_order(self, order):
-        with open ('submit_orders.csv','a') as f:
-            f.write(str(order) + '\n')
-
-    def log_cancel_order(self, orderid):
-        #TODO Method could be a function (no-self-use)
-        with open ('cancel_orders.csv','a') as f:
-            f.write(str(orderid) + '\n')
 
     def submit_order(self, order, exchange=None):
         if exchange is None: exchange=self.selected_exchange
@@ -557,10 +539,6 @@ class Broker:
             except:
                 pass
 
-
-        #for e in self.active_exchanges:
-        #    #self.sync_candle_daily(market, e)
-
     def sync_book_work(self, market, exchange):
         while True:
             self.sync_orderbook(market, exchange)
@@ -578,4 +556,3 @@ class Broker:
             dt = datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S')
             if dt > self.starttime:
                 self.logger.info("new tx")
-

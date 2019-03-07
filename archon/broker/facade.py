@@ -11,15 +11,16 @@ from archon.util import *
 from archon.model import models
 
 #Wrappers
+from archon.exchange.bitmex import bitmex
+from archon.exchange.delta.delta_rest_client import DeltaRestClient, create_order_format, cancel_order_format, round_by_tick_size
 import archon.exchange.rex as bittrex
-from archon.exchange.cryptopia import CryptopiaAPI
 from archon.exchange.kucoin import KuClient
 import archon.exchange.hitbtc as hitbtc
 import archon.exchange.binance as binance
-from archon.exchange.bitmex import bitmex
 from archon.exchange.deribit.Wrapper import DeribitWrapper
 from archon.exchange.kraken import KrakenAPI
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
+from archon.exchange.cryptopia import CryptopiaAPI
 
 
 import time
@@ -29,7 +30,7 @@ import random
 import json
 import logging
 
-from archon.orders import *
+from archon.model.orders import *
 
 
 rex_API_v2= "rex_API_v2"
@@ -66,8 +67,14 @@ class Facade:
     def set_api_keys(self, exchange, key, secret):
         """ set clients, assumes conf file present """
         self.logger.info("set api " + str(exchange))
-        if exchange==exc.CRYPTOPIA:
-            self.clients[exchange] = CryptopiaAPI(key, secret)
+        if exchange==exc.BITMEX:
+            self.clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
+        elif exchange==exc.DERIBIT:
+            self.clients[exchange] = DeribitWrapper(key=key,secret=secret)
+            self.logger.debug("set deri %s"%str(self.clients[exchange]))
+        elif exchange==exc.DELTA:
+            self.clients[exchange] = DeltaRestClient(api_key=key, api_secret=secret)
+            self.logger.debug("set %s %s"%exchange,str(self.clients[exchange]))
         elif exchange==exc.BITTREX:
             self.clients[exchange] = bittrex.Bittrex(key,secret)
             #maintain version for candles
@@ -80,12 +87,6 @@ class Facade:
             self.clients[exchange] = binance.Client(key,secret)
         elif exchange==exc.KRAKEN:        
             self.clients[exchange] = KrakenAPI(key,secret)
-        elif exchange==exc.BITMEX:
-            self.logger.info("set bitmex")
-            self.clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
-        elif exchange==exc.DERIBIT:
-            self.clients[exchange] = DeribitWrapper(key=key,secret=secret)
-            self.logger.debug("set deri %s"%str(self.clients[exchange]))
 
     def get_client(self, EXC):
         """ directly get a client """

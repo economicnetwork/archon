@@ -10,7 +10,7 @@ from archon.util import *
 import archon.exchange.rex as bittrex
 from archon.exchange.bitmex import bitmex
 from archon.exchange.deribit.Wrapper import DeribitWrapper
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
 
 
 import time

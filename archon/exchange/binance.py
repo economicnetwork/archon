@@ -6,7 +6,7 @@ import requests
 import time
 from operator import itemgetter
 from archon.util import *
-from archon.custom_logger import setup_logger
+from archon.util.custom_logger import setup_logger
 
 
 class BinanceAPIException(Exception):

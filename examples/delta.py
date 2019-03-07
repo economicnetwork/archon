@@ -8,13 +8,18 @@ delta_client = DeltaRestClient(
     api_key='',
     api_secret=''
 )
-prd = delta_client.get_products()
 
-print ("...")
-for p in prd:
-    print (p)
-    print (p["symbol"],p["id"])
+def show_products():
+    prd = delta_client.get_products()
+
+    print ("...")
+    for p in prd:
+        print (p)
+        print (p["symbol"],p["id"])
 
 btc_Id = 9 #"BTCUSD_29Mar"
 book = delta_client.get_L2_orders(btc_Id)
-print (book)
+bids, asks = book["buy_book"], book["sell_book"]
+print ("bid ", bids[0])
+print ("ask ", asks[0])
+#print (book.keys())
