@@ -45,11 +45,13 @@ class Broker:
 
         if setMongo:
             try:
-                all_conf = parse_toml("conf.toml")
+                wdir = self.get_workingdir()
+                path_file_config = wdir + "/" + "config.toml"
+                config_dict = parse_toml(path_file_config)
             except:
-                self.logger.error("no conf.toml file")
+                self.logger.error("no file. path expected: %s"%str(path_file_config))
             try:
-                mongo_conf = all_conf["MONGO"]
+                mongo_conf = config_dict["MONGO"]
                 uri = mongo_conf["uri"]
                 self.set_mongo(uri)
                 self.using_mongo = True
