@@ -10,11 +10,11 @@ from pymongo import MongoClient
 import logging
 import redis
 
-from archon.config import *
+from archon.broker.config import *
 import archon.brokersrv.facader as facader
 import archon.exchange.exchanges as exc
 from archon.model import models
-import archon.orderbooks as orderbooks
+import archon.util.orderbooks as orderbooks
 from archon.feeds import cryptocompare
 from archon.util import *
 import archon.exchange.bitmex.fields as bitmexfields
@@ -119,17 +119,6 @@ class BrokerService:
     def get_db(self):
         return self.db
 
-    def set_active_exchanges(self, exchanges):
-        self.logger.debug("set active exchanges %s"%exchanges)
-        self.active_exchanges = exchanges  
-
-    def set_active_exchanges_name(self, exchanges_names):
-        ne = list()
-        for n in exchanges_names:
-            eid = exc.get_id(n)
-            ne.append(eid)
-        self.active_exchanges = ne
-
     def set_keys_exchange_file(self,keys_filename=standard_apikeys_file,exchanges=None):
         wdir = self.get_workingdir()
         path_file_apikeys = wdir + "/" + keys_filename
@@ -139,19 +128,16 @@ class BrokerService:
         self.logger.info("set keys %s"%apikeys.keys())
         if exchanges:
             for e in exchanges:
-                #eid = exc.get_id(e)
-                name = exc.NAMES[e]
                 try:
-                    self.set_keys_exchange(e, apikeys[name])
+                    self.set_keys_exchange(e, apikeys[e])
                 except Exception as err:
                     self.logger.error("could not set %s"%err)
         else:            
             try:            
                 for k,v in apikeys.items():
-                    eid = exc.get_id(k)
-                    if eid >= 0:
+                    if exc.exchange_exists(k):
                         try:
-                            self.set_keys_exchange(eid, apikeys[k])
+                            self.set_keys_exchange(k, apikeys[k])
                         except Exception as err:
                             self.logger.error("could not set %s"%err)
                     else:
@@ -165,7 +151,7 @@ class BrokerService:
     def set_keys_exchange(self, exchange, keys):
         pubkey = keys["public_key"]
         secret = keys["secret"]
-        self.logger.info ("set keys %i %s"%(exchange,keys['public_key']))
+        self.logger.info ("set keys %s %s"%(exchange,keys['public_key']))
         #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.afacade.set_api_keys(exchange, pubkey, secret)
         

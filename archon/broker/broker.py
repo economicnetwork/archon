@@ -79,17 +79,6 @@ class Broker:
     def get_db(self):
         return self.db
 
-    def set_active_exchanges(self, exchanges):
-        self.logger.debug("set active exchanges %s"%exchanges)
-        self.active_exchanges = exchanges
-
-    def set_active_exchanges_name(self, exchanges_names):
-        ne = list()
-        for n in exchanges_names:
-            eid = exc.get_id(n)
-            ne.append(eid)
-        self.active_exchanges = ne
-
     def set_keys_exchange_file(self, path_file_apikeys=None, exchanges=None):
         self.logger.info("set_keys_exchange_file")
         if path_file_apikeys is None:

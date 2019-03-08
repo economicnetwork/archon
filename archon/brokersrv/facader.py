@@ -3,6 +3,13 @@ facade raw
 no conversion through models
 """
 
+import time
+import sys
+import time
+import random
+import json
+import logging
+
 import archon.exchange.exchanges as exc
 from archon.util import *
 
@@ -12,15 +19,7 @@ from archon.exchange.bitmex import bitmex
 from archon.exchange.deribit.Wrapper import DeribitWrapper
 from archon.util.custom_logger import setup_logger
 
-
-import time
-import sys
-import time
-import random
-import json
-import logging
-
-from archon.orders import *
+from archon.model.orders import *
 
 
 #ORDERSTATUS_COL = 5
