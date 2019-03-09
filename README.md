@@ -20,7 +20,7 @@ Ecosystem which can be built on top
 
 ## Architecture
 
-![arch Image](docs/arch.png)
+![arch Image](docs/arch2.png)
 
 ## examples
 
