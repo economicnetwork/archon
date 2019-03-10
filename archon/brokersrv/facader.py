@@ -18,7 +18,7 @@ import archon.exchange.rex as bittrex
 from archon.exchange.bitmex import bitmex
 from archon.exchange.deribit.Wrapper import DeribitWrapper
 from archon.util.custom_logger import setup_logger
-
+from archon.exchange.delta.delta_rest_client import DeltaRestClient, create_order_format, cancel_order_format, round_by_tick_size
 from archon.model.orders import *
 
 
@@ -43,7 +43,6 @@ class FacadeRaw:
 
         self.clients = {}
 
-
     def set_api_keys(self, exchange, key, secret):
         """ set clients, assumes conf file present """
         self.logger.info("set api " + str(exchange))
@@ -52,11 +51,9 @@ class FacadeRaw:
         elif exchange==exc.DERIBIT:
             self.clients[exchange] = DeribitWrapper(key=key,secret=secret)
 
-
     def get_client(self, EXC):
         """ directly get a client """
         return self.clients[EXC]
-
 
     def position(self, exchange):
         print (self.clients)
@@ -69,7 +66,6 @@ class FacadeRaw:
         elif exchange==exc.DERIBIT:
             pos = client.positions()
             return pos
-
 
     def openorders(self, exchange, symbol):
         client = self.clients[exchange]

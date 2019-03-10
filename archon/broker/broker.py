@@ -78,7 +78,7 @@ class Broker:
 
     def get_db(self):
         return self.db
-
+    
     def set_keys_exchange_file(self, path_file_apikeys=None, exchanges=None):
         self.logger.info("set_keys_exchange_file")
         if path_file_apikeys is None:
@@ -90,16 +90,15 @@ class Broker:
         self.logger.info("set keys %s"%apikeys.keys())
         if exchanges:
             for e in exchanges:
-                name = exc.NAMES[e]
                 try:
-                    self.logger.info("set %s %s"%(e, str(apikeys[name])))
-                    self.set_keys_exchange(e, apikeys[name])
+                    self.logger.info("set %s %s"%(e, str(apikeys[e])))
+                    self.set_keys_exchange(e, apikeys[e])
                 except Exception as err:
                     self.logger.error("could not set %s"%err)
         else:
             try:
                 if not self.active_exchanges:
-                    print ("??? ",apikeys)
+                    print (">> ",apikeys)
                     for k,v in apikeys.items():
                         if exc.exchange_exists(k):
                             try:
@@ -110,8 +109,6 @@ class Broker:
                         else:
                             self.logger.error ("exchange not supported or not set")
                     self.logger.info("active exchanges %s"%self.active_exchanges)
-                else:
-                    self.logger.error("active exchanages already set")
 
             except Exception as err:
                 self.logger.error("error parsing apikeys file: %s"%(err))
@@ -121,23 +118,10 @@ class Broker:
         pubkey = keys["public_key"]
         secret = keys["secret"]
         self.logger.info ("set keys %s %s"%(exchange,keys['public_key']))
-        #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.afacade.set_api_keys(exchange, pubkey, secret)
-
-    def set_keys_exchange_detail(self, exchange, pubkey, secret):
-        self.logger.info ("set keys %i %s"%(exchange,pubkey))
-        #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
-        self.afacade.set_api_keys(exchange, pubkey, secret)
-
-    def get_active_exchanges(self):
-        return self.active_exchanges
 
     def get_apikeys_all(self):
         return list(self.db.apikeys.find())
-
-    def get_by_id(self, oid):
-        x = list(filter(lambda x: x['oid'] == oid, self.openorders))
-        return x[0]
 
     def set_mail_config(self, apikey, domain):
         """ mailgun config """
@@ -159,6 +143,10 @@ class Broker:
 
 
     # --- broker data ---
+
+    def get_order_by_id(self, oid):
+        x = list(filter(lambda x: x['oid'] == oid, self.openorders))
+        return x[0]
 
     def global_openorders(self):
         oo = list()

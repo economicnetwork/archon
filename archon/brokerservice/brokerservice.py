@@ -6,69 +6,87 @@ broker service
 * broker stores all exchange relevant data: balances, orders, ...
 """
 
-import json
-import os
 import datetime
 import time
-from pymongo import MongoClient
 import logging
-import redis
+import os
+from pathlib import Path
+from pymongo import MongoClient
 
-from archon.config import *
-import archon.brokersrv.facader as facader
+import archon.broker.facade as facade
 import archon.exchange.exchanges as exc
-from archon.model import models
-import archon.orderbooks as orderbooks
+import archon.util.orderbooks as orderbooks
+from archon.broker.config import parse_toml
 from archon.feeds import cryptocompare
-from archon.util import *
-from archon.util.custom_logger import setup_logger, remove_loggers
+from archon.model import models
+import archon.exchange.bitmex.fields as bitmexfields
+from archon.util.custom_logger import setup_logger
+from archon.exchange.delta.delta_rest_client import DeltaRestClient, create_order_format, cancel_order_format, round_by_tick_size
 
-class BrokerService:
+class Brokerservice:
 
-    def __init__():
-        pass
-        
-    def set_mongo(self, uri):        
+    def __init__(self, setMongo=True):
+
+        setup_logger(logger_name="broker", log_file='broker.log')
+        self.logger = logging.getLogger("broker")
+
+        if setMongo:
+            try:
+                wdir = self.get_workingdir()
+                path_file_config = wdir + "/" + "config.toml"
+                config_dict = parse_toml(path_file_config)
+            except:
+                self.logger.error("no file. path expected: %s"%str(path_file_config))
+            try:
+                mongo_conf = config_dict["MONGO"]
+                uri = mongo_conf["uri"]
+                self.set_mongo(uri)
+                self.using_mongo = True
+            except:
+                self.using_mongo = False
+                self.logger.error("could not set mongo")
+
+            
+        self.clients = {}
+
+        self.starttime = datetime.datetime.utcnow()
+
+    def get_workingdir(self):
+        home = str(Path.home())
+        wdir = home + "/.archon"
+
+        if not os.path.exists(wdir):
+            os.makedirs(wdir)
+
+        return wdir
+
+    def set_mongo(self, uri):
         self.logger.debug("using mongo %s"%str(uri))
         mongoclient = MongoClient(uri)
         self.db = mongoclient["broker-db"]
 
-        self.get_users_callback = None
-        
-    def get_redis(self):
-        return self.redis_client
-
     def get_db(self):
         return self.db
 
-    def get_balances(self, user_id):
-        #exchange
-        self.balances.find({"user_id": user_id})
+    def store_apikey(self, exchange, pubkey, secret, user_id=""):
+        #check if exchange exists
+        #ping exchange?
+        #upsert??
+        #coll.update(key, data, upsert=True);
+        self.db.apikeys.update({"exchange": exchange, "pubkey": pubkey, "secret": secret, "user_id": user_id}, upsert=True)
 
-    def register_user_callback(self, user_id, cb):
-        self.user_callbacks[user_id] = cb
+        
+    def set_client(self, exchange, key, secret):
+        """ set clients """
+        #self.logger.info ("set keys %s %s"%(exchange,keys['public_key']))
+        self.logger.info("set api " + str(exchange))
+        if exchange==exc.BITMEX:
+            self.clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
+        elif exchange==exc.DELTA:
+            self.clients[exchange] = DeltaRestClient(api_key=key, api_secret=secret)
+            self.logger.debug("set %s %s"%exchange,str(self.clients[exchange]))
 
-    def register_userlist_callback(self, cb):
-        self.register_userlist_callback = cb
+    def get_apikeys(self, user_id=""):
+        return list(self.db.apikeys.find({"user_id": user_id}))
 
-    def sync_balance(app):
-        """ sync all """
-        global client
-        users = self.get_users_callback()
-        for user in users:
-            print (user)
-
-            """
-            if client is None: 
-                client = get_client(user)        
-            else:
-                pass
-                #if lastuser = user:
-                    
-            funds = [{exc.BITMEX_NAME:client.funds()}]
-            app.mongo.db.users.update_one({"email": user["email"]}, {"$set": {"funds": funds}})
-            """
-
-            
-                       
 
