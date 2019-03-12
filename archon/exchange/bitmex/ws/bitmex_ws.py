@@ -357,7 +357,6 @@ class BitMEXWebsocket:
     def handle_message(self, message):
         msg = json.dumps(message)
         self.logger.debug("message %s"%str(msg))
-        #pdb.set_trace()
         #self.logger.debug("got msg. %s %s"%str(self.got_init_data),set(self.data))
         #self.missing_topics()
         self.logger.debug("keys %s"%str(self.data.keys()))

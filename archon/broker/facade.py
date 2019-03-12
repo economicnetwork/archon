@@ -74,7 +74,7 @@ class Facade:
             self.logger.debug("set deri %s"%str(self.clients[exchange]))
         elif exchange==exc.DELTA:
             self.clients[exchange] = DeltaRestClient(api_key=key, api_secret=secret)
-            self.logger.debug("set %s %s"%exchange,str(self.clients[exchange]))
+            self.logger.debug("set %s %s"%(exchange,str(self.clients[exchange])))
         elif exchange==exc.BITTREX:
             self.clients[exchange] = bittrex.Bittrex(key,secret)
             #maintain version for candles
@@ -137,7 +137,7 @@ class Facade:
 
     def get_orderbook(self, market, exchange=None):
         client = self.clients[exchange]
-        self.logger.debug("get orderbook %s %i" %(str(market),exchange))
+        self.logger.debug("get orderbook %s %s" %(str(market),exchange))
         #market = models.conv_markets_to(market, exchange)
 
         if exchange==exc.CRYPTOPIA:
@@ -424,7 +424,7 @@ class Facade:
     # --- trading info ---
 
     def balance_all(self, exchange=None):
-        self.logger.debug("get balance %i"%exchange)
+        self.logger.debug("get balance %s"%exchange)
 
         client = self.clients[exchange]
 
