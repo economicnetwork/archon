@@ -86,14 +86,13 @@ class Broker:
             #standard_apikeys_file
             path_file_apikeys = wdir + "/" + standard_apikeys_file
         apikeys = parse_toml(path_file_apikeys)
-        print(apikeys)
         self.logger.info("set keys %s"%apikeys.keys())
         import pdb
         #pdb.set_trace()
         if exchanges:
             for e in exchanges:
                 try:
-                    self.logger.info("set %s %s"%(e, str(apikeys[e])))
+                    self.logger.info("set %s %s"%(e, str(apikeys[e]["public_key"])))
                     self.set_keys_exchange(e, apikeys[e])
                 except Exception as err:
                     self.logger.error("could not set %s"%str(err))
@@ -103,11 +102,11 @@ class Broker:
                     print (">> ",apikeys)
                     for k,v in apikeys.items():
                         if exc.exchange_exists(k):
-                            try:
+                            try:                                
                                 self.set_keys_exchange(k, apikeys[k])
                                 self.active_exchanges.append(k)
                             except Exception as err:
-                                self.logger.error("could not set %s"%err)
+                                self.logger.error("could not set api keys: %s"%err)
                         else:
                             self.logger.error ("exchange not supported or not set")
                     self.logger.info("active exchanges %s"%self.active_exchanges)
@@ -119,8 +118,17 @@ class Broker:
     def set_keys_exchange(self, exchange, keys):
         pubkey = keys["public_key"]
         secret = keys["secret"]
-        self.logger.info ("set keys %s %s"%(exchange,keys['public_key']))
+        self.logger.info ("set keys %s %s"%(exchange, keys['public_key']))
+        #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
         self.afacade.set_api_keys(exchange, pubkey, secret)
+
+    def set_keys_exchange_detail(self, exchange, pubkey, secret):
+        self.logger.info ("set keys %s %s"%(exchange,pubkey))
+        #self.db.apikeys.save({"exchange":exchange,"pubkey":pubkey,"secret":secret})
+        self.afacade.set_api_keys(exchange, pubkey, secret)
+
+    def get_active_exchanges(self):
+        return self.active_exchanges
 
     def get_apikeys_all(self):
         return list(self.db.apikeys.find())
