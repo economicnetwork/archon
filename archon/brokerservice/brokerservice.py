@@ -17,11 +17,10 @@ import archon.broker.facade as facade
 import archon.exchange.exchanges as exc
 import archon.util.orderbooks as orderbooks
 from archon.broker.config import parse_toml
-from archon.feeds import cryptocompare
 from archon.model import models
-import archon.exchange.bitmex.fields as bitmexfields
 from archon.util.custom_logger import setup_logger
 from archon.exchange.delta.delta_rest_client import DeltaRestClient, create_order_format, cancel_order_format, round_by_tick_size
+from archon.exchange.bitmex import bitmex
 
 class Brokerservice:
 
@@ -68,25 +67,35 @@ class Brokerservice:
     def get_db(self):
         return self.db
 
+    def drop_apikey(self, exchange, user_id=""):
+        self.db.apikeys.remove({"user_id": user_id, "exchange": exchange})
+
     def store_apikey(self, exchange, pubkey, secret, user_id=""):
         #check if exchange exists
         #ping exchange?
         #upsert??
         #coll.update(key, data, upsert=True);
-        self.db.apikeys.update({"exchange": exchange, "pubkey": pubkey, "secret": secret, "user_id": user_id}, upsert=True)
-
-        
-    def set_client(self, exchange, key, secret):
-        """ set clients """
-        #self.logger.info ("set keys %s %s"%(exchange,keys['public_key']))
-        self.logger.info("set api " + str(exchange))
-        if exchange==exc.BITMEX:
-            self.clients[exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
-        elif exchange==exc.DELTA:
-            self.clients[exchange] = DeltaRestClient(api_key=key, api_secret=secret)
-            self.logger.debug("set %s %s"%exchange,str(self.clients[exchange]))
+        #self.db.apikeys.update_one({"exchange": exchange, "pubkey": pubkey, "secret": secret, "user_id": user_id}, upsert=True)
+        #self.db.apikeys.drop()
+        if self.db.apikeys.find({"user_id": user_id, "exchange": exchange}).count()==0:
+            self.db.apikeys.insert_one({"exchange": exchange, "pubkey": pubkey, "secret": secret, "user_id": user_id})
+        #db.users.update_one({"_id" : string1.id, "name" : string1.name, "perm" : "administrator"}, upsert=False)
 
     def get_apikeys(self, user_id=""):
         return list(self.db.apikeys.find({"user_id": user_id}))
+        
+    def set_client(self, exchange, key, secret, user_id=""):
+        """ set clients """
+        #self.logger.info ("set keys %s %s"%(exchange,keys['public_key']))
+        self.logger.info("set api " + str(exchange))
+        if user_id not in self.clients.keys():
+            self.clients[user_id] = {}
+        if exchange==exc.BITMEX:
+            self.clients[user_id][exchange] = bitmex.BitMEX(apiKey=key, apiSecret=secret)
+        elif exchange==exc.DELTA:
+            self.clients[user_id][exchange] = DeltaRestClient(api_key=key, api_secret=secret)
+            self.logger.debug("set %s"%exchange)
 
+    def get_client(self, user_id, exchange):
+        return self.clients[user_id][exchange]
 

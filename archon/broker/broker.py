@@ -88,13 +88,15 @@ class Broker:
         apikeys = parse_toml(path_file_apikeys)
         print(apikeys)
         self.logger.info("set keys %s"%apikeys.keys())
+        import pdb
+        #pdb.set_trace()
         if exchanges:
             for e in exchanges:
                 try:
                     self.logger.info("set %s %s"%(e, str(apikeys[e])))
                     self.set_keys_exchange(e, apikeys[e])
                 except Exception as err:
-                    self.logger.error("could not set %s"%err)
+                    self.logger.error("could not set %s"%str(err))
         else:
             try:
                 if not self.active_exchanges:
@@ -152,7 +154,7 @@ class Broker:
         oo = list()
         for e in self.active_exchanges:
             n = exc.NAMES[e]
-            self.logger.info("%i %s"%(e,n))
+            self.logger.info("%s %s"%(e,n))
             z = self.afacade.open_orders(e)
             if z:
                 if len(z) > 0:
@@ -367,7 +369,7 @@ class Broker:
 
     def sync_orderbook(self, market, exchange):
         #smarket = models.conv_markets_to(market, exchange)
-        self.logger.debug("sync %s %i"%(market,exchange))
+        self.logger.debug("sync %s %s"%(market,exchange))
         #TODO check if symbol is supported by exchange
         try:
             n = exc.NAMES[exchange]
@@ -428,7 +430,7 @@ class Broker:
                 x = {'market': market, 'exchange': n, 'bids':bids,'asks':asks,'timestamp':dt}
                 books.append(x)
             except Exception as err:
-                self.logger.error("error global orderbook %i %s %s"%(e,market,err))
+                self.logger.error("error global orderbook %s %s %s"%(e,market,err))
         [bids,asks,ts] = orderbooks.aggregate_book(books)
         return [bids,asks,ts]
 
