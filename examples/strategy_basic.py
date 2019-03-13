@@ -103,8 +103,6 @@ if __name__=='__main__':
     a.set_keys_exchange_file()
     ae = [exc.BINANCE]
     a.set_active_exchanges(ae)
-    #import pdb
-    #pdb.set_trace()
     try:
         ag = BasicStrategy(a)
         ag.run()
