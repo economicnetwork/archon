@@ -84,7 +84,7 @@ class FacadeRaw:
 
     def orderbook(self, market, exchange=None):
         client = self.clients[exchange]
-        self.logger.debug("get orderbook %s %i" %(str(market),exchange))
+        self.logger.debug("get orderbook %s %s" %(str(market),exchange))
         #market = models.conv_markets_to(market, exchange)
 
         if exchange==exc.BITMEX:
