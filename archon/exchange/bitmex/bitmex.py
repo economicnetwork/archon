@@ -247,10 +247,13 @@ class BitMEX(object):
         return result
 
     def execution_history_all(self, symbol):
-        datetime.now()
+        now = datetime.datetime.now()
+        #TODO
         from_ts = "2019-01-13T12:00:00.000Z"
-        xx = now.strftime("%Y-%m-%dT12:00:00.000Z")
-        print (xx)
+        prev = now.strftime("%Y-%m-%dT12:00:00.000Z")
+        print (prev)
+        tx = self.execution_history(symbol, prev)
+        return tx
         #startTime = startday
         #endTime = startTime + timedelta(hours=12)
         
