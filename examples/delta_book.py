@@ -41,7 +41,7 @@ def send_mail_report(body):
     headline = "Delta"
     html = """<html><head></head><body><h1>%s</h1><p>%s</p></body></html>"""%(headline, body)
 
-    awsses.send_mail("benjamin.l.cordes@gmail.com", html, "Delta price")
+    awsses.send_mail(user_email, html, "Delta price")
 
 def show_products():
     p = delta_client.get_products()
