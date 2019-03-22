@@ -165,14 +165,6 @@ class BrokerService:
         x = list(filter(lambda x: x['oid'] == oid, self.openorders))
         return x[0]
 
-    def set_mail_config(self, apikey, domain):
-        """ mailgun config """
-        self.mail_api_key = apikey
-        self.mail_domain = domain
-        #self.email_from = email_from
-        #self.email_to = email_to  
-        # 
-
     # --- WS specific ---
 
     def init_bitmex_ws(self, redis_client, symbol=mex.instrument_btc_perp):  

@@ -133,13 +133,6 @@ class Broker:
     def get_apikeys_all(self):
         return list(self.db.apikeys.find())
 
-    def set_mail_config(self, apikey, domain):
-        """ mailgun config """
-        self.mail_api_key = apikey
-        self.mail_domain = domain
-        #self.email_from = email_from
-        #self.email_to = email_to
-
     # --- bitmex specfic ---
 
     def margin_balance(self, e):
