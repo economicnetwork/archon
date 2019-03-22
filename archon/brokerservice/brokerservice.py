@@ -117,7 +117,6 @@ class Brokerservice:
         self.logger.info("set api " + str(exchange))
         #keys = self.db.apikeys.find_one({"exchange":exchange})
         keys = self.db.apikeys.find_one({"user_id":self.session_user_id})["apikeys"]
-        print ("?? ", keys)
         
         print (self.clients)
         if exchange==exc.BITMEX:            
