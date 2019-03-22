@@ -114,9 +114,9 @@ class Brokerservice:
         if not self.session_active:
             raise Exception("no active session")
 
-        self.logger.info("set api " + str(exchange))
         #keys = self.db.apikeys.find_one({"exchange":exchange})
-        keys = self.db.apikeys.find_one({"user_id":self.session_user_id})["apikeys"]
+        keys = self.db.apikeys.find_one({"user_id":self.session_user_id, "exchange": exchange})["apikeys"]
+        self.logger.info("set api %s %s" %(str(exchange), keys["public_key"]))
         
         print (self.clients)
         if exchange==exc.BITMEX:            

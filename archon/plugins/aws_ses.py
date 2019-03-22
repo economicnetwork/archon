@@ -5,9 +5,12 @@ class AwsSes:
 
     def __init__(self, sender):
         """ key management through .aws working dir credentials """
-        AWS_REGION = "us-east-1"
-        self.ses_client = boto3.client('ses',region_name=AWS_REGION)
+        #AWS_REGION = "us-east-1"
+        #self.ses_client = boto3.client('ses',region_name=AWS_REGION)
+        self.ses_client = boto3.client('ses')
         self.SENDER = sender
+        #email_from
+        #email_to
 
     def html_body(self):
         body = "mymessage"
