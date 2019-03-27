@@ -185,6 +185,28 @@ class BitMEX(object):
 
         return candles
 
+    def history(self, start):
+        n = datetime.datetime.now()
+        start_day = datetime.datetime(start.year, start.month, start.day)
+        cur = start_day
+        all_candles = list()
+
+        while cur < n:
+            cur += timedelta(hours=24)
+            self.logger.debug("fetch ",cur)
+            d = self.get_minute_1day(cur)
+            all_candles += d
+        return all_candles
+
+    def history_days(self, numdays):
+        n = datetime.datetime.now()
+        start = n - datetime.timedelta(days=numdays)
+        candles = self.history(start)
+        return candles
+        
+
+
+
     @property
     def snapshot(self):
         """Get current BBO."""
