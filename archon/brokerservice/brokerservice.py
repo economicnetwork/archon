@@ -98,11 +98,9 @@ class Brokerservice:
 
         print (list(self.db.apikeys.find()))
 
-
     def get_apikeys(self, user_id=""):
         return list(self.db.apikeys.find({"user_id": user_id}))
         
-
     def activate_session(self, user_id):
         self.session_user_id = user_id
         self.session_active = True
@@ -130,4 +128,108 @@ class Brokerservice:
             raise Exception("no active session")
 
         return self.clients[self.session_user_id][exchange]
+
+    # ----------------------------------
+
+    def get_open_orders(self, exchange):
+        client = self.clients[self.session_user_id][exchange]
+        if exchange==exc.DELTA:
+            oo = client.get_orders()
+            return oo
+
+    def get_position(self, exchange, product_id):
+        client = self.clients[self.session_user_id][exchange]
+        if exchange==exc.DELTA:
+            pos = client.get_position(product_id)
+            return pos
+
+    def get_tx(self, exchange):
+        client = self.clients[self.session_user_id][exchange]
+        if exchange==exc.DELTA:
+            fills = client.fills()
+            return fills
+
+    def get_orderbook(self, product_id, exchange):
+        client = self.clients[self.session_user_id][exchange]
+
+        if exchange==exc.DELTA:
+            book = client.get_L2_orders(product_id)
+            return book
+
+        elif exchange==exc.BITMEX:
+            bookdepth = 10
+            ob = client.market_depth(product_id,depth=bookdepth)
+            book = models.conv_orderbook(ob, exchange)
+            return book
+
+
+    def get_orders_bitmex(self):
+        client = self.clients[self.session_user_id][exc.BITMEX]
+        #TODO
+        sym = bitmex.instrument_btc_mar19
+        return client.open_orders(sym)
+
+    # aggregate ----------------------------------            
+
+    
+    def all_get_orders(self):
+        ood = self.get_open_orders(exc.DELTA)
+        #oob = self.get_open_orders(exc.BITMEX)
+        #TODO
+        oob = self.get_orders_bitmex()
+        #oob = get_orders_bitmex()
+
+        oo = {exc.DELTA: ood, exc.BITMEX: oob}
+        return delta_client.get_orders()
+
+
+    def get_btc_funds(self):
+        bitmex_client = self.clients[self.session_user_id][exc.BITMEX]
+        delta_client = self.clients[self.session_user_id][exc.DELTA]
+        mex_funds = bitmex_client.funds()
+        sat = 100000000
+        mex_btc_balance = mex_funds["amount"]/sat
+        
+        delta_btc_balance = float(delta_client.get_wallet(DELTA_ASSET_BTC)["balance"])
+
+        total_balance = mex_btc_balance + delta_btc_balance
+        
+        funds = [{exc.BITMEX: {"BTC_balance": mex_btc_balance}, exc.DELTA: {"BTC_balance": delta_btc_balance}, "total": total_balance}]
+        #funds = {exc.BITMEX: mex_funds, exc.DELTA: }
+        return funds
+
+    def get_tx_delta(self):
+        delta_client = self.clients[self.session_user_id][exc.DELTA]
+        t = delta_client.trade_history()
+        now = datetime.datetime.now()
+        #print (now.day)
+        tv = 0
+        tx = list()
+        for x in t[:]:
+            #print ("!! ", x)
+            ot, size, side, ap, crm, state = x['order_type'], x['size'], x['side'], x["avg_fill_price"], x["created_at"], x["state"]
+            date = crm[:10]
+            day = int(date[-2:])
+            #if (day == now.day) and state != "cancelled":
+            if state != "cancelled":
+                #print (state)
+                try:
+                    tv += float(size)
+                    tx.append({"exchange": exc.DELTA, "type": ot, "size": size, "side": side, "avg_fill_price": ap, "state": state, "date": crm})
+                except:
+                    continue
+        print ("total size " ,tv)
+        return tx
+
+    def get_tx_all(self):
+        bitmex_client = self.clients[self.session_user_id][exc.BITMEX]
+        delta_client = self.clients[self.session_user_id][exc.DELTA]
+        sym = bitmex.instrument_btc_mar19
+        tx_bitmex = bitmex_client.execution_history_all(sym)
+        tx_delta = self.get_tx_delta()
+        tx_all = {exc.BITMEX: tx_bitmex, exc.DELTA: tx_delta}
+        return tx_all
+
+
+        
 
