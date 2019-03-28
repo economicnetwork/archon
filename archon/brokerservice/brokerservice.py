@@ -183,13 +183,14 @@ class Brokerservice:
         return delta_client.get_orders()
 
 
-    def get_btc_funds(self):
+    def get_btc_balances(self):
         bitmex_client = self.clients[self.session_user_id][exc.BITMEX]
         delta_client = self.clients[self.session_user_id][exc.DELTA]
         mex_funds = bitmex_client.funds()
         sat = 100000000
         mex_btc_balance = mex_funds["amount"]/sat
-        
+
+        DELTA_ASSET_BTC = 2        
         delta_btc_balance = float(delta_client.get_wallet(DELTA_ASSET_BTC)["balance"])
 
         total_balance = mex_btc_balance + delta_btc_balance
