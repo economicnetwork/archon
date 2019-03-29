@@ -2,17 +2,9 @@
 import archon.exchange.okex as okex
 import archon.exchange.exchanges as exc
 from archon.brokerservice.brokerservice import Brokerservice
-from archon.broker.config import parse_toml
+from archon.broker.config import get_keys
 
-from pathlib import Path
-
-def get_keys():
-    home = str(Path.home())
-    api_file = home + "/.archon/apikeys.toml"
-    parsed = parse_toml(api_file)
-    return parsed["OKEX"]    
-
-keys = get_keys()
+keys = get_keys(exc.OKEX)
 public_client = okex.OkexClient(key=keys["public_key"],secret=keys["secret"])
 ticker = public_client.ticker("ltc_btc")
 print (ticker)

@@ -1,4 +1,5 @@
 import toml
+from pathlib import Path
 
 def toml_file(fs):
     try:
@@ -13,3 +14,8 @@ def parse_toml(filename):
     parsed_toml = toml.loads(toml_string)
     return parsed_toml
 
+def get_keys(exchange):
+    home = str(Path.home())
+    api_file = home + "/.archon/apikeys.toml"
+    parsed = parse_toml(api_file)
+    return parsed[exchange]
