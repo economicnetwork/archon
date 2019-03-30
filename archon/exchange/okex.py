@@ -96,7 +96,7 @@ class OkexBaseClient(object):
 
     def _post(self, url, params=None, needsign=True, headers=None, timeout=TIMEOUT):
         req_params = {'api_key' : self.KEY}
-        print (self.KEY)
+        print ("post with key ", self.KEY)
         if params and needsign:
             req_params.update(params)
         print (req_params)
