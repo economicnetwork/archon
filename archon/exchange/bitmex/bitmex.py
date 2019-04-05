@@ -193,7 +193,7 @@ class BitMEX(object):
 
         while cur < n:
             cur += timedelta(hours=24)
-            self.logger.debug("fetch ",cur)
+            self.logger.debug("fetch %s"%str(cur))
             d = self.get_minute_1day(cur)
             all_candles += d
         return all_candles

@@ -23,6 +23,8 @@ from archon.model import models
 from archon.util.custom_logger import setup_logger
 from archon.exchange.delta.delta_rest_client import DeltaRestClient, create_order_format, cancel_order_format, round_by_tick_size
 from archon.exchange.bitmex import bitmex
+from archon.exchange.kraken import KrakenAPI
+
 
 class Brokerservice:
 
@@ -90,13 +92,27 @@ class Brokerservice:
     def drop_apikey(self, exchange, user_id=""):
         self.db.apikeys.remove({"user_id": user_id, "exchange": exchange})
 
+    def set_apikeys_fromfile(self, user_id=""):
+        #store_apikey
+        try:
+            wdir = self.get_workingdir()
+            api_file = wdir + "/" + "apikeys.toml"
+            api_keys = parse_toml(api_file)
+            #print (api_keys)
+            self.db.apikeys.drop()
+            for k,v in api_keys.items():
+                self.store_apikey(k, v["public_key"], v["secret"], user_id)
+                #pass
+        except:
+            self.logger.error("no file. path expected: %s"%str(api_file))
+
+        #print ("apikeys ", list(self.db.apikeys.find()))
+
     def store_apikey(self, exchange, pubkey, secret, user_id=""):
         #check if exchange exists
         keys = {"exchange": exchange, "public_key": pubkey, "secret": secret}
-        #self.db.apikeys.drop()
         self.db.apikeys.update_one({"user_id": user_id, "exchange": exchange}, {"$set": {"apikeys": keys}}, upsert=True)
-
-        print (list(self.db.apikeys.find()))
+    
 
     def get_apikeys(self, user_id=""):
         return list(self.db.apikeys.find({"user_id": user_id}))
@@ -113,7 +129,10 @@ class Brokerservice:
             raise Exception("no active session")
 
         #keys = self.db.apikeys.find_one({"exchange":exchange})
-        keys = self.db.apikeys.find_one({"user_id":self.session_user_id, "exchange": exchange})["apikeys"]
+        print ("set client ", self.session_user_id,  exchange)
+        tmp = self.db.apikeys.find_one({"user_id":self.session_user_id, "exchange": exchange})
+        print (tmp)
+        keys = tmp["apikeys"]
         self.logger.info("set api %s %s" %(str(exchange), keys["public_key"]))
         
         print (self.clients)
@@ -122,6 +141,9 @@ class Brokerservice:
         elif exchange==exc.DELTA:
             self.clients[self.session_user_id][exchange] = DeltaRestClient(api_key=keys["public_key"], api_secret=keys["secret"])
             self.logger.debug("set %s"%exchange)
+        elif exchange==exc.KRAKEN:
+            self.clients[self.session_user_id][exchange] = KrakenAPI(keys["public_key"], keys["secret"])
+
 
     def get_client(self, exchange):
         if not self.session_active:
@@ -169,8 +191,7 @@ class Brokerservice:
         sym = bitmex.instrument_btc_mar19
         return client.open_orders(sym)
 
-    # aggregate ----------------------------------            
-
+    # ---- global data ----
     
     def all_get_orders(self):
         ood = self.get_open_orders(exc.DELTA)
@@ -180,7 +201,7 @@ class Brokerservice:
         #oob = get_orders_bitmex()
 
         oo = {exc.DELTA: ood, exc.BITMEX: oob}
-        return delta_client.get_orders()
+        return oo
 
 
     def get_btc_balances(self):
@@ -203,23 +224,19 @@ class Brokerservice:
         delta_client = self.clients[self.session_user_id][exc.DELTA]
         t = delta_client.trade_history()
         now = datetime.datetime.now()
-        #print (now.day)
         tv = 0
         tx = list()
         for x in t[:]:
-            #print ("!! ", x)
             ot, size, side, ap, crm, state = x['order_type'], x['size'], x['side'], x["avg_fill_price"], x["created_at"], x["state"]
             date = crm[:10]
             day = int(date[-2:])
             #if (day == now.day) and state != "cancelled":
             if state != "cancelled":
-                #print (state)
                 try:
                     tv += float(size)
                     tx.append({"exchange": exc.DELTA, "type": ot, "size": size, "side": side, "avg_fill_price": ap, "state": state, "date": crm})
                 except:
                     continue
-        print ("total size " ,tv)
         return tx
 
     def get_tx_all(self):
