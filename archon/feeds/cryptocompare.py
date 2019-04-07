@@ -53,10 +53,9 @@ def get_hist(fsym, tsym, e):
 def get_market_summary():
     url = baseURL + "top/totalvolfull?limit=100&tsym=USD"
     res = requests.get(url)
-    print (res.content)
     pdata = json.loads(res.content)["Data"]    
     sel = list()
-    for x in pdata[:30]:
+    for x in pdata[:]:
         print (x)
         lastprice = x["DISPLAY"]["USD"]["PRICE"]
         lastprice = lastprice.replace("$ ", "")
