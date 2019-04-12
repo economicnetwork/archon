@@ -146,6 +146,12 @@ class DeltaRestClient:
             l2_orderbook['buy_book']) > 0 else 0
         return (best_buy_price, best_sell_price)
 
+    def get_summary(self, product_id):
+        #r = requests.get('https://api.delta.exchange/products/ticker/24hr', params={
+        query = {'symbol': product_id}
+        response = self._request("GET","products/ticker/24hr",query=query, auth=True)
+        return response.json()
+
     def get_wallet(self, asset_id):
         response = self._request("GET", "wallet/balance",
                                 query={'asset_id': asset_id}, auth=True)
