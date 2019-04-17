@@ -17,6 +17,19 @@ apikey = keys["public_key"]
 secret = keys["secret"]
 password = keys["password"]
 
+def get_market(target):
+    market_list = list()
+    t = spotapi.get_ticker()
+    for x in t:
+        s = x["instrument_id"]
+        ac,dc = s.split('-')
+        v = int(float(x["quote_volume_24h"]))
+        #print (ac,dc,v)
+        if dc == target:
+            market_list.append([ac,dc,v])
+    return market_list
+
+
 if __name__ == '__main__':
 
     api_key = apikey
@@ -24,9 +37,19 @@ if __name__ == '__main__':
     passphrase = password
 
     accountAPI = account.AccountAPI(api_key, seceret_key, passphrase, True)
-    result = accountAPI.get_currencies()
-    print (result)
+    currencies = accountAPI.get_currencies()
+    
+    #for x in currencies:
+    #    print (x)
 
     spotapi = spot.SpotAPI(api_key, seceret_key, passphrase, True)
     result = spotapi.get_account_info()
-    print (result)
+    prices = {"BTC": 5000, "USDT": 1, "ETH": 160}
+    for underlying in ["BTC", "USDT", "ETH"]:
+        market_list = get_market(underlying)
+        sumv = 0
+        for x in market_list:
+            #print (x)
+            price = prices[underlying]
+            sumv += x[2]* price
+        print (underlying, " ", sumv)

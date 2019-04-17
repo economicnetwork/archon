@@ -76,14 +76,21 @@ class BitMEX(object):
     def ticker_data(self, symbol):
         """Get ticker data."""
         data = self.get_instrument(symbol)
+        #print(data)
         #print (data.keys())
+
+        v = data['volume24h']
+        last = data['lastPrice']
+        usd_volume = v*last
+        #print (symbol, usd_volume)
 
         ticker = {
             # Rounding to tickLog covers up float error
-            "last": data['lastPrice'],
-            "buy": data['bidPrice'],
-            "sell": data['askPrice'],
-            "mid": (float(data['bidPrice']) + float(data['askPrice'])) / 2
+            "last": last,
+            "bid": data['bidPrice'],
+            "ask": data['askPrice'],
+            "mid": (float(data['bidPrice']) + float(data['askPrice'])) / 2,
+            "volume24h": v
         }
 
         #rounded = {k: round(float(v), data['tickLog']) for k, v in ticker.items()}
@@ -402,7 +409,7 @@ class BitMEX(object):
         """Send a request to BitMEX Servers."""                
         # Handle URL
         url = self.base_url + path
-        self.logger.info("query %s"%str(url))
+        #self.logger.debug("query %s"%str(url))
 
         # Default to POST if data is attached, GET otherwise
         if not verb:
@@ -426,7 +433,7 @@ class BitMEX(object):
             h = response.headers
             #self.logger.debug("header %s"%str(h))
             remain = int(h['X-RateLimit-Remaining'])
-            self.logger.info("remain %i"%remain)
+            #self.logger.debug("remain %i"%remain)
             if remain < 100: time.sleep(0.2)
 
         except requests.exceptions.HTTPError as e:
