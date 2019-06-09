@@ -18,6 +18,41 @@ delta_client = brk.get_client(exc.DELTA)
 prd = delta_client.get_products()
 #print (prd)
 
-for p in prd:
-    print (p)
-    print (p["symbol"],p["id"])
+def calc_cum(orders, amount):
+    z = 0
+    i = 0    
+    #print (len(orders))
+    while z < amount and i<len(orders):
+        o = orders[i]
+        z += o['size']
+        p = float(o['price'])
+        #print (p)
+        i+=1
+    return p
+
+def show_book(product, depth):
+    book = delta_client.get_L2_orders(product)
+    bids = book["buy_book"]
+    asks = book["sell_book"]
+    topbid = bids[0]
+    topask = asks[0]
+    tb = float(topbid['price'])
+    ta = float(topask['price'])
+
+    bid_point = calc_cum(bids,depth)
+    ask_point = calc_cum(asks,depth)
+    spread_amount = (ask_point - bid_point)/ask_point
+    #print (bid_point,ask_point,spread_amount)
+    
+    #spread = (ta-tb)/tb
+    #infostr = "bid %5.2f ask %5.2f  spread %3.2f%%"%(tb, ta, spread*100)
+    infostr = "%3.2f%%"%(spread_amount*100)
+    return infostr
+
+
+depth = 1000
+print ("symbol id  spread%, depth: ", depth)
+for p in prd[:]:
+    pid = p["id"]
+    info = show_book(pid, depth)
+    print (p["symbol"],p["id"],info)
