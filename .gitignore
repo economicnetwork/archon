@@ -11,3 +11,4 @@ dist/
 *.pyc
 *.toml
 dumb.rdb
+*.csv

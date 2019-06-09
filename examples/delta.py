@@ -1,25 +1,23 @@
 import requests
 import json
-from archon.exchange.delta_rest_client import DeltaRestClient, create_order_format, cancel_order_format, round_by_tick_size
- 
-delta_client = DeltaRestClient(
-    #base_url='https://testnet-api.delta.exchange',
-    #base_url=,
-    api_key='',
-    api_secret=''
-)
+import os
 
-def show_products():
-    prd = delta_client.get_products()
+from archon.exchange.delta.delta_rest_client import create_order_format, cancel_order_format, round_by_tick_size
+from archon.exchange.delta.instruments import btc_march, btc_march_quanto, btc_june, product_names
+import archon.exchange.exchanges as exc
+from archon.plugins.aws_ses import AwsSes
+from archon.brokerservice.brokerservice import Brokerservice
+import archon.exchange.exchanges as exc
 
-    print ("...")
-    for p in prd:
-        print (p)
-        print (p["symbol"],p["id"])
 
-btc_Id = 9 #"BTCUSD_29Mar"
-book = delta_client.get_L2_orders(btc_Id)
-bids, asks = book["buy_book"], book["sell_book"]
-print ("bid ", bids[0])
-print ("ask ", asks[0])
-#print (book.keys())
+brk = Brokerservice()
+user_email = "ben@enet.io" #os.environ["USER_EMAIL"]
+brk.activate_session(user_email)
+brk.set_client(exc.DELTA)
+delta_client = brk.get_client(exc.DELTA)
+prd = delta_client.get_products()
+#print (prd)
+
+for p in prd:
+    print (p)
+    print (p["symbol"],p["id"])
