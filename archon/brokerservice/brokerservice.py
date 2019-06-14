@@ -24,6 +24,7 @@ from archon.util.custom_logger import setup_logger
 from archon.exchange.delta.delta_rest_client import DeltaRestClient, create_order_format, cancel_order_format, round_by_tick_size
 from archon.exchange.bitmex import bitmex
 from archon.exchange.kraken import KrakenAPI
+import archon.exchange.binance as binance
 
 
 class Brokerservice:
@@ -109,6 +110,7 @@ class Brokerservice:
         #print ("apikeys ", list(self.db.apikeys.find()))
 
     def store_apikey(self, exchange, pubkey, secret, user_id=""):
+        print ("store_apikey ", pubkey, " ", exchange)
         #check if exchange exists
         keys = {"exchange": exchange, "public_key": pubkey, "secret": secret}
         self.db.apikeys.update_one({"user_id": user_id, "exchange": exchange}, {"$set": {"apikeys": keys}}, upsert=True)
@@ -143,6 +145,9 @@ class Brokerservice:
             self.logger.debug("set %s"%exchange)
         elif exchange==exc.KRAKEN:
             self.clients[self.session_user_id][exchange] = KrakenAPI(keys["public_key"], keys["secret"])
+        elif exchange==exc.BINANCE:
+            self.clients[self.session_user_id][exchange] = binance.Client(key,secret)
+
 
 
     def get_client(self, exchange):

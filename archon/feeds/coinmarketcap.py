@@ -118,7 +118,7 @@ def get_listings_all():
     return allcoins
 
 
-def get_description(idlist):
+def get_info(idlist):
     endpoint_description = "cryptocurrency/info"
     
     #[str(x)+',' for x in range(1,20)]
@@ -142,7 +142,7 @@ def get_description(idlist):
     except (ConnectionError, Timeout, TooManyRedirects) as e:
         print("error ", e)    
 
-def get_description_all(maxr=10000):
+def get_info_all(maxr=10000):
     print ("get_description_all")
     allcoins = list()
     #maxr = 10000
@@ -151,7 +151,7 @@ def get_description_all(maxr=10000):
         try:
             idlist = ','.join([str(z) for z in range(x,x+100)])
             print ("get ",x,idlist)
-            coins = list(get_description(idlist).values())
+            coins = list(get_info(idlist).values())
             #print (coins)
             print ("result ",len(coins))
             #print (coins[0])

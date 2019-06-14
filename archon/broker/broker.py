@@ -85,10 +85,10 @@ class Broker:
             wdir = self.get_workingdir()
             #standard_apikeys_file
             path_file_apikeys = wdir + "/" + standard_apikeys_file
+        self.logger.info("use path %s"%path_file_apikeys)
         apikeys = parse_toml(path_file_apikeys)
         self.logger.info("set keys %s"%apikeys.keys())
-        import pdb
-        #pdb.set_trace()
+        
         if exchanges:
             for e in exchanges:
                 try:
@@ -99,8 +99,8 @@ class Broker:
         else:
             try:
                 if not self.active_exchanges:
-                    print (">> ",apikeys)
                     for k,v in apikeys.items():
+                        self.logger.info("set %s" %k)
                         if exc.exchange_exists(k):
                             try:                                
                                 self.set_keys_exchange(k, apikeys[k])
