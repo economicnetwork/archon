@@ -13,7 +13,7 @@ HITBTC = "HITBTC"
 CRYPTOPIA = "CRYPTOPIA"
 OKEX = "OKEX"
 
-NAMES = [BITMEX, DERIBIT, DELTA, OKEX]
+NAMES = [BITMEX, DERIBIT, DELTA, OKEX, BINANCE]
 
 def exchange_exists(name):
     return name in NAMES

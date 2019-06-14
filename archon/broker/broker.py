@@ -102,7 +102,8 @@ class Broker:
                     for k,v in apikeys.items():
                         self.logger.info("set %s" %k)
                         if exc.exchange_exists(k):
-                            try:                                
+                            try:       
+                                
                                 self.set_keys_exchange(k, apikeys[k])
                                 self.active_exchanges.append(k)
                             except Exception as err:
