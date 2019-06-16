@@ -13,8 +13,8 @@ class BinanceAPIException(Exception):
 
     def __init__(self, response):
         setup_logger(logger_name=__name__, log_file=__name__ + '.log')
-        self.logger = logging.getLogger(__name__)
-        self.logger.debug("init binance")
+        #self.logger = logging.getLogger(__name__)
+        #self.logger.debug("init binance")
 
         self.code = 0
         try:
@@ -214,7 +214,7 @@ class Client(object):
         :type requests_params: dict.
 
         """
-
+        print ("init ", api_key, api_secret)
         self.API_KEY = api_key
         self.API_SECRET = api_secret
         self.session = self._init_session()

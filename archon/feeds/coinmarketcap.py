@@ -183,3 +183,26 @@ def get_coin_map(active):
     except (ConnectionError, Timeout, TooManyRedirects) as e:
         print(e)
 
+def exchange_map():    
+    endpoint_map = "exchange/map"
+    parameters = {
+        #'listing_status': active
+    }
+    #limit
+    #slug
+    headers = {
+        'Accepts': 'application/json',
+        'X-CMC_PRO_API_KEY': cmc_key,
+    }
+
+    session = Session()
+    session.headers.update(headers)
+
+    try:
+        url = base_url + endpoint_map
+        response = session.get(url, params=parameters)
+        data = json.loads(response.text)
+        return data
+    except (ConnectionError, Timeout, TooManyRedirects) as e:
+        print(e)     
+
