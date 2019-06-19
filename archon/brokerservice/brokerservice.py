@@ -133,7 +133,7 @@ class Brokerservice:
         #keys = self.db.apikeys.find_one({"exchange":exchange})
         print ("set client ", self.session_user_id,  exchange)
         tmp = self.db.apikeys.find_one({"user_id":self.session_user_id, "exchange": exchange})
-        print (tmp)
+        print ("keys ", tmp)
         keys = tmp["apikeys"]
         self.logger.info("set api %s %s" %(str(exchange), keys["public_key"]))
         
@@ -146,7 +146,7 @@ class Brokerservice:
         elif exchange==exc.KRAKEN:
             self.clients[self.session_user_id][exchange] = KrakenAPI(keys["public_key"], keys["secret"])
         elif exchange==exc.BINANCE:
-            self.clients[self.session_user_id][exchange] = binance.Client(key,secret)
+            self.clients[self.session_user_id][exchange] = binance.Client(keys["public_key"], keys["secret"])
 
 
 
