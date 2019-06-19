@@ -694,6 +694,7 @@ class Client(object):
     # Account Endpoints
 
     def submit_order_buy(self, market, quantity, price):
+        print ("submit ", market, quantity, price)
         #side, type, quantity, price, 
         # timestamp
         #type': self.ORDER_TYPE_LIMIT,
@@ -704,7 +705,8 @@ class Client(object):
             return r
         except Exception as err:
             #archon.exchange.binance.BinanceAPIException: APIError(code=-1013): Filter failure: MIN_NOTIONAL
-            self.loggererror(err)
+            #self.loggererror(err)
+            print ("error ", err)
             return None
 
     def submit_order_sell(self, market, quantity, price):
@@ -801,8 +803,9 @@ class Client(object):
         """Get all open orders on a symbol"""
         return self._get('openOrders', True, data=params)
 
-    def cancel_order(self, **params):
-        """Cancel an active order. Either orderId or origClientOrderId must be sent"""
+    def cancel_order(self, symbol, orderId):
+        """Cancel an active order. orderId must be sent"""
+        params = {"symbol": symbol,"orderId": orderId}        
         r = self._delete('order', True, data=params)
         return r
 
