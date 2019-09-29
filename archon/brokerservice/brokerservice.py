@@ -120,8 +120,11 @@ class Brokerservice:
         return list(self.db.apikeys.find({"user_id": user_id}))
         
     def activate_session(self, user_id):
+        print ("activate_session")
         self.session_user_id = user_id
         self.session_active = True
+        print ("user_id ", user_id)
+        print ("session_active ", self.session_active)
         self.clients[user_id] = {}
     
     def set_client(self, exchange):
@@ -137,8 +140,9 @@ class Brokerservice:
         keys = tmp["apikeys"]
         self.logger.info("set api %s %s" %(str(exchange), keys["public_key"]))
         
-        print (self.clients)
+        print ("clients ",self.clients)
         if exchange==exc.BITMEX:            
+            print ("set bitmex")
             self.clients[self.session_user_id][exchange] = bitmex.BitMEX(apiKey=keys["public_key"], apiSecret=keys["secret"])
         elif exchange==exc.DELTA:
             self.clients[self.session_user_id][exchange] = DeltaRestClient(api_key=keys["public_key"], api_secret=keys["secret"])
@@ -154,6 +158,7 @@ class Brokerservice:
         if not self.session_active:
             raise Exception("no active session")
 
+        print (self.clients)
         return self.clients[self.session_user_id][exchange]
 
     # ----------------------------------

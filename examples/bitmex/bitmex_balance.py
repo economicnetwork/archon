@@ -4,7 +4,7 @@ import time
 
 import numpy
 from pymongo import MongoClient
-import archon.orders as orders
+#import archon.orders as orders
 import archon.broker as broker
 import archon.exchange.exchanges as exc
 from archon.exchange.bitmex.fields import *

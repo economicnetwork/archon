@@ -118,7 +118,9 @@ class CoinGeckoAPI:
         #['order', 'per_page', 'page', 'localization']
         api_url = self.__api_url_params(api_url, kwargs)
 
-        return self.__request(api_url)
+        r = self.__request(api_url)
+        print (r)
+        return r
 
 
     def get_coins_list(self):
@@ -221,8 +223,12 @@ class CoinGeckoAPI:
     @list_args_to_comma_separated
     def get_exchanges_by_id(self, id):
         """Get exchange volume in BTC and tickers"""
-
+        
         api_url = '{0}exchanges/{1}'.format(self.api_base_url, id)
+        #TODO fix
+        #kwargs = {"page": 100}
+        #api_url = self.__api_url_params(api_url, kwargs)
+        #print (api_url)
 
         return self.__request(api_url)
 

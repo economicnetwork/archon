@@ -124,14 +124,23 @@ class DeltaRestClient:
         )
         return response.json()
 
-    def get_orders(self, query=None):
+    def _get_orders_all(self, query=None):
         response = self._request(
             "GET",
             "orders",
             query=query,
             auth=True)
         orders = response.json()
-        orders = list(filter(lambda o: o["state"] == "open",orders))
+        return orders
+
+    def get_pending_orders(self):
+        orders = self._get_orders_all()
+        orders = list(filter(lambda o: o["st    ate"] == "pending",orders))        
+        return orders
+        
+    def get_orders(self, query=None):
+        orders = self._get_orders_all()
+        orders = list(filter(lambda o: o["state"] == "open",orders))        
         return orders
 
     def get_L2_orders(self, product_id):
