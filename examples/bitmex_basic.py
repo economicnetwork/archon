@@ -28,8 +28,35 @@ if __name__=='__main__':
         print ("client ", client)
         
         sym = mex.instrument_btc_perp
+
+        candles = client.trades_candle("XBTUSD", mex.candle_1d)
+        print (candles)
+        print (len(candles))
+
+        with open('bitmex_candles.csv','w') as f:
+            for x in candles:
+                f.write(str(x) + '\n')
+
+        """
         oo = client.open_orders(sym)
         print ("oo ",oo)
+
+        s1 = '2018-09-01T00:00:00.000Z'
+        f1 = client.funding(s1)
+        s2 = '2019-02-14T12:00:00.000Z'
+        f2 = client.funding(s2)
+        s3 = '2019-07-30T20:00:00.000Z'
+        f3 = client.funding(s3)
+
+        all = f1 + f2 + f3
+        print (len(all))
+        print (all[-1])
+
+        with open('bitmex_funding.csv','w') as f:
+            for x in all:
+                f.write(str(x) + '\n')
+
+        """
         
             
     except Exception as e:

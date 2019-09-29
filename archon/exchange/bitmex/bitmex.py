@@ -292,6 +292,21 @@ class BitMEX(object):
         #endTime = startTime + timedelta(hours=12)
         
 
+    def funding(self, starttime):
+        symbol = instrument_btc_perp
+        query = {
+            'symbol': symbol,
+            'startTime': starttime,
+            'count': 500
+            #,
+            #'timestamp': timestamp,
+            #'reverse': 'true'
+            #'count': 100
+            #'start': 0,
+            #'filter': 
+        }
+        return self._query_bitmex(path="funding", query=query)
+
     @authentication_required
     def position(self):
         """Position : Summary of Open and Closed Positions"""
