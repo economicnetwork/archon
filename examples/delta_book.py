@@ -10,7 +10,8 @@ import archon.exchange.exchanges as exc
 
 import os
 brk = Brokerservice()
-user_email = os.environ["USER_EMAIL"]
+user_email = "ben"
+#os.environ["USER_EMAIL"]
 brk.activate_session(user_email)
 brk.set_client(exc.DELTA)
 delta_client = brk.get_client(exc.DELTA)
@@ -48,8 +49,9 @@ def show_products():
     for x in p:        
         print (x["id"],x["description"],x["symbol"])
 
-all_info = ""
-all_info += show_book(btc_march) + "<br>"
-all_info += show_book(btc_june) + "<br>"
-all_info += show_book(btc_march_quanto) + "<br>"
-send_mail_report(all_info)
+#all_info = ""
+#all_info += show_book(btc_march) + "<br>"
+#all_info += show_book(btc_june) + "<br>"
+#all_info += show_book(btc_march_quanto) + "<br>"
+#send_mail_report(all_info)
+show_book()

@@ -10,13 +10,27 @@ from archon.brokerservice.brokerservice import Brokerservice
 import archon.exchange.exchanges as exc
 
 
-brk = Brokerservice()
+#brk = Brokerservice()
+abroker = Brokerservice() #setAuto=True)
+
 user_email = "ben@enet.io" #os.environ["USER_EMAIL"]
+
+abroker.set_apikeys_fromfile(user_id="ben")
+abroker.activate_session(user_id="ben")
+
+abroker.set_client(exc.DELTA)
+client = abroker.get_client(exc.DELTA)
+print (client)
+
+prd = client.get_products()
+print ("products ",prd)
+
+
+"""
+
 brk.activate_session(user_email)
 brk.set_client(exc.DELTA)
 delta_client = brk.get_client(exc.DELTA)
-prd = delta_client.get_products()
-#print (prd)
 
 def calc_cum(orders, amount):
     z = 0
@@ -56,3 +70,4 @@ for p in prd[:]:
     pid = p["id"]
     info = show_book(pid, depth)
     print (p["symbol"],p["id"],info)
+"""
