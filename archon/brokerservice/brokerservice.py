@@ -158,7 +158,7 @@ class Brokerservice:
         if not self.session_active:
             raise Exception("no active session")
 
-        print (self.clients)
+        #print (self.clients)
         return self.clients[self.session_user_id][exchange]
 
     # ----------------------------------
