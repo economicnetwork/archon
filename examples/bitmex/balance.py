@@ -10,8 +10,18 @@ import archon.exchange.exchanges as exc
 from archon.exchange.bitmex.fields import *
 import archon.model.models as m
 
-abroker = broker.Broker()
-abroker.set_active_exchanges([exc.BITMEX])
+from archon.brokerservice.brokerservice import Brokerservice
+import archon.exchange.bitmex.bitmex as mex
+import time
+
+abroker = Brokerservice()
+user_email = "ben@enet.io"
+
+abroker.set_apikeys_fromfile(user_id="ben")
+abroker.activate_session(user_id="ben")
+
+abroker.set_client(exc.BITMEX)
+client = abroker.get_client(exc.BITMEX)
 
 def show_desc(pos):    
     #print (pos['currentQty'])
@@ -38,7 +48,6 @@ def show():
 
 
 if __name__ == '__main__': 
-    print ("show balance")
-    client = abroker.afacade.get_client(exc.BITMEX) 
+    print ("show balance")    
     #while True:
     show()
