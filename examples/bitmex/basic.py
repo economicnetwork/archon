@@ -6,17 +6,19 @@ import archon.exchange.exchanges as exc
 from archon.brokerservice.brokerservice import Brokerservice
 import archon.exchange.bitmex.bitmex as mex
 import time
+from util import *
 
-abroker = Brokerservice()
-user_email = "ben@enet.io"
+broker = Brokerservice()
 
-abroker.set_apikeys_fromfile(user_id="ben")
-abroker.activate_session(user_id="ben")
+def setup_broker():
+    user_id = parse_toml("conf.toml")["user_id"]
+    broker.set_apikeys_fromfile(user_id)
+    broker.activate_session(user_id)
+    broker.set_client(exc.BITMEX)  
+    return broker
 
-abroker.set_client(exc.BITMEX)
-
-def top_book():
-    mex_client = abroker.get_client(exc.BITMEX)
+def top_book():  
+    mex_client = broker.get_client(exc.BITMEX)
     book = mex_client.market_depth(mex.instrument_btc_perp)
     mex_bids,mex_asks = [b for b in book if b['side']=='Buy'],[b for b in book if b['side']=='Sell']
 
@@ -26,7 +28,8 @@ def top_book():
     mid_mex = (topbid_mex + topask_mex)/2
     print (topbid_mex,topask_mex,mid_mex)
 
-if __name__=='__main__':
+if __name__=='__main__':   
+    setup_broker() 
     while True:
         top_book()
         time.sleep(5)
