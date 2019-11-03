@@ -108,7 +108,7 @@ class DeribitWrapper(object):
         sig += base64.b64encode(sha256.digest()).decode("utf-8")
         return sig
 
-    def getorderbook(self, instrument):
+    def get_orderbook(self, instrument):
         return self._deri_request(base_public_api + "getorderbook", {'instrument': instrument})
 
     def json_depth(self, instrument):

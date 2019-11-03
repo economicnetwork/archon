@@ -25,7 +25,7 @@ from archon.exchange.delta.delta_rest_client import DeltaRestClient, create_orde
 from archon.exchange.bitmex import bitmex
 from archon.exchange.kraken import KrakenAPI
 import archon.exchange.binance as binance
-
+from archon.exchange.deribit.Wrapper import DeribitWrapper
 
 class Brokerservice:
 
@@ -102,6 +102,7 @@ class Brokerservice:
             #print (api_keys)
             self.db.apikeys.drop()
             for k,v in api_keys.items():
+                print (k)
                 self.store_apikey(k, v["public_key"], v["secret"], user_id)
                 #pass
         except:
@@ -151,6 +152,8 @@ class Brokerservice:
             self.clients[self.session_user_id][exchange] = KrakenAPI(keys["public_key"], keys["secret"])
         elif exchange==exc.BINANCE:
             self.clients[self.session_user_id][exchange] = binance.Client(keys["public_key"], keys["secret"])
+        elif exchange==exc.DERIBIT:
+            self.clients[self.session_user_id][exchange] = DeribitWrapper(keys["public_key"], keys["secret"])
 
 
 

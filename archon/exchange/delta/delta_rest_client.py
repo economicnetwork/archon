@@ -263,7 +263,18 @@ class DeltaRestClient:
             'page_size' : 100
         }
         response = self._request("GET","fills",query=query, auth=True)
-        return response.json()   
+        return response.json()
+
+    def get_products():
+        prd = delta_client.get_products()
+        prds = {}
+        for p in prd:
+            #print (p['id'],p['symbol'],p['description'])
+            prds[p['symbol']] = p['id']
+
+        return prds
+
+   
 
 
 def create_order_format(price, size, side, product_id, post_only='false'):
