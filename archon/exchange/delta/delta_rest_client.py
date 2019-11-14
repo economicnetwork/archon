@@ -174,6 +174,15 @@ class DeltaRestClient:
         response = self._request("GET","orders/history",query=query, auth=True)
         return response.json()
 
+    """
+    def order_history(self):
+        query = {
+            'page_num' : 1,
+            'page_size' : 100
+        }
+        response = self._request("GET","orders/history",query=query, auth=True)
+        return response
+    """
 
     def get_price_history(self, symbol, duration=5, resolution=1):
         if duration/resolution >= 500:
@@ -249,14 +258,6 @@ class DeltaRestClient:
             auth=True)
         return response.json()
 
-    def order_history(self):
-        query = {
-            'page_num' : 1,
-            'page_size' : 100
-        }
-        response = self._request("GET","orders/history",query=query, auth=True)
-        return response
-
     def fills(self):
         query = {
             'page_num' : 1,
@@ -265,8 +266,8 @@ class DeltaRestClient:
         response = self._request("GET","fills",query=query, auth=True)
         return response.json()
 
-    def get_products():
-        prd = delta_client.get_products()
+    def get_products_dict(self):
+        prd = self.get_products()
         prds = {}
         for p in prd:
             #print (p['id'],p['symbol'],p['description'])

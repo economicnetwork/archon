@@ -90,7 +90,8 @@ class SwapAPI(Client):
         return self._request_without_params(GET, SWAP_INSTRUMENTS+'/'+str(instrument_id)+'/depth')
 
     def get_ticker(self):
-        return self._request_without_params(GET, SWAP_TICKETS)
+        result = self._request_without_params(GET, SWAP_TICKETS)
+        return result
 
     def get_specific_ticker(self, instrument_id):
         return self._request_without_params(GET, SWAP_INSTRUMENTS+'/'+str(instrument_id)+'/ticker')

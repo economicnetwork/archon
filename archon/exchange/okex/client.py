@@ -1,7 +1,8 @@
 import requests
 import json
 from . import consts as c, utils, exceptions
-
+from archon.util.custom_logger import setup_logger
+import logging
 
 class Client(object):
 
@@ -12,9 +13,12 @@ class Client(object):
         self.PASSPHRASE = passphrase
         self.use_server_time = use_server_time
 
+        setup_logger(logger_name="okex", log_file='okex.log')
+        self.logger = logging.getLogger("okex")
+
 
     def _request(self, method, request_path, params, cursor=False):
-
+        self.logger.info("request %s %s"%(method, request_path))
         if method == c.GET:
             request_path = request_path + utils.parse_params_to_str(params)
         # url
