@@ -22,7 +22,7 @@ class Client(object):
         if method == c.GET:
             request_path = request_path + utils.parse_params_to_str(params)
         # url
-        url = c.API_URL + request_path
+        url = c.API_URL + request_path        
 
         timestamp = utils.get_timestamp()
         # sign & header
@@ -30,17 +30,24 @@ class Client(object):
             timestamp = self._get_timestamp()
         body = json.dumps(params) if method == c.POST else ""
 
-        sign = utils.sign(utils.pre_hash(timestamp, method, request_path, str(body)), self.API_SECRET_KEY)
+        print (timestamp)
+        shash = utils.pre_hash(timestamp, method, request_path, str(body))
+        self.logger.info("hash %s"%shash)
+        sign = utils.sign(shash, self.API_SECRET_KEY)
         header = utils.get_header(self.API_KEY, sign, timestamp, self.PASSPHRASE)
 
         # send request
         response = None
-        #print("url:", url)
-        #print("headers:", header)
+        print("url:", url)
+        print ("method ", method)
+        print("headers:", header)
         #print("body:", body)
         if method == c.GET:
             response = requests.get(url, headers=header)
         elif method == c.POST:
+            print ("URL ", url)
+            print ("request ", header)
+            print ("request ", body)
             response = requests.post(url, data=body, headers=header)
             #response = requests.post(url, json=body, headers=header)
         elif method == c.DELETE:
