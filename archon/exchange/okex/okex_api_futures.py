@@ -82,7 +82,7 @@ class OkexFutures:
         return response.json()
 
     def __post(self, request_path, params):
-        server_time = requests.get(base_url + 'api/general/v3/time')
+        server_time = requests.get(base_url + '/api/general/v3/time')
         timestamp = json.loads(server_time.text)['iso']
         request_path = request_path + self.__parse_params_to_str(params)
         url = base_url + request_path
@@ -93,3 +93,32 @@ class OkexFutures:
 
     def get_position(self):
         return self.__get('/api/futures/v3/position')
+
+    def order_list(self, instrument_id):    
+        state = '0' #Order Status: -2 = Failed -1 = Canceled 0 = Open 1 = Partially Filled 2 = Fully Filled 3 = Submitting 4 = Canceling 6 = Incomplete (open + partially filled) 7 = Complete (canceled + fully filled)
+        path = "/api/futures/v3/orders/" + instrument_id
+        params = {'state': state}
+        return self.__get(path, params)
+
+
+    def submit_example(self, instrument_id, price):
+        """
+        #instrument_id	String Yes Contract ID,e.g. BTC-USD-180213 ,BTC-USDT-191227
+        type	String	Yes	1:open long 2:open short 3:close long 4:close short
+        price	String	Yes	Price of each contract
+        size	String	Yes	The buying or selling quantity
+        """        
+        otype = '1'
+        size = '10'
+        params = {'instrument_id': instrument_id, 'type': otype, 'price': price, 'size': size}
+        result = self.__post('/api/futures/v3/order', params)
+        print ("result ", result)
+
+    def orderbook(self, instrument_id):
+        #GET /api/futures/v3/instruments/<instrument_id>/book
+        params = {'instrument_id': instrument_id}
+        path = "/api/futures/v3/instruments/" + instrument_id + "/book"
+        params = {'size': 2}
+        result = self.__get(path, params)
+        return result
+

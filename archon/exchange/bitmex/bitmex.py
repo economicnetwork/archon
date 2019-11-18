@@ -34,6 +34,8 @@ candle_1d = '1d'
 instrument_btc_perp = "XBTUSD"
 instrument_btc_mar19 = "XBTH19"
 instrument_btc_jun19 = "XBTM19"
+instrument_btc_dec19 = "XBTZ19"
+instrument_btc_mar20 = "XBTH20"
 
 class ConnectionError(Exception):
     def __init__(self, message): #, errors):

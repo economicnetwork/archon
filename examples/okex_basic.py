@@ -1,55 +1,76 @@
-import json
-
-import archon.exchange.exchanges as exc
-from archon.brokerservice.brokerservice import Brokerservice
+from archon.exchange.okex.okex_api_spot import *
+from archon.exchange.okex.okex_api_futures import *
 from archon.broker.config import get_keys
-import archon.exchange.okex.account_api as account
-import archon.exchange.okex.ett_api as ett
-import archon.exchange.okex.futures_api as future
-import archon.exchange.okex.lever_api as lever
-import archon.exchange.okex.spot_api as spot
-import archon.exchange.okex.swap_api as swap
-
+import archon.exchange.exchanges as exc
 
 keys = get_keys(exc.OKEX)
-
 apikey = keys["public_key"]
 secret = keys["secret"]
 password = keys["password"]
 
-def get_market(target):
-    market_list = list()
-    t = spotapi.get_ticker()
-    for x in t:
-        s = x["instrument_id"]
-        ac,dc = s.split('-')
-        v = int(float(x["quote_volume_24h"]))
-        #print (ac,dc,v)
-        if dc == target:
-            market_list.append([ac,dc,v])
-    return market_list
 
+fund_password = ""
 
-if __name__ == '__main__':
+############# Usage #############
 
-    api_key = apikey
-    seceret_key = secret
-    passphrase = password
+#okex = OkexSpot(api_key, secret_key, passphrase, fund_password)
+okex = OkexFutures(apikey, secret, password, fund_password)
+pos = okex.get_position()['holding'][0]
+for x in pos:
+    print (x['long_qty'],x['instrument_id'],x['realised_pnl'],x['long_unrealised_pnl'])
 
-    accountAPI = account.AccountAPI(api_key, seceret_key, passphrase, True)
-    currencies = accountAPI.get_currencies()
-    
-    #for x in currencies:
-    #    print (x)
+#okex = Okex(api_key, secret_key, passphrase, fund_password)
+#w = okex.wallet()
+#print (w)
 
-    spotapi = spot.SpotAPI(api_key, seceret_key, passphrase, True)
-    result = spotapi.get_account_info()
-    prices = {"BTC": 5000, "USDT": 1, "ETH": 160}
-    for underlying in ["BTC", "USDT", "ETH"]:
-        market_list = get_market(underlying)
-        sumv = 0
-        for x in market_list:
-            #print (x)
-            price = prices[underlying]
-            sumv += x[2]* price
-        print (underlying, " ", sumv)
+#print(okex.spot_account())
+#print(okex.currencies())
+#print(okex.wallet())
+
+### Wallet ###
+
+"""
+print(okex.currencies())
+print(okex.wallet('LSK'))
+print(okex.withdrawal_fee())
+print(okex.withdrawal_fee('ETH'))
+print(okex.withdrawal_history())
+print(okex.withdrawal_history('ETH'))
+print(okex.ledger())
+print(okex.deposit_address('ETH'))
+print(okex.deposit_history())
+print(okex.deposit_history('ETH'))
+"""
+
+#print(okex.get_all_open_orders())
+
+### Trading Spot ###
+
+"""
+print(okex.spot_account())
+print(okex.spot_account('ETH'))
+print(okex.spot_ledger('ETH'))
+print(okex.spot_ledger('ETH', limit='2'))
+print(okex.place_limit_buy_order('LSK/USDT', '4', '1'))
+print(okex.place_limit_sell_order('LSK/USDT', '3', '1'))
+print(okex.place_market_buy_order('LSK/USDT', '1'))
+print(okex.place_market_sell_order('LSK/USDT', '1'))
+print(okex.cancel_order(1648986843587584, 'LSK/USDT'))
+print(okex.get_order_list('all', 'LSK/USDT'))
+print(okex.get_all_open_orders())
+print(okex.get_all_open_orders('LSK/USDT'))
+print(okex.get_order_details(1648986843587584, 'LSK/USDT'))
+print(okex.get_transaction_details(1648986843587584, 'LSK/USDT'))
+print(okex.get_markets_details())
+print(okex.get_orderbook('LSK/USDT'))
+print(okex.get_orderbook('LSK/USDT', size='10'))
+print(okex.get_orderbook('LSK/USDT', depth='0.0001'))
+print(okex.get_ticker())
+print(okex.get_ticker('LSK/USDT'))
+print(okex.get_trades_details('LSK/jUSDT'))
+print(okex.get_trades_details('LSK/USDT', limit='2'))
+print(okex.get_candles('LSK/USDT', TimeFrame.H4))
+start_time = datetime.datetime.utcnow() - datetime.timedelta(seconds=3600)
+end_time = datetime.datetime.utcnow()
+print(okex.get_candles('LSK/USDT', TimeFrame.M1, start_time, end_time))
+"""
